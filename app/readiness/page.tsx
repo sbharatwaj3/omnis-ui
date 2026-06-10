@@ -1,0 +1,498 @@
+// omnis-ui/app/readiness/page.tsx
+// FDA Submission Readiness — Traceability Matrix & Gap Analysis
+//
+// React Server Component. Fetches the full regulatory_rules table and embeds
+// the matching evidence_logs rows for each rule using PostgREST's foreign key
+// embed syntax. Parses each rule into three compliance states and renders the
+// full gap analysis matrix.
+//
+// CONSTITUTION ALIGNMENT:
+// - Uses @supabase/ssr createClient (session-aware, RLS-respecting)
+// - Strictly matches the DDL schema: regulatory_rules.req_id PK,
+//   evidence_logs.req_id FK → regulatory_rules.req_id
+// - Compliant state requires approved_by IS NOT NULL (21 CFR Part 11 §11.100)
+// - No cross-schema joins — auth.users is never touched here
+//
+// force-dynamic: disables Next.js static/ISR caching so every request fetches
+// a fresh snapshot from Supabase. Required after any DB backfill so the page
+// never serves a stale cached empty state.
+export const dynamic = "force-dynamic";
+
+import { Suspense } from "react";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { GenerateReportButton } from "@/components/generate-report-button";
+import {
+  ShieldCheck,
+  Activity,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  FileText,
+} from "lucide-react";
+import { createClient } from "@/utils/supabase/server";
+
+// ---------------------------------------------------------------------------
+// Types — strictly match the Constitution's DDL schema
+// ---------------------------------------------------------------------------
+
+interface EvidenceLogEmbed {
+  log_id: string;
+  approved_by: string | null;
+}
+
+interface RegulatoryRuleRow {
+  req_id: string;
+  rule_source: string;
+  description: string | null;
+  evidence_type: string | null;
+  evidence_logs: EvidenceLogEmbed[];
+}
+
+// ---------------------------------------------------------------------------
+// Compliance state — derived per rule from its embedded evidence_logs
+// ---------------------------------------------------------------------------
+
+type ComplianceState = "Compliant" | "Pending Approval" | "Missing";
+
+interface ParsedRule {
+  req_id: string;
+  rule_source: string;
+  description: string | null;
+  evidence_type: string | null;
+  state: ComplianceState;
+  logCount: number;
+  approvedCount: number;
+}
+
+// ---------------------------------------------------------------------------
+// STATE CLASSIFIER
+// Compliant:        ≥1 log with approved_by IS NOT NULL  (21 CFR Part 11 signed)
+// Pending Approval: ≥1 log but all have approved_by NULL (unsigned evidence)
+// Missing:          No evidence_logs at all
+// ---------------------------------------------------------------------------
+
+function classifyRule(rule: RegulatoryRuleRow): ParsedRule {
+  const logs = rule.evidence_logs ?? [];
+  const approvedCount = logs.filter((l) => l.approved_by !== null).length;
+
+  let state: ComplianceState;
+  if (logs.length === 0) {
+    state = "Missing";
+  } else if (approvedCount > 0) {
+    state = "Compliant";
+  } else {
+    state = "Pending Approval";
+  }
+
+  return {
+    req_id: rule.req_id,
+    rule_source: rule.rule_source,
+    description: rule.description,
+    evidence_type: rule.evidence_type,
+    state,
+    logCount: logs.length,
+    approvedCount,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// DATA FETCHING
+// Uses PostgREST foreign key embed: evidence_logs has req_id FK → regulatory_rules
+// The embed returns an array of matching evidence_logs for each rule.
+// Only log_id and approved_by are selected — no auth.users join.
+// ---------------------------------------------------------------------------
+
+async function fetchReadinessData(): Promise<ParsedRule[]> {
+  const supabase = await createClient();
+
+  // Resolve the authenticated user first — defence-in-depth.
+  // RLS on evidence_logs (enforced via the FK embed) already filters to the
+  // current user's logs, but we guard here too so an unauthenticated render
+  // returns an empty array rather than a Supabase permission error.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("regulatory_rules")
+    .select("req_id, rule_source, description, evidence_type, evidence_logs(log_id, approved_by)")
+    .neq("rule_source", "SEED-TEST-DEPRECATED")
+    .order("req_id", { ascending: true });
+
+  if (error) {
+    console.error("Supabase error fetching readiness data:", {
+      code: error.code,
+      message: error.message,
+      hint: error.hint,
+    });
+    return [];
+  }
+
+  return (data as unknown as RegulatoryRuleRow[]).map(classifyRule);
+}
+
+// ---------------------------------------------------------------------------
+// BADGE COMPONENTS
+// ---------------------------------------------------------------------------
+
+function StateBadge({ state }: { state: ComplianceState }) {
+  if (state === "Compliant") {
+    return (
+      <Badge className="border border-emerald-200 bg-emerald-100 font-semibold text-emerald-800 hover:bg-emerald-100">
+        ● Compliant
+      </Badge>
+    );
+  }
+  if (state === "Pending Approval") {
+    return (
+      <Badge className="border border-amber-200 bg-amber-100 font-medium text-amber-800 hover:bg-amber-100">
+        ● Pending Approval
+      </Badge>
+    );
+  }
+  return (
+    <Badge className="border border-red-200 bg-red-100 font-semibold text-red-700 hover:bg-red-100">
+      ● Missing
+    </Badge>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// RULE ROW — single requirement entry inside an accordion section
+// ---------------------------------------------------------------------------
+
+function RuleRow({ rule }: { rule: ParsedRule }) {
+  const icon =
+    rule.state === "Compliant" ? (
+      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+    ) : rule.state === "Pending Approval" ? (
+      <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+    ) : (
+      <XCircle className="h-4 w-4 shrink-0 text-red-500" />
+    );
+
+  return (
+    <div className="flex items-start gap-3 border-b border-zinc-100 py-3 last:border-0">
+      <div className="mt-0.5">{icon}</div>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-xs font-semibold text-zinc-700">
+            {rule.req_id}
+          </span>
+          {rule.evidence_type && (
+            <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500">
+              {rule.evidence_type}
+            </span>
+          )}
+        </div>
+        {rule.description && (
+          <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
+            {rule.description}
+          </p>
+        )}
+        <p className="mt-1 text-[10px] text-zinc-400">
+          {rule.logCount} evidence log{rule.logCount !== 1 ? "s" : ""}
+          {rule.approvedCount > 0
+            ? ` · ${rule.approvedCount} approved`
+            : rule.logCount > 0
+              ? " · none approved"
+              : ""}
+          {" · "}
+          <span className="text-zinc-400">{rule.rule_source}</span>
+        </p>
+      </div>
+      <div className="shrink-0">
+        <StateBadge state={rule.state} />
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// READINESS CONTENT — the main async Server Component
+// ---------------------------------------------------------------------------
+
+async function ReadinessContent() {
+  const rules = await fetchReadinessData();
+
+  const total = rules.length;
+  const compliant = rules.filter((r) => r.state === "Compliant").length;
+  const pending = rules.filter((r) => r.state === "Pending Approval").length;
+  const missing = rules.filter((r) => r.state === "Missing").length;
+  const completionPercent = total > 0 ? (compliant / total) * 100 : 0;
+
+  const compliantRules = rules.filter((r) => r.state === "Compliant");
+  const pendingRules = rules.filter((r) => r.state === "Pending Approval");
+  const missingRules = rules.filter((r) => r.state === "Missing");
+
+  if (total === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 text-center">
+        <FileText className="mb-4 h-12 w-12 text-zinc-300" />
+        <h2 className="text-lg font-semibold text-zinc-700">
+          No Regulatory Requirements Found
+        </h2>
+        <p className="mt-2 max-w-sm text-sm text-zinc-400">
+          The regulatory_rules table is empty. Seed it using the seed_db.py
+          script in omnis-api/scripts/.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* ------------------------------------------------------------------ */}
+      {/* HEADER ROW: completion % + generate button                          */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+            Traceability Matrix
+          </h2>
+          <p className="mt-1 text-sm text-zinc-400">
+            {compliant} of {total} requirements satisfied ·{" "}
+            {completionPercent.toFixed(1)}% submission-ready
+          </p>
+        </div>
+        <GenerateReportButton completionPercent={completionPercent} />
+      </div>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* PROGRESS BAR                                                         */}
+      {/* ------------------------------------------------------------------ */}
+      <Card className="border-zinc-200 shadow-sm">
+        <CardContent className="pt-6 pb-5">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              FDA Submission Readiness
+            </span>
+            <span
+              className={`text-2xl font-bold tabular-nums ${
+                completionPercent === 100
+                  ? "text-emerald-600"
+                  : completionPercent >= 50
+                    ? "text-amber-600"
+                    : "text-red-600"
+              }`}
+            >
+              {completionPercent.toFixed(1)}%
+            </span>
+          </div>
+          <Progress
+            value={completionPercent}
+            className="h-3 bg-zinc-100"
+          />
+          <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-500">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+              {compliant} Compliant
+            </span>
+            <span className="flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+              {pending} Pending Approval
+            </span>
+            <span className="flex items-center gap-1.5">
+              <XCircle className="h-3.5 w-3.5 text-red-500" />
+              {missing} Missing Evidence
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* BREAKDOWN ACCORDION                                                  */}
+      {/* ------------------------------------------------------------------ */}
+      <Accordion
+        type="multiple"
+        defaultValue={["missing", "pending"]}
+        className="space-y-3"
+      >
+        {/* MISSING — highest priority gap, open by default */}
+        {missingRules.length > 0 && (
+          <AccordionItem
+            value="missing"
+            className="rounded-xl border border-red-200 bg-white shadow-sm overflow-hidden"
+          >
+            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-red-50/40 [&[data-state=open]]:bg-red-50/40">
+              <div className="flex items-center gap-3">
+                <XCircle className="h-4 w-4 text-red-500" />
+                <span className="text-sm font-semibold text-zinc-800">
+                  Missing Evidence
+                </span>
+                <span className="rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                  {missingRules.length}
+                </span>
+              </div>
+              <p className="ml-7 mt-0.5 text-left text-xs text-zinc-400">
+                No evidence logs exist for these requirements. These are your
+                critical submission blockers.
+              </p>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-4 pt-0">
+              <Separator className="mb-3 bg-red-100" />
+              {missingRules.map((rule) => (
+                <RuleRow key={rule.req_id} rule={rule} />
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {/* PENDING APPROVAL — evidence exists but unsigned */}
+        {pendingRules.length > 0 && (
+          <AccordionItem
+            value="pending"
+            className="rounded-xl border border-amber-200 bg-white shadow-sm overflow-hidden"
+          >
+            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-amber-50/40 [&[data-state=open]]:bg-amber-50/40">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                <span className="text-sm font-semibold text-zinc-800">
+                  Pending Approval
+                </span>
+                <span className="rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                  {pendingRules.length}
+                </span>
+              </div>
+              <p className="ml-7 mt-0.5 text-left text-xs text-zinc-400">
+                Evidence logs exist but have not been digitally signed under
+                21 CFR Part 11. Open each log and click "Approve &amp; Lock".
+              </p>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-4 pt-0">
+              <Separator className="mb-3 bg-amber-100" />
+              {pendingRules.map((rule) => (
+                <RuleRow key={rule.req_id} rule={rule} />
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {/* COMPLIANT — closed by default to reduce noise */}
+        {compliantRules.length > 0 && (
+          <AccordionItem
+            value="compliant"
+            className="rounded-xl border border-emerald-200 bg-white shadow-sm overflow-hidden"
+          >
+            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-emerald-50/30 [&[data-state=open]]:bg-emerald-50/30">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <span className="text-sm font-semibold text-zinc-800">
+                  Compliant
+                </span>
+                <span className="rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                  {compliantRules.length}
+                </span>
+              </div>
+              <p className="ml-7 mt-0.5 text-left text-xs text-zinc-400">
+                Requirements with at least one digitally signed evidence log.
+                No action required.
+              </p>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-4 pt-0">
+              <Separator className="mb-3 bg-emerald-100" />
+              {compliantRules.map((rule) => (
+                <RuleRow key={rule.req_id} rule={rule} />
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        )}
+      </Accordion>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// LOADING SKELETON
+// ---------------------------------------------------------------------------
+
+function ReadinessSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="h-6 w-48 animate-pulse rounded bg-zinc-200" />
+          <div className="h-3 w-64 animate-pulse rounded bg-zinc-100" />
+        </div>
+        <div className="h-9 w-48 animate-pulse rounded-lg bg-zinc-200" />
+      </div>
+      <Card className="border-zinc-200">
+        <CardContent className="pt-6 pb-5">
+          <div className="mb-2 flex justify-between">
+            <div className="h-3 w-40 animate-pulse rounded bg-zinc-200" />
+            <div className="h-6 w-16 animate-pulse rounded bg-zinc-200" />
+          </div>
+          <div className="h-3 animate-pulse rounded-full bg-zinc-100" />
+        </CardContent>
+      </Card>
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="h-16 animate-pulse rounded-xl bg-zinc-100" />
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PAGE EXPORT
+// ---------------------------------------------------------------------------
+
+export default function ReadinessPage() {
+  return (
+    <div className="min-h-screen bg-zinc-50">
+      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="mx-auto flex max-w-7xl items-center px-8 py-5">
+          {/* Left: logo */}
+          <div className="flex items-center gap-2 shrink-0">
+            <ShieldCheck className="h-6 w-6 text-zinc-800" strokeWidth={1.75} />
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight text-zinc-900">
+                Omnis RegOps
+              </h1>
+              <p className="text-xs text-zinc-400">FDA Submission Readiness</p>
+            </div>
+          </div>
+
+          {/* Centre: Back to Dashboard — same position as Compliance Matrix on the dashboard */}
+          <div className="flex flex-1 justify-center">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-5 py-2 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
+            >
+              Back to Dashboard
+            </Link>
+          </div>
+
+          {/* Right: informational badge */}
+          <span className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none shrink-0">
+            <Activity className="h-3.5 w-3.5 text-emerald-500" />
+            <span className="text-xs font-medium text-zinc-600">
+              IEC 62304 · 21 CFR Part 11
+            </span>
+          </span>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="mx-auto max-w-7xl px-8 py-10">
+        <Suspense fallback={<ReadinessSkeleton />}>
+          <ReadinessContent />
+        </Suspense>
+      </main>
+    </div>
+  );
+}

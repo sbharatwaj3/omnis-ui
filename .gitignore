@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Duplicate/legacy artifacts — not part of the deployable app
+src/
+public/fda_template.tex

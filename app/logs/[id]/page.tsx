@@ -18,7 +18,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
 import { ApproveLogButton } from "@/components/approve-log-button";
 import {
   ShieldCheck,
@@ -31,10 +30,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   HelpCircle,
-  FileText,
+  LayoutList,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
-import { adminClient } from "@/utils/supabase/admin";
 
 // ---------------------------------------------------------------------------
 // Types — strictly match the Constitution's DDL schema
@@ -135,18 +133,21 @@ async function fetchLogDetail(id: string): Promise<{
     );
   }
 
-  // Resolve the approver email using the service-role admin client.
-  // PostgREST blocks direct joins to auth.users, so auth.admin.getUserById
-  // is the only safe server-side path for this lookup.
+  // Resolve the approver email from the public users table.
+  // approved_by stores a user_id UUID referencing public.users — NOT auth.users.
+  // Query the users table directly for the developer_email field.
   let approverEmail: string | null = null;
   const typedLog = log as unknown as EvidenceLogFull;
   if (typedLog.approved_by) {
-    const { data: adminData, error: adminError } =
-      await adminClient.auth.admin.getUserById(typedLog.approved_by);
-    if (adminError) {
-      console.error("Admin email lookup failed:", adminError.message);
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("developer_email")
+      .eq("user_id", typedLog.approved_by)
+      .maybeSingle();
+    if (userError) {
+      console.error("Approver email lookup failed:", userError.message);
     } else {
-      approverEmail = adminData?.user?.email ?? null;
+      approverEmail = userData?.developer_email ?? null;
     }
   }
 
@@ -281,7 +282,7 @@ async function ForensicContent({ id }: { id: string }) {
           . It may have been deprecated or never ingested.
         </p>
         <Link
-          href="/"
+          href="/dashboard"
           className="mt-6 inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50"
         >
           ← Back to Dashboard
@@ -343,7 +344,7 @@ async function ForensicContent({ id }: { id: string }) {
         {/* Breadcrumb */}
         <nav className="mb-4 flex items-center gap-1.5 text-xs text-zinc-400">
           <Link
-            href="/"
+            href="/dashboard"
             className="transition-colors hover:text-zinc-700"
           >
             Dashboard
@@ -391,16 +392,13 @@ async function ForensicContent({ id }: { id: string }) {
               approvedAt={log.approved_at}
               approverEmail={approverEmail}
             />
-            <Button
-              disabled
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2 border-zinc-300 text-zinc-500 opacity-60 cursor-not-allowed"
-              title="LaTeX report compilation — coming soon"
+            <Link
+              href="/readiness"
+              className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 shadow-sm transition-colors hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-800"
             >
-              <FileText className="h-3.5 w-3.5" />
-              Compile Regulatory Report
-            </Button>
+              <LayoutList className="h-3.5 w-3.5" />
+              View Traceability Matrix
+            </Link>
           </div>
         </div>
       </div>
@@ -703,7 +701,7 @@ export default async function LogDetailPage({ params }: PageProps) {
       {/* Header */}
       <header className="border-b border-zinc-200 bg-white px-8 py-5">
         <div className="mx-auto flex max-w-7xl items-center gap-3">
-          <Link href="/" className="flex items-center gap-3 group">
+          <Link href="/dashboard" className="flex items-center gap-3 group">
             <ShieldCheck
               className="h-6 w-6 text-zinc-800 transition-colors group-hover:text-zinc-600"
               strokeWidth={1.75}

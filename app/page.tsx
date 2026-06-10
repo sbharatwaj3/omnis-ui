@@ -1,500 +1,546 @@
+"use client";
 // omnis-ui/app/page.tsx
-// FDA Assurance Dashboard — Phase 1 (Live Matrix) + Phase 2 (Executive Telemetry)
+// Omnis MedTech Corp — Public Marketing Landing Page
 //
-// This is a React Server Component. Data is fetched at request time on the
-// server — no useEffect, no client-side loading spinners for the initial render.
-// Next.js Suspense boundaries handle graceful loading states.
+// Client Component — reads Supabase auth state to dynamically route CTAs.
+//
+// Session-aware routing:
+//   Authenticated   → Sign In / View Compliance Matrix → /dashboard
+//                   → Get Started (bottom CTA)         → /dashboard
+//   Unauthenticated → Sign In / View Compliance Matrix → /login
+//                   → Get Started (bottom CTA)         → /signup
+//
+// Sections:
+//   1. Header         — logo + Sign In only (no nav links)
+//   2. Hero           — headline, sub-headline, trust badges (no CTA buttons)
+//   3. How It Works   — 3-step pipeline
+//   4. Product Preview — browser mockup with mini matrix + activity feed
+//   5. Bottom CTA     — "Ready to automate your regulatory pipeline?"
+//   6. Footer
 
-import { Suspense } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { createClient } from "@/utils/supabase/client";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ShieldCheck, Activity, AlertTriangle, CheckCircle2, BarChart3 } from "lucide-react";
-import { createClient } from "@/utils/supabase/server";
-import { ClickableTableRow } from "@/components/clickable-table-row";
+  ShieldCheck,
+  GitBranch,
+  Network,
+  FileCheck2,
+  ArrowRight,
+  CheckCircle,
+  CheckCircle2,
+  Circle,
+  Zap,
+} from "lucide-react";
 
 // ---------------------------------------------------------------------------
-// Database row types — strictly match the Constitution's DDL schema.
+// Static data
 // ---------------------------------------------------------------------------
 
-interface EvidenceLogRow {
-  log_id: string;
-  execution_timestamp: string;
-  execution_status: string;
-  raw_command: string;
-  event_source: string;
-}
+const steps = [
+  {
+    icon: GitBranch,
+    step: "01",
+    title: "Push Code",
+    description:
+      "Every commit to main triggers the omnis-run CI/CD wrapper, capturing test execution in real time.",
+  },
+  {
+    icon: Network,
+    step: "02",
+    title: "Automated Traceability",
+    description:
+      "Evidence logs are HMAC-signed and linked to IEC 62304 clauses — no manual mapping required.",
+  },
+  {
+    icon: FileCheck2,
+    step: "03",
+    title: "eSTAR Generation",
+    description:
+      "Export a submission-ready FDA eSTAR Software Documentation Attachment as a compiled PDF.",
+  },
+];
 
-interface AiInsightRow {
-  log_id: string;
-  ai_test_suite: string | null;
-  ai_result_summary: string | null;
-  ai_confidence_score: number | null;
-}
+const trustBadges = [
+  "IEC 62304 Compliant",
+  "21 CFR Part 11",
+  "HMAC-Signed Evidence",
+  "FDA eSTAR Ready",
+];
 
-// ---------------------------------------------------------------------------
-// Joined row — what the dashboard table renders
-// ---------------------------------------------------------------------------
+// Mock data for the product preview section
+const mockMatrixRows = [
+  {
+    clause: "5.1.1",
+    title: "Software Development Planning",
+    hash: "a3f9c2…d841",
+    compliant: true,
+  },
+  {
+    clause: "5.3.2",
+    title: "Software Architectural Design",
+    hash: "b7e10d…f229",
+    compliant: true,
+  },
+  {
+    clause: "5.5.1",
+    title: "Software Unit Implementation",
+    hash: "c2d84a…9b03",
+    compliant: true,
+  },
+  {
+    clause: "5.7.4",
+    title: "Regression & Integration Testing",
+    hash: "d91f3e…c571",
+    compliant: false,
+  },
+];
 
-interface DashboardRow {
-  logId: string;
-  executionTime: string;
-  testSuite: string;
-  executionStatus: string;
-  aiSummary: string | null;
-  severity: "Critical" | "Clear" | "Pending";
-}
-
-// ---------------------------------------------------------------------------
-// SEVERITY MAPPING UTILITY
-// Parses the AI result summary and maps it to a traffic-light severity level.
-// "Critical Anomaly" (case-insensitive) → Critical (red)
-// Any other non-null summary → Clear (green)
-// No AI insight yet → Pending (amber)
-// ---------------------------------------------------------------------------
-
-function mapSeverity(aiSummary: string | null): DashboardRow["severity"] {
-  if (aiSummary === null || aiSummary === undefined) return "Pending";
-  if (/critical|failure|anomaly/i.test(aiSummary)) return "Critical";
-  return "Clear";
-}
-
-// ---------------------------------------------------------------------------
-// DATA FETCHING — runs on the server at request time
-// Fetches evidence_logs and ai_compliance_insights, then joins on log_id.
-// ---------------------------------------------------------------------------
-
-async function fetchDashboardData(): Promise<DashboardRow[]> {
-  // createClient() is called inside this function — not at module scope —
-  // so that next/headers cookies() reads the request cookies at call time
-  // and attaches the user's session to every Supabase query below.
-  const supabase = await createClient();
-
-  // Fetch evidence logs — ordered newest first
-  const { data: logs, error: logsError } = await supabase
-    .from("evidence_logs")
-    .select("log_id, execution_timestamp, execution_status, raw_command, event_source")
-    .order("execution_timestamp", { ascending: false })
-    .limit(100);
-
-  if (logsError) {
-    console.error("Supabase error fetching evidence_logs:", logsError.message);
-    return [];
-  }
-
-  if (!logs || logs.length === 0) return [];
-
-  // Fetch AI insights for the same log IDs
-  const logIds = logs.map((l: EvidenceLogRow) => l.log_id);
-
-  const { data: insights, error: insightsError } = await supabase
-    .from("ai_compliance_insights")
-    .select("log_id, ai_test_suite, ai_result_summary, ai_confidence_score")
-    .in("log_id", logIds);
-
-  if (insightsError) {
-    // Non-fatal: render rows without AI data rather than crashing the page.
-    console.error(
-      "Supabase error fetching ai_compliance_insights:",
-      insightsError.message,
-    );
-  }
-
-  // Build a lookup map: log_id → insight
-  const insightMap = new Map<string, AiInsightRow>();
-  if (insights) {
-    for (const insight of insights as AiInsightRow[]) {
-      insightMap.set(insight.log_id, insight);
-    }
-  }
-
-  // Join and map to DashboardRow
-  return (logs as EvidenceLogRow[]).map((log) => {
-    const insight = insightMap.get(log.log_id) ?? null;
-    const aiSummary = insight?.ai_result_summary ?? null;
-
-    return {
-      logId: log.log_id,
-      executionTime: new Date(log.execution_timestamp).toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        timeZoneName: "short",
-      }),
-      testSuite: insight?.ai_test_suite ?? log.raw_command ?? log.event_source,
-      executionStatus: log.execution_status,
-      aiSummary,
-      severity: mapSeverity(aiSummary),
-    };
-  });
-}
+const mockActivityFeed = [
+  {
+    status: "success",
+    message: "omnis-run: Verification Successful — Payload Signed",
+    ts: "2026-06-09T04:12:08Z",
+    suite: "test_dicom_parser.py",
+  },
+  {
+    status: "success",
+    message: "omnis-run: Verification Successful — Payload Signed",
+    ts: "2026-06-09T03:47:33Z",
+    suite: "test_phi_anonymizer.py",
+  },
+  {
+    status: "warning",
+    message: "omnis-run: Anomaly Detected — AI Review Flagged",
+    ts: "2026-06-09T03:11:55Z",
+    suite: "test_cgm_alerts.py",
+  },
+  {
+    status: "success",
+    message: "omnis-run: Verification Successful — Payload Signed",
+    ts: "2026-06-09T02:58:17Z",
+    suite: "test_soup_codecs.py",
+  },
+  {
+    status: "success",
+    message: "omnis-run: Verification Successful — Payload Signed",
+    ts: "2026-06-09T02:30:44Z",
+    suite: "test_s3_ecg_pipeline.py",
+  },
+];
 
 // ---------------------------------------------------------------------------
-// SEVERITY BADGE COMPONENT
+// Header — logo + Sign In only, no internal nav links
 // ---------------------------------------------------------------------------
 
-function SeverityBadge({ severity }: { severity: DashboardRow["severity"] }) {
-  if (severity === "Critical") {
-    return (
-      <Badge className="bg-red-100 text-red-700 border border-red-200 hover:bg-red-100 font-semibold">
-        ● Critical
-      </Badge>
-    );
-  }
-  if (severity === "Clear") {
-    return (
-      <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 font-medium">
-        ● Clear
-      </Badge>
-    );
-  }
-  // Pending — AI analysis not yet complete
-  return (
-    <Badge className="bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-100 font-medium">
-      ● Pending
-    </Badge>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// EXECUTION STATUS BADGE
-// ---------------------------------------------------------------------------
-
-function StatusBadge({ status }: { status: string }) {
-  const isSuccess = status?.toUpperCase() === "SUCCESS";
-  return (
-    <span
-      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
-        isSuccess
-          ? "bg-zinc-100 text-zinc-600"
-          : "bg-orange-50 text-orange-700"
-      }`}
-    >
-      {status ?? "—"}
-    </span>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// METRIC CARD SKELETON — shown while data loads
-// ---------------------------------------------------------------------------
-
-function MetricCardSkeleton() {
-  return (
-    <Card className="border-zinc-200 shadow-sm">
-      <CardHeader className="pb-2">
-        <div className="h-3 w-24 animate-pulse rounded bg-zinc-200" />
-      </CardHeader>
-      <CardContent>
-        <div className="h-8 w-16 animate-pulse rounded bg-zinc-200" />
-        <div className="mt-2 h-3 w-32 animate-pulse rounded bg-zinc-100" />
-      </CardContent>
-    </Card>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// TABLE ROW SKELETON
-// ---------------------------------------------------------------------------
-
-function TableRowSkeleton() {
-  return (
-    <TableRow>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <TableCell key={i}>
-          <div className="h-4 animate-pulse rounded bg-zinc-100" />
-        </TableCell>
-      ))}
-    </TableRow>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// PHASE 2: EXECUTIVE TELEMETRY CARDS
-// Calculates metrics from the live dataset.
-// ---------------------------------------------------------------------------
-
-function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
-  const total = rows.length;
-  const criticalCount = rows.filter((r) => r.severity === "Critical").length;
-  const failureRate =
-    total > 0 ? ((criticalCount / total) * 100).toFixed(1) : "0.0";
+function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const signInTarget = isAuthenticated ? "/dashboard" : "/login";
 
   return (
-    <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-      {/* Total Executions */}
-      <Card className="border-zinc-200 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            Total Executions
-          </CardTitle>
-          <BarChart3 className="h-4 w-4 text-zinc-400" />
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-bold tabular-nums text-zinc-800">
-            {total}
-          </p>
-          <p className="mt-1 text-xs text-zinc-400">
-            Evidence logs ingested
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Malfunction Volume */}
-      <Card
-        className={`border-zinc-200 shadow-sm ${
-          criticalCount > 0 ? "border-red-200 bg-red-50/40" : ""
-        }`}
-      >
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            Malfunction Volume
-          </CardTitle>
-          <AlertTriangle
-            className={`h-4 w-4 ${criticalCount > 0 ? "text-red-500" : "text-zinc-300"}`}
-          />
-        </CardHeader>
-        <CardContent>
-          <p
-            className={`text-3xl font-bold tabular-nums ${
-              criticalCount > 0 ? "text-red-600" : "text-zinc-800"
-            }`}
-          >
-            {criticalCount}
-          </p>
-          <p className="mt-1 text-xs text-zinc-400">
-            Logs flagged as Critical
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Failure Rate */}
-      <Card
-        className={`border-zinc-200 shadow-sm ${
-          parseFloat(failureRate) > 0 ? "border-orange-200 bg-orange-50/30" : ""
-        }`}
-      >
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            Failure Rate
-          </CardTitle>
-          <CheckCircle2
-            className={`h-4 w-4 ${
-              parseFloat(failureRate) === 0
-                ? "text-emerald-500"
-                : "text-orange-500"
-            }`}
-          />
-        </CardHeader>
-        <CardContent>
-          <p
-            className={`text-3xl font-bold tabular-nums ${
-              parseFloat(failureRate) === 0
-                ? "text-emerald-600"
-                : "text-orange-600"
-            }`}
-          >
-            {failureRate}%
-          </p>
-          <p className="mt-1 text-xs text-zinc-400">
-            Critical vs total executions
-          </p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// PHASE 1: LIVE TRAFFIC LIGHT MATRIX TABLE
-// ---------------------------------------------------------------------------
-
-function EvidenceTable({ rows }: { rows: DashboardRow[] }) {
-  if (rows.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <ShieldCheck className="mb-3 h-10 w-10 text-zinc-300" />
-        <p className="text-sm font-medium text-zinc-500">No evidence logs found</p>
-        <p className="mt-1 text-xs text-zinc-400">
-          Run the omnis-run CLI to ingest your first evidence log.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow className="bg-zinc-50 hover:bg-zinc-50">
-          <TableHead className="w-[220px] text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            Log ID
-          </TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            Execution Time
-          </TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            Test Suite
-          </TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            Status
-          </TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            AI Risk
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {rows.map((row) => (
-          <ClickableTableRow
-            key={row.logId}
-            logId={row.logId}
-            isCritical={row.severity === "Critical"}
-          >
-            <TableCell className="font-mono text-xs text-zinc-400">
-              {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
-            </TableCell>
-            <TableCell className="text-sm text-zinc-600">
-              {row.executionTime}
-            </TableCell>
-            <TableCell className="max-w-[260px] truncate text-sm font-medium text-zinc-800">
-              {row.testSuite}
-            </TableCell>
-            <TableCell>
-              <StatusBadge status={row.executionStatus} />
-            </TableCell>
-            <TableCell>
-              <SeverityBadge severity={row.severity} />
-            </TableCell>
-          </ClickableTableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// DASHBOARD CONTENT — async Server Component that fetches and renders
-// ---------------------------------------------------------------------------
-
-async function DashboardContent() {
-  const rows = await fetchDashboardData();
-
-  return (
-    <>
-      {/* Phase 2: Executive Telemetry */}
-      <TelemetryCards rows={rows} />
-
-      {/* Phase 1: Live Traffic Light Matrix */}
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm">
-        <div className="border-b border-zinc-100 px-6 py-4">
-          <h2 className="text-sm font-semibold text-zinc-800">
-            Evidence Log · Traffic Light Matrix
-          </h2>
-          <p className="mt-0.5 text-xs text-zinc-400">
-            Live data from Supabase · evidence_logs ⋈ ai_compliance_insights
-          </p>
-        </div>
-        <EvidenceTable rows={rows} />
-      </div>
-    </>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// LOADING SKELETON — shown by Suspense while DashboardContent fetches
-// ---------------------------------------------------------------------------
-
-function DashboardSkeleton() {
-  return (
-    <>
-      {/* Metric card skeletons */}
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <MetricCardSkeleton />
-        <MetricCardSkeleton />
-        <MetricCardSkeleton />
-      </div>
-
-      {/* Table skeleton */}
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm">
-        <div className="border-b border-zinc-100 px-6 py-4">
-          <div className="h-4 w-48 animate-pulse rounded bg-zinc-200" />
-          <div className="mt-1.5 h-3 w-64 animate-pulse rounded bg-zinc-100" />
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-zinc-50 hover:bg-zinc-50">
-              {["Log ID", "Execution Time", "Test Suite", "Status", "AI Risk"].map(
-                (h) => (
-                  <TableHead
-                    key={h}
-                    className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
-                  >
-                    {h}
-                  </TableHead>
-                ),
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <TableRowSkeleton key={i} />
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// ROOT PAGE EXPORT
-// ---------------------------------------------------------------------------
-
-export default function DashboardPage() {
-  return (
-    <div className="min-h-screen bg-zinc-50">
-      {/* Header */}
-      <header className="border-b border-zinc-200 bg-white px-8 py-5">
-        <div className="mx-auto flex max-w-7xl items-center gap-3">
-          <ShieldCheck className="h-6 w-6 text-zinc-800" strokeWidth={1.75} />
-          <div>
-            <h1 className="text-lg font-semibold tracking-tight text-zinc-900">
-              Omnis RegOps
-            </h1>
-            <p className="text-xs text-zinc-400">
-              FDA Assurance Dashboard · Live
-            </p>
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-sm dark:border-slate-800/80 dark:bg-slate-950/90">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg ring-1 ring-slate-200 group-hover:ring-emerald-400 transition-all duration-200 dark:ring-slate-700">
+            <ShieldCheck className="h-4 w-4 text-slate-800 dark:text-slate-200" strokeWidth={1.75} />
           </div>
-          <div className="ml-auto flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5">
-            <Activity className="h-3.5 w-3.5 text-emerald-500" />
-            <span className="text-xs font-medium text-zinc-600">
-              IEC 62304 · 21 CFR Part 11
+          <div className="leading-none">
+            <span className="block text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100">
+              Omnis MedTech Corp
+            </span>
+            <span className="block text-[10px] font-medium tracking-widest text-emerald-600 uppercase dark:text-emerald-400">
+              RegOps Platform
             </span>
           </div>
-        </div>
-      </header>
+        </Link>
 
-      {/* Main — Suspense wraps the async data fetch */}
-      <main className="mx-auto max-w-7xl px-8 py-10">
-        <Suspense fallback={<DashboardSkeleton />}>
-          <DashboardContent />
-        </Suspense>
+        {/* Sign In — only CTA in the nav */}
+        <Link
+          href={signInTarget}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+        >
+          {isAuthenticated ? "Dashboard" : "Sign In"}
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Hero — headline + trust badges only, no CTA buttons in this section
+// ---------------------------------------------------------------------------
+
+function HeroSection() {
+  return (
+    <section className="relative overflow-hidden bg-white dark:bg-slate-950">
+      {/* Grid background */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-60 dark:bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] dark:opacity-30"
+      />
+      {/* Glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-96 w-[800px] rounded-full bg-emerald-400/10 blur-3xl dark:bg-emerald-600/10"
+      />
+
+      <div className="relative mx-auto max-w-5xl px-6 py-28 text-center md:py-36">
+        {/* Eyebrow badge */}
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 dark:border-emerald-800 dark:bg-emerald-950">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs font-semibold tracking-wide text-emerald-700 dark:text-emerald-300">
+            FDA eSTAR · IEC 62304 · 21 CFR Part 11
+          </span>
+        </div>
+
+        {/* Headline */}
+        <h1 className="mx-auto max-w-4xl text-5xl font-extrabold leading-[1.08] tracking-tight text-slate-900 dark:text-slate-50 md:text-6xl lg:text-7xl">
+          Automated eSTAR Compliance{" "}
+          <span className="text-emerald-600 dark:text-emerald-400">
+            for Modern MedTech.
+          </span>
+        </h1>
+
+        {/* Sub-headline */}
+        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-500 dark:text-slate-400 md:text-xl">
+          Continuous CI/CD traceability and automated IEC 62304 document
+          generation — so your engineering team ships features, not paperwork.
+        </p>
+
+        {/* Trust badges */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          {trustBadges.map((badge) => (
+            <span
+              key={badge}
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+            >
+              <CheckCircle className="h-3 w-3 text-emerald-500" />
+              {badge}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// How It Works
+// ---------------------------------------------------------------------------
+
+function HowItWorksSection() {
+  return (
+    <section className="border-t border-slate-200 bg-slate-50 py-20 dark:border-slate-800 dark:bg-slate-900/50">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="mb-12 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
+            How It Works
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100 md:text-3xl">
+            From commit to compliance, automatically.
+          </h2>
+        </div>
+
+        <div className="relative grid grid-cols-1 gap-8 md:grid-cols-3">
+          <div
+            aria-hidden="true"
+            className="absolute left-[calc(16.66%+2rem)] right-[calc(16.66%+2rem)] top-10 hidden h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent md:block dark:via-slate-700"
+          />
+
+          {steps.map((step) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.step} className="group relative flex flex-col items-center text-center">
+                <div className="relative mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow group-hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
+                  <Icon className="h-8 w-8 text-slate-700 dark:text-slate-300" strokeWidth={1.5} />
+                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow-sm">
+                    {step.step}
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">{step.title}</h3>
+                <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                  {step.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Product Preview — browser chrome mockup with two panels
+// ---------------------------------------------------------------------------
+
+function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const matrixTarget = isAuthenticated ? "/dashboard" : "/login";
+
+  return (
+    <section className="bg-white py-24 dark:bg-slate-950">
+      <div className="mx-auto max-w-7xl px-6">
+        {/* Section header */}
+        <div className="mb-12 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
+            Platform Preview
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100 md:text-3xl">
+            The Single Source of Compliance Truth.
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            Every CI/CD run, every regulatory clause, every digital signature — unified in one
+            cryptographically-sealed ledger.
+          </p>
+        </div>
+
+        {/* Browser chrome wrapper */}
+        <div className="mx-auto max-w-5xl overflow-hidden rounded-2xl border border-slate-200 shadow-2xl shadow-slate-200/60 dark:border-slate-700 dark:shadow-slate-900/60">
+          {/* Browser top bar */}
+          <div className="flex items-center gap-2 border-b border-slate-200 bg-slate-100 px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
+            <span className="h-3 w-3 rounded-full bg-red-400" />
+            <span className="h-3 w-3 rounded-full bg-amber-400" />
+            <span className="h-3 w-3 rounded-full bg-emerald-400" />
+            <div className="ml-3 flex h-6 flex-1 items-center rounded-md border border-slate-200 bg-white px-3 dark:border-slate-600 dark:bg-slate-700">
+              <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                omnis-regops.app / dashboard
+              </span>
+            </div>
+          </div>
+
+          {/* Inner app chrome — header strip */}
+          <div className="flex items-center gap-2 border-b border-slate-100 bg-white px-5 py-3 dark:border-slate-800 dark:bg-slate-900">
+            <ShieldCheck className="h-4 w-4 text-slate-700 dark:text-slate-300" strokeWidth={1.75} />
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Omnis RegOps</span>
+            <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live · IEC 62304 · 21 CFR Part 11
+            </span>
+          </div>
+
+          {/* Two-panel content area */}
+          <div className="grid grid-cols-1 divide-y divide-slate-100 bg-slate-50 dark:divide-slate-800 dark:bg-slate-900/60 md:grid-cols-2 md:divide-x md:divide-y-0">
+
+            {/* LEFT: Mini Compliance Matrix */}
+            <div className="p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                  IEC 62304 Traceability Matrix
+                </p>
+                <span className="text-[10px] text-slate-400">4 clauses</span>
+              </div>
+              <div className="space-y-2">
+                {mockMatrixRows.map((row) => (
+                  <div
+                    key={row.clause}
+                    className="flex items-center gap-3 rounded-lg border border-slate-100 bg-white px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800"
+                  >
+                    {/* Status dot */}
+                    {row.compliant ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                    ) : (
+                      <Circle className="h-4 w-4 shrink-0 text-amber-400" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[11px] font-bold text-slate-500">
+                          §{row.clause}
+                        </span>
+                        <span className="truncate text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                          {row.title}
+                        </span>
+                      </div>
+                      <span className="mt-0.5 font-mono text-[10px] text-slate-400">
+                        sig: {row.hash}
+                      </span>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+                        row.compliant
+                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+                          : "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
+                      }`}
+                    >
+                      {row.compliant ? "Compliant" : "Pending"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 dark:border-emerald-800 dark:bg-emerald-950/40">
+                <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                  Submission Readiness
+                </span>
+                <span className="text-sm font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
+                  75.0%
+                </span>
+              </div>
+            </div>
+
+            {/* RIGHT: CI/CD Activity Feed */}
+            <div className="p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                  CI/CD Activity Feed
+                </p>
+                <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400">
+                  <Zap className="h-3 w-3" />
+                  Live
+                </span>
+              </div>
+              <div className="space-y-2">
+                {mockActivityFeed.map((entry, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border border-slate-100 bg-white px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800"
+                  >
+                    <div className="flex items-start gap-2">
+                      <span
+                        className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
+                          entry.status === "success"
+                            ? "bg-emerald-500"
+                            : "bg-amber-400"
+                        }`}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-medium leading-snug text-slate-700 dark:text-slate-300">
+                          {entry.message}
+                        </p>
+                        <div className="mt-0.5 flex items-center gap-2">
+                          <span className="font-mono text-[10px] text-slate-400">
+                            {entry.suite}
+                          </span>
+                          <span className="text-[10px] text-slate-300 dark:text-slate-600">·</span>
+                          <span className="font-mono text-[10px] text-slate-400">
+                            {entry.ts}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom bar with CTA */}
+          <div className="flex items-center justify-between border-t border-slate-100 bg-white px-5 py-3 dark:border-slate-800 dark:bg-slate-900">
+            <span className="text-[11px] text-slate-400">
+              5 evidence logs · Last ingested 2 min ago
+            </span>
+            <Link
+              href={matrixTarget}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 transition-colors hover:text-emerald-700 dark:text-emerald-400"
+            >
+              View Compliance Matrix
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Bottom CTA
+// ---------------------------------------------------------------------------
+
+function BottomCTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const ctaTarget = isAuthenticated ? "/dashboard" : "/signup";
+
+  return (
+    <section className="border-t border-slate-200 bg-slate-50 py-24 dark:border-slate-800 dark:bg-slate-900/50">
+      <div className="mx-auto max-w-3xl px-6 text-center">
+        {/* Eyebrow */}
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 dark:border-emerald-800 dark:bg-emerald-950">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs font-semibold tracking-wide text-emerald-700 dark:text-emerald-300">
+            Get Started Today
+          </span>
+        </div>
+
+        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 md:text-4xl">
+          Ready to automate your<br />regulatory pipeline?
+        </h2>
+        <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-500 dark:text-slate-400">
+          Get your workspace eSTAR-ready in less than five minutes.
+        </p>
+
+        <div className="mt-8">
+          <Link
+            href={ctaTarget}
+            className="inline-flex items-center gap-2.5 rounded-xl bg-slate-900 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-slate-900/20 transition-all hover:bg-slate-800 hover:shadow-slate-900/30 dark:bg-emerald-500 dark:text-slate-900 dark:shadow-emerald-900/30 dark:hover:bg-emerald-400"
+          >
+            {isAuthenticated ? "Go to Dashboard" : "Get Started"}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        {/* Micro trust line */}
+        <p className="mt-5 text-xs text-slate-400 dark:text-slate-600">
+          No credit card required · IEC 62304 compliant from day one
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Footer
+// ---------------------------------------------------------------------------
+
+function Footer() {
+  return (
+    <footer className="border-t border-slate-200 bg-white py-8 dark:border-slate-800 dark:bg-slate-950">
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 sm:flex-row">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-500">
+            © 2026 Omnis MedTech Corp. All rights reserved.
+          </span>
+        </div>
+        <p className="text-xs text-slate-400 dark:text-slate-600">
+          IEC 62304 · 21 CFR Part 11 · FDA eSTAR Compliant Pipeline
+        </p>
+      </div>
+    </footer>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page export
+// ---------------------------------------------------------------------------
+
+export default function LandingPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  return (
+    <div className="flex min-h-screen flex-col bg-white dark:bg-slate-950">
+      <Header isAuthenticated={isAuthenticated} />
+      <main className="flex-1">
+        <HeroSection />
+        <HowItWorksSection />
+        <ProductPreviewSection isAuthenticated={isAuthenticated} />
+        <BottomCTASection isAuthenticated={isAuthenticated} />
       </main>
+      <Footer />
     </div>
   );
 }

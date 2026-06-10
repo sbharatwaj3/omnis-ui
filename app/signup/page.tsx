@@ -1,19 +1,22 @@
 "use client";
-// omnis-ui/app/login/page.tsx
-// Omnis RegOps — Authentication Gateway
+// omnis-ui/app/signup/page.tsx
+// Omnis RegOps — Account Creation Gateway
 //
 // Client Component — auth form interactions require browser APIs.
-// Design: Split-screen clinical enterprise layout.
+// Design: Split-screen layout identical to /login for visual consistency.
 //   Left panel  — brand identity, trust signals, regulatory badges.
-//   Right panel — clean centered auth card.
-// Dark mode ready via Tailwind dark: classes.
+//   Right panel — clean centered signup card.
 //
-// NOTE: AuthForm uses useSearchParams() which requires a Suspense boundary
-// when used as a Next.js page. The Suspense wrapper is at the page-export
-// level so the static shell renders correctly during SSR.
+// Auth flow:
+//   1. supabase.auth.signUp() — create account
+//   2. On success → router.push("/dashboard")
+//   3. On error   → display the Supabase error message inline (never throws)
+//
+// NOTE: SignUpForm uses useSearchParams() which requires a Suspense boundary
+// when used as a Next.js page. The Suspense wrapper is at the page-export level.
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,17 +28,18 @@ import {
   GitBranch,
   FileCheck2,
   Lock,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 
 // ---------------------------------------------------------------------------
-// Trust signals displayed in the left panel
+// Trust signals — left panel
 // ---------------------------------------------------------------------------
 
 const trustPoints = [
   {
     icon: ShieldCheck,
-    title: "21 CFR Part 11",
+    title: "21 CFR Part 11 Compliant",
     body: "Every access event is HMAC-signed and appended to an immutable audit ledger.",
   },
   {
@@ -56,7 +60,7 @@ const trustPoints = [
 ];
 
 // ---------------------------------------------------------------------------
-// Left branding panel (Server-renderable — no state)
+// Left branding panel
 // ---------------------------------------------------------------------------
 
 function BrandPanel() {
@@ -82,18 +86,17 @@ function BrandPanel() {
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-800 bg-emerald-950/60 px-3 py-1">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-xs font-semibold text-emerald-300">
-            Compliance Vault — Active
+            Compliance Vault — Onboarding
           </span>
         </div>
         <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white xl:text-4xl">
-          Your Regulatory
+          Automate Your
           <br />
-          <span className="text-emerald-400">Evidence — Secured.</span>
+          <span className="text-emerald-400">Regulatory Pipeline.</span>
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-slate-400">
-          Secure access to your compliance environment. All sessions are
-          authenticated, time-stamped, and recorded under 21 CFR Part 11
-          electronic records requirements.
+          Create your workspace and connect your CI/CD pipeline. Evidence logs
+          start flowing the moment you push your first commit.
         </p>
 
         {/* Trust points */}
@@ -119,37 +122,52 @@ function BrandPanel() {
 
       {/* Footer */}
       <p className="text-xs text-slate-600">
-        © 2026 Omnis MedTech Corp. Access restricted to
-        authorised personnel only.
+        © 2026 Omnis MedTech Corp. Access restricted to authorised personnel only.
       </p>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Auth form
+// Signup form
 // ---------------------------------------------------------------------------
 
-function AuthForm() {
+function SignUpForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("next") ?? "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+
+    // Client-side password match check before hitting Supabase
+    if (password !== confirmPassword) {
+      setError("Passwords do not match. Please re-enter.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
     setLoading(true);
 
     const supabase = createClient();
 
-    const { error: authError } = await supabase.auth.signInWithPassword({
+    const { data, error: authError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
+      options: {
+        // Redirect back to dashboard after email confirmation (if enabled)
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+      },
     });
 
     if (authError) {
@@ -158,15 +176,57 @@ function AuthForm() {
       return;
     }
 
-    // Session established — flush Server Component cache so middleware
-    // sees the new session cookie on the next request.
-    router.refresh();
-    router.push(redirectTo);
+    // Supabase returns a session immediately if email confirmation is disabled.
+    // If confirmation is required, data.session will be null.
+    if (data.session) {
+      // Session active — go straight to dashboard
+      router.refresh();
+      router.push("/dashboard");
+      return;
+    }
+
+    // Email confirmation required — show success state instead of redirecting
+    setSuccess(true);
+    setLoading(false);
   }
 
+  // ── Success / confirmation-pending state ─────────────────────────────────
+  if (success) {
+    return (
+      <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white dark:bg-slate-950">
+        <div className="w-full max-w-sm text-center">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:ring-emerald-800">
+            <CheckCircle2 className="h-7 w-7 text-emerald-500" strokeWidth={1.75} />
+          </div>
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+            Check your email
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            We sent a confirmation link to{" "}
+            <span className="font-semibold text-slate-700 dark:text-slate-200">
+              {email}
+            </span>
+            . Click it to activate your account and access your compliance
+            dashboard.
+          </p>
+          <p className="mt-6 text-xs text-slate-400">
+            Already confirmed?{" "}
+            <Link
+              href="/login"
+              className="font-semibold text-slate-700 underline-offset-2 hover:underline dark:text-slate-300"
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Main form ─────────────────────────────────────────────────────────────
   return (
     <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white dark:bg-slate-950">
-      {/* Mobile logo — only visible when left panel is hidden */}
+      {/* Mobile logo */}
       <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg dark:bg-slate-800">
           <ShieldCheck className="h-6 w-6 text-emerald-400" strokeWidth={1.75} />
@@ -186,10 +246,10 @@ function AuthForm() {
         {/* Header */}
         <div className="mb-7">
           <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-            Sign in
+            Create account
           </h2>
           <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-            Secure access to your compliance environment.
+            Set up your RegOps compliance workspace.
           </p>
         </div>
 
@@ -200,7 +260,7 @@ function AuthForm() {
             <span className="font-semibold text-slate-800 dark:text-slate-200">
               21 CFR Part 11 Compliant.
             </span>{" "}
-            This session will be cryptographically logged.
+            Account creation is cryptographically logged.
           </p>
         </div>
 
@@ -236,9 +296,9 @@ function AuthForm() {
             <Input
               id="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               required
-              placeholder="••••••••••••"
+              placeholder="Minimum 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
@@ -246,7 +306,27 @@ function AuthForm() {
             />
           </div>
 
-          {/* Error banner */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="confirm-password"
+              className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+            >
+              Confirm password
+            </Label>
+            <Input
+              id="confirm-password"
+              type="password"
+              autoComplete="new-password"
+              required
+              placeholder="Re-enter your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={loading}
+              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
+            />
+          </div>
+
+          {/* Inline error banner */}
           {error && (
             <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 dark:border-red-900/60 dark:bg-red-950/40">
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500 dark:text-red-400" />
@@ -264,23 +344,27 @@ function AuthForm() {
             {loading ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Authenticating…
+                Creating account…
               </span>
             ) : (
-              "Sign in to RegOps"
+              "Create Account"
             )}
           </Button>
         </form>
 
-        {/* Footer note */}
-        <p className="mt-7 text-center text-xs leading-relaxed text-slate-400 dark:text-slate-600">
-          Access is restricted to authorised personnel only.
-          <br />
-          Contact your system administrator if you need access.
+        {/* Sign in link */}
+        <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="font-semibold text-slate-800 underline-offset-2 hover:underline dark:text-slate-200"
+          >
+            Sign in
+          </Link>
         </p>
 
         {/* Back to landing */}
-        <div className="mt-4 text-center">
+        <div className="mt-3 text-center">
           <Link
             href="/"
             className="text-xs text-slate-400 underline-offset-2 transition-colors hover:text-slate-600 hover:underline dark:text-slate-600 dark:hover:text-slate-400"
@@ -294,12 +378,10 @@ function AuthForm() {
 }
 
 // ---------------------------------------------------------------------------
-// Page export — split-screen layout with Suspense boundary.
-// useSearchParams() inside AuthForm requires Suspense when used in a page.
-// Without it Next.js cannot statically render the shell and the route fails.
+// Page export — split-screen layout with Suspense boundary
 // ---------------------------------------------------------------------------
 
-export default function LoginPage() {
+export default function SignUpPage() {
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
       <BrandPanel />
@@ -310,7 +392,7 @@ export default function LoginPage() {
           </div>
         }
       >
-        <AuthForm />
+        <SignUpForm />
       </Suspense>
     </div>
   );

@@ -1,7 +1,9 @@
 // omnis-ui/proxy.ts
-// The Gatekeeper — Next.js 16 renamed middleware.ts to proxy.ts.
-// Protects the dashboard (/) and all /logs routes.
-// Unauthenticated requests are redirected to /login.
+// The Gatekeeper — Next.js middleware (file is named proxy.ts per project convention).
+// Public routes:  /  (landing), /login, /signup
+// Protected routes: /dashboard, /logs/*, /readiness
+// Unauthenticated requests to protected routes are redirected to /login.
+// Authenticated users hitting /login or /signup are bounced to /dashboard.
 // Refreshes expired Supabase sessions on every request so that
 // Server Components always receive a valid session from cookies().
 
@@ -45,8 +47,15 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  const isProtected = pathname === "/" || pathname.startsWith("/logs");
+  // "/" is the public marketing landing page — never redirect it.
+  // Auth-required routes are /dashboard, /logs/*, and /readiness.
+  const isProtected =
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/") ||
+    pathname.startsWith("/logs") ||
+    pathname.startsWith("/readiness");
   const isLoginPage = pathname === "/login";
+  const isSignupPage = pathname === "/signup";
 
   if (isProtected && !user) {
     const loginUrl = request.nextUrl.clone();
@@ -55,9 +64,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isLoginPage && user) {
+  // Already authenticated users visiting /login or /signup go straight to the dashboard.
+  if ((isLoginPage || isSignupPage) && user) {
     const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/";
+    dashboardUrl.pathname = "/dashboard";
     dashboardUrl.search = "";
     return NextResponse.redirect(dashboardUrl);
   }
