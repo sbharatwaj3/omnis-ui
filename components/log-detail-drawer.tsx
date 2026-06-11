@@ -93,10 +93,10 @@ function ConfidenceMeter({ score }: { score: number | null }) {
     score >= 80 ? "bg-emerald-500" : score >= 50 ? "bg-amber-500" : "bg-red-500";
   return (
     <div className="flex items-center gap-2">
-      <div className="h-1.5 w-28 overflow-hidden rounded-full bg-zinc-100">
+      <div className="h-1.5 w-28 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-700">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${score}%` }} />
       </div>
-      <span className="text-xs font-semibold tabular-nums text-zinc-700">{score}%</span>
+      <span className="text-xs font-semibold tabular-nums text-zinc-700 dark:text-zinc-200">{score}%</span>
     </div>
   );
 }
@@ -116,7 +116,7 @@ function MetaField({
   return (
     <div
       className={[
-        "flex flex-col gap-1 rounded-lg border border-zinc-100 bg-zinc-50 p-4",
+        "flex flex-col gap-1 rounded-lg border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-800/60",
         fixedHeight ? "h-[108px] overflow-hidden" : "",
       ].join(" ")}
     >
@@ -126,7 +126,7 @@ function MetaField({
           {label}
         </span>
       </div>
-      <div className="flex-1 overflow-hidden text-sm text-zinc-700 break-all">{value}</div>
+      <div className="flex-1 overflow-hidden text-sm text-zinc-700 dark:text-zinc-300 break-all">{value}</div>
     </div>
   );
 }
@@ -350,7 +350,7 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
                 {/* AI confidence — only shown when available */}
                 {insight?.ai_confidence_score !== null &&
                   insight?.ai_confidence_score !== undefined && (
-                  <div className="flex items-center gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
+                  <div className="flex items-center gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-800/60">
                     <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 shrink-0">
                       AI Confidence
                     </span>
