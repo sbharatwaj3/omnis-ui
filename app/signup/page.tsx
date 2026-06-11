@@ -66,9 +66,9 @@ const trustPoints = [
 function BrandPanel() {
   return (
     <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col justify-between bg-slate-900 px-12 py-12 dark:bg-slate-950">
-      {/* Logo */}
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30">
+      {/* Logo — links back to landing page */}
+      <Link href="/" className="flex items-center gap-3 group">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-200">
           <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="leading-none">
@@ -79,7 +79,7 @@ function BrandPanel() {
             RegOps Platform
           </span>
         </div>
-      </div>
+      </Link>
 
       {/* Hero copy */}
       <div className="max-w-md">
@@ -227,8 +227,8 @@ function SignUpForm() {
   return (
     <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white dark:bg-slate-950">
       {/* Mobile logo */}
-      <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg dark:bg-slate-800">
+      <Link href="/" className="mb-8 flex flex-col items-center gap-3 lg:hidden group">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg group-hover:ring-2 group-hover:ring-emerald-400 transition-all dark:bg-slate-800">
           <ShieldCheck className="h-6 w-6 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="text-center">
@@ -239,7 +239,7 @@ function SignUpForm() {
             RegOps Platform
           </p>
         </div>
-      </div>
+      </Link>
 
       {/* Card */}
       <div className="w-full max-w-sm">
