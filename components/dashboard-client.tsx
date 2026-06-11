@@ -237,7 +237,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
   const failureRate = total > 0 ? ((criticalCount / total) * 100).toFixed(1) : "0.0";
 
   return (
-    <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
       <Card className="border-zinc-200 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
@@ -390,9 +390,9 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
     <>
       <TelemetryCards rows={filteredRows} />
 
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
         {/* Table header with filter controls */}
-        <div className="flex flex-col gap-3 border-b border-zinc-100 px-6 py-4 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-b border-zinc-100 px-4 py-4 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between md:px-6">
           <div>
             <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
               Evidence Log · Traffic Light Matrix
@@ -405,15 +405,15 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
           </div>
 
           {/* Filter controls */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Timeframe quick-select buttons */}
-            <div className="flex items-center rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-700 dark:bg-zinc-800">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            {/* Timeframe quick-select — scrollable on mobile */}
+            <div className="flex items-center overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-700 dark:bg-zinc-800 max-w-full">
               {(["today", "week", "month", "year", "all"] as Timeframe[]).map((tf) => (
                 <button
                   key={tf}
                   onClick={() => setTimeframeAndReset(tf)}
                   className={[
-                    "rounded-md px-2.5 py-1 text-xs font-medium transition-all",
+                    "shrink-0 rounded-md px-2.5 py-1 text-xs font-medium transition-all",
                     timeframe === tf && timeframe !== "custom"
                       ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
                       : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300",
@@ -424,75 +424,75 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
               ))}
             </div>
 
-            {/* Custom date range picker */}
-            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  className={[
-                    "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all",
-                    timeframe === "custom"
-                      ? "border-zinc-800 bg-zinc-900 text-white dark:border-zinc-300 dark:bg-zinc-700 dark:text-white"
-                      : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
-                  ].join(" ")}
+            {/* Custom date range + clear pill */}
+            <div className="flex items-center gap-2">
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    className={[
+                      "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all",
+                      timeframe === "custom"
+                        ? "border-zinc-800 bg-zinc-900 text-white dark:border-zinc-300 dark:bg-zinc-700 dark:text-white"
+                        : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
+                    ].join(" ")}
+                  >
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    {timeframe === "custom" && customRange?.from ? activeFilterLabel : "Custom Range"}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="end"
+                  sideOffset={6}
+                  className="w-auto p-0 border-zinc-200 shadow-lg"
                 >
-                  <CalendarDays className="h-3.5 w-3.5" />
-                  {timeframe === "custom" && customRange?.from ? activeFilterLabel : "Custom Range"}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                align="end"
-                sideOffset={6}
-                className="w-auto p-0 border-zinc-200 shadow-lg"
-              >
-                <div className="p-3">
-                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                    Select date range
-                  </p>
-                  <Calendar
-                    mode="range"
-                    selected={customRange}
-                    onSelect={(range) => {
-                      setCustomRange(range);
-                      setTimeframeAndReset("custom");
-                      // Auto-close when both ends are selected
-                      if (range?.from && range?.to) {
-                        setCalendarOpen(false);
-                      }
-                    }}
-                    numberOfMonths={1}
-                    disabled={(date) => date > new Date()}
-                  />
-                  {customRange?.from && (
-                    <div className="mt-2 flex justify-end">
-                      <button
-                        onClick={() => {
-                          clearCustomRange();
+                  <div className="p-3">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                      Select date range
+                    </p>
+                    <Calendar
+                      mode="range"
+                      selected={customRange}
+                      onSelect={(range) => {
+                        setCustomRange(range);
+                        setTimeframeAndReset("custom");
+                        if (range?.from && range?.to) {
                           setCalendarOpen(false);
-                        }}
-                        className="text-xs text-zinc-400 hover:text-zinc-600"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
+                        }
+                      }}
+                      numberOfMonths={1}
+                      disabled={(date) => date > new Date()}
+                    />
+                    {customRange?.from && (
+                      <div className="mt-2 flex justify-end">
+                        <button
+                          onClick={() => {
+                            clearCustomRange();
+                            setCalendarOpen(false);
+                          }}
+                          className="text-xs text-zinc-400 hover:text-zinc-600"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
 
-            {/* Active custom range pill — clear button */}
-            {timeframe === "custom" && customRange?.from && (
-              <button
-                onClick={clearCustomRange}
-                className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 hover:bg-zinc-200"
-              >
-                <X className="h-3 w-3" />
-                Clear filter
-              </button>
-            )}
+              {timeframe === "custom" && customRange?.from && (
+                <button
+                  onClick={clearCustomRange}
+                  className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 hover:bg-zinc-200"
+                >
+                  <X className="h-3 w-3" />
+                  Clear filter
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Table */}
+        {/* Empty state */}
         {pageRows.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <CalendarDays className="mb-3 h-10 w-10 text-zinc-300" />
@@ -502,78 +502,125 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
             </p>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-zinc-50 hover:bg-zinc-50 dark:bg-zinc-900">
-                {["Status", "AI Risk", "Test Suite", "Execution Time", "Log ID"].map((h) => (
-                  <TableHead
-                    key={h}
-                    className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
-                  >
-                    {h}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            {/* ── MOBILE CARD LIST (hidden on md+) ───────────────────── */}
+            <div className="flex flex-col divide-y divide-zinc-100 md:hidden dark:divide-zinc-800">
               {pageRows.map((row) => {
                 const parsedTitle = parseLogTitle(row.rawCommand || row.testSuite);
-                const rawTitle = row.rawCommand || row.testSuite;
                 const isCritical = row.severity === "Critical";
 
                 return (
-                  <TableRow
+                  <button
                     key={row.logId}
                     onClick={() => openDrawer(row.logId)}
                     className={[
-                      "cursor-pointer transition-colors",
+                      "w-full text-left px-4 py-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
                       drawerLogId === row.logId
                         ? "bg-zinc-100 dark:bg-zinc-800"
                         : isCritical
-                        ? "bg-red-50/60 hover:bg-red-100"
-                        : "hover:bg-zinc-50",
+                        ? "bg-red-50/60 active:bg-red-100"
+                        : "active:bg-zinc-50",
                     ].join(" ")}
                   >
-                    {/* 1. Status */}
-                    <TableCell>
+                    {/* Row 1: Test Suite name */}
+                    <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100 truncate">
+                      {parsedTitle}
+                    </p>
+
+                    {/* Row 2: Badges */}
+                    <div className="mt-2 flex items-center gap-2 flex-wrap">
                       <StatusBadge status={row.executionStatus} />
-                    </TableCell>
-                    {/* 2. AI Risk */}
-                    <TableCell>
                       <SeverityBadge severity={row.severity} />
-                    </TableCell>
-                    {/* 3. Test Suite */}
-                    <TableCell className="max-w-[280px]">
-                      <span
-                        title={rawTitle}
-                        className="block truncate text-sm font-medium text-zinc-800 dark:text-zinc-200 cursor-help"
-                      >
-                        {parsedTitle}
-                      </span>
-                      {parsedTitle !== rawTitle && (
-                        <span className="block truncate font-mono text-[10px] text-zinc-400 mt-0.5">
-                          {rawTitle.length > 55 ? rawTitle.slice(0, 52) + "…" : rawTitle}
-                        </span>
-                      )}
-                    </TableCell>
-                    {/* 4. Execution Time */}
-                    <TableCell className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
-                      {row.executionTime}
-                    </TableCell>
-                    {/* 5. Log ID */}
-                    <TableCell className="font-mono text-xs text-zinc-400">
-                      {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
-                    </TableCell>
-                  </TableRow>
+                    </div>
+
+                    {/* Row 3: Execution time + Log ID (secondary metadata) */}
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <p className="text-xs text-zinc-500 truncate">{row.executionTime}</p>
+                      <code className="shrink-0 font-mono text-[10px] text-zinc-400">
+                        {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
+                      </code>
+                    </div>
+                  </button>
                 );
               })}
-            </TableBody>
-          </Table>
+            </div>
+
+            {/* ── DESKTOP TABLE (hidden below md) ────────────────────── */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-zinc-50 hover:bg-zinc-50 dark:bg-zinc-900">
+                    {["Status", "AI Risk", "Test Suite", "Execution Time", "Log ID"].map((h) => (
+                      <TableHead
+                        key={h}
+                        className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+                      >
+                        {h}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pageRows.map((row) => {
+                    const parsedTitle = parseLogTitle(row.rawCommand || row.testSuite);
+                    const rawTitle = row.rawCommand || row.testSuite;
+                    const isCritical = row.severity === "Critical";
+
+                    return (
+                      <TableRow
+                        key={row.logId}
+                        onClick={() => openDrawer(row.logId)}
+                        className={[
+                          "cursor-pointer transition-colors",
+                          drawerLogId === row.logId
+                            ? "bg-zinc-100 dark:bg-zinc-800"
+                            : isCritical
+                            ? "bg-red-50/60 hover:bg-red-100"
+                            : "hover:bg-zinc-50",
+                        ].join(" ")}
+                      >
+                        {/* 1. Status */}
+                        <TableCell>
+                          <StatusBadge status={row.executionStatus} />
+                        </TableCell>
+                        {/* 2. AI Risk */}
+                        <TableCell>
+                          <SeverityBadge severity={row.severity} />
+                        </TableCell>
+                        {/* 3. Test Suite */}
+                        <TableCell className="max-w-[280px]">
+                          <span
+                            title={rawTitle}
+                            className="block truncate text-sm font-medium text-zinc-800 dark:text-zinc-200 cursor-help"
+                          >
+                            {parsedTitle}
+                          </span>
+                          {parsedTitle !== rawTitle && (
+                            <span className="block truncate font-mono text-[10px] text-zinc-400 mt-0.5">
+                              {rawTitle.length > 55 ? rawTitle.slice(0, 52) + "…" : rawTitle}
+                            </span>
+                          )}
+                        </TableCell>
+                        {/* 4. Execution Time */}
+                        <TableCell className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+                          {row.executionTime}
+                        </TableCell>
+                        {/* 5. Log ID */}
+                        <TableCell className="font-mono text-xs text-zinc-400">
+                          {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
 
         {/* Pagination footer */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-zinc-100 px-6 py-3 dark:border-zinc-800">
+          <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 dark:border-zinc-800 md:px-6">
             <p className="text-xs text-zinc-400">
               Showing {((safePage - 1) * PAGE_SIZE) + 1}–
               {Math.min(safePage * PAGE_SIZE, filteredRows.length)} of{" "}

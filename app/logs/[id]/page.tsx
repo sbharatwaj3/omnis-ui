@@ -384,7 +384,7 @@ async function ForensicContent({ id }: { id: string }) {
             </div>
           </div>
           {/* Action Dock */}
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex flex-wrap shrink-0 items-center gap-2 md:gap-3">
             <SeverityBadge severity={severity} />
             <ApproveLogButton
               logId={log.log_id}
@@ -394,7 +394,7 @@ async function ForensicContent({ id }: { id: string }) {
             />
             <Link
               href="/readiness"
-              className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 shadow-sm transition-colors hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-800"
+              className="hidden sm:inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 shadow-sm transition-colors hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-800"
             >
               <LayoutList className="h-3.5 w-3.5" />
               View Traceability Matrix
@@ -699,23 +699,23 @@ export default async function LogDetailPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* Header */}
-      <header className="border-b border-zinc-200 bg-white px-8 py-5">
+      <header className="border-b border-zinc-200 bg-white px-4 py-4 md:px-8 md:py-5">
         <div className="mx-auto flex max-w-7xl items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-3 group">
             <ShieldCheck
-              className="h-6 w-6 text-zinc-800 transition-colors group-hover:text-zinc-600"
+              className="h-5 w-5 md:h-6 md:w-6 text-zinc-800 transition-colors group-hover:text-zinc-600"
               strokeWidth={1.75}
             />
             <div>
-              <h1 className="text-lg font-semibold tracking-tight text-zinc-900">
+              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
                 Omnis RegOps
               </h1>
-              <p className="text-xs text-zinc-400">
+              <p className="hidden sm:block text-xs text-zinc-400">
                 Forensic Evidence Viewer
               </p>
             </div>
           </Link>
-          <div className="ml-auto flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5">
+          <div className="ml-auto hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5">
             <Activity className="h-3.5 w-3.5 text-emerald-500" />
             <span className="text-xs font-medium text-zinc-600">
               IEC 62304 · 21 CFR Part 11
@@ -725,7 +725,7 @@ export default async function LogDetailPage({ params }: PageProps) {
       </header>
 
       {/* Main */}
-      <main className="mx-auto max-w-7xl px-8 py-10">
+      <main className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-10">
         <Suspense fallback={<ForensicSkeleton />}>
           <ForensicContent id={id} />
         </Suspense>

@@ -238,14 +238,14 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
         <div
           onClick={(e) => e.stopPropagation()}
           className={[
-            "relative w-full max-w-lg rounded-2xl border border-zinc-200 bg-white shadow-2xl",
+            "relative w-full max-w-lg rounded-2xl border border-zinc-200 bg-white shadow-2xl mx-2",
             "dark:border-zinc-700 dark:bg-zinc-900",
             "transition-all duration-200",
             isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95",
           ].join(" ")}
         >
           {/* ── Modal header ─────────────────────────────────────────────── */}
-          <div className="flex items-center justify-between border-b border-zinc-100 px-8 py-5 dark:border-zinc-800">
+          <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800 sm:px-8 sm:py-5">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-zinc-500" strokeWidth={1.75} />
               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
@@ -262,7 +262,7 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
           </div>
 
           {/* ── Modal body ───────────────────────────────────────────────── */}
-          <div className="px-8 py-6">
+          <div className="px-5 py-5 sm:px-8 sm:py-6">
             {/* Loading state */}
             {loading && (
               <div className="flex items-center justify-center py-12">
@@ -363,7 +363,7 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
 
           {/* ── Modal footer ─────────────────────────────────────────────── */}
           {!loading && log && (
-            <div className="flex items-center justify-between border-t border-zinc-100 px-8 py-5 dark:border-zinc-800">
+            <div className="flex items-center justify-between border-t border-zinc-100 px-5 py-4 dark:border-zinc-800 sm:px-8 sm:py-5">
               <button
                 onClick={onClose}
                 className="text-xs font-medium text-zinc-400 transition-colors hover:text-zinc-600"
