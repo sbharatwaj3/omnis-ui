@@ -362,26 +362,35 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   if (!compileRes.ok) {
-    // The Render service returns JSON: { detail: { error, log_tail, job_id } }
-    // Parse it properly and forward the structured object so the frontend can
-    // display the full pdflatex log without any truncation.
-    let errorDetail: unknown = "(no body)";
+    // The Render service (FastAPI) wraps HTTPException details under a top-level
+    // "detail" key, so its body is: { detail: { error, log_tail, job_id } }
+    //
+    // We unwrap one level so Vercel returns the flat shape the frontend expects:
+    //   { error: "...", detail: { error: "...", log_tail: "...", job_id: "..." } }
+    //
+    // Previously this code did `detail: errorDetail` where errorDetail was the
+    // entire parsed body { detail: { ... } }, producing double-nesting:
+    //   { error: "...", detail: { detail: { error: "...", log_tail: "..." } } }
+    // which the frontend could not destructure correctly.
+    let innerDetail: unknown = "(no body)";
     try {
-      errorDetail = await compileRes.json();
+      const body = await compileRes.json() as { detail?: unknown };
+      // Unwrap FastAPI's outer "detail" envelope if present
+      innerDetail = body?.detail ?? body;
     } catch {
-      errorDetail = await compileRes.text().catch(() => "(no body)");
+      innerDetail = await compileRes.text().catch(() => "(no body)");
     }
     console.error(
       "[generate-report] LaTeX compiler returned an error:",
       compileRes.status,
       compileRes.statusText,
       "\nService response body:\n",
-      JSON.stringify(errorDetail, null, 2)
+      JSON.stringify(innerDetail, null, 2)
     );
     return NextResponse.json(
       {
         error: `LaTeX compiler failed: ${compileRes.statusText} (HTTP ${compileRes.status}).`,
-        detail: errorDetail,
+        detail: innerDetail,
       },
       { status: 500 }
     );

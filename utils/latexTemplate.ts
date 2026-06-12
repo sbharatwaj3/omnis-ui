@@ -56,7 +56,11 @@ export const fdaLatexTemplate = String.raw`\documentclass[11pt]{article}
 % ── Typography ───────────────────────────────────────────────────────────────
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{microtype}
+% expansion=false: disables pdfTeX font expansion (auto expansion requires
+% scalable/outline fonts; bitmap/Type3 fonts on TeX Live 2022 trigger a
+% fatal "auto expansion is only possible with scalable fonts" error).
+% protrusion and all other microtype features remain active.
+\usepackage[expansion=false]{microtype}
 
 % ── Colour & links ───────────────────────────────────────────────────────────
 \usepackage{xcolor}
