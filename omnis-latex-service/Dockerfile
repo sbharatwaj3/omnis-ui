@@ -6,16 +6,31 @@
 # Render Free Web Service deploys from this Dockerfile automatically when
 # connected to the repo.  The service listens on $PORT (default 8000).
 #
-# TeX Live packages installed:
-#   texlive-latex-base      — pdflatex, core classes, basic packages
-#   texlive-latex-extra     — longtable, booktabs, array, ragged2e, pdflscape,
-#                             everypage, rotating, eso-pic, microtype, lastpage,
-#                             fancyhdr, geometry, hyperref, xcolor, inputenc,
-#                             fontenc — everything the fdaLatexTemplate uses.
-#   texlive-fonts-recommended — default Computer Modern + Latin Modern fonts
+# PACKAGE BREAKDOWN — why each package is required:
 #
-# This covers 100 % of the \usepackage{...} calls in latexTemplate.ts.
-# Do NOT add texlive-full — it is ~5 GB and would bust Render's build cache.
+#   texlive-latex-base        pdflatex binary, article/report/book classes,
+#                             core packages (inputenc, fontenc, array, etc.)
+#
+#   texlive-latex-recommended eso-pic, lastpage, fancyhdr, booktabs,
+#                             pdflscape, rotating, caption, xcolor, hyperref,
+#                             geometry — every package in our preamble that is
+#                             NOT in base or extra lives here.
+#
+#   texlive-latex-extra       ragged2e, microtype, longtable, and thousands
+#                             of other add-on packages.
+#
+#   texlive-fonts-recommended Computer Modern + base Latin Modern font files.
+#
+#   lmodern                   Latin Modern Type 1 (scalable outline) fonts.
+#                             REQUIRED — this is a SEPARATE apt package from
+#                             texlive-fonts-recommended.  Without it, pdfTeX
+#                             cannot find lmodern.sty (\usepackage{lmodern})
+#                             and falls back to bitmap (PK / Type 3) fonts,
+#                             causing the fatal crash:
+#                               ! pdfTeX error (font expansion): auto expansion
+#                                 is only possible with scalable fonts.
+#
+# Do NOT use texlive-full — it is ~5 GB and would bust Render's build cache.
 
 # ── Stage 1: base OS + TeX Live ───────────────────────────────────────────
 FROM python:3.12-slim AS texbase
@@ -25,8 +40,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         texlive-latex-base \
+        texlive-latex-recommended \
         texlive-latex-extra \
         texlive-fonts-recommended \
+        lmodern \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
