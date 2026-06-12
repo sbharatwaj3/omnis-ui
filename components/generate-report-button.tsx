@@ -7,8 +7,10 @@
 //   - If completion is 100% → immediately triggers download for the selected format
 //   - If completion is < 100% → opens the draft-warning AlertDialog first
 //
-// The download hits /api/generate-report?format=tex|pdf.
-// The PDF path currently returns 501 from the API (engine not yet wired).
+// PDF path: opens the ExportProgressModal (Batch Export Progress Center) to
+// simulate the eSTAR pipeline, then fires the real download on user confirmation.
+// LaTeX path hits /api/generate-report?format=tex directly (fully functional).
+// The PDF API endpoint currently returns 501 until the engine is wired.
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ExportProgressModal } from "@/components/export-progress-modal";
 import {
   FileText,
   FileCode2,
@@ -48,7 +51,7 @@ interface GenerateReportButtonProps {
 }
 
 // ---------------------------------------------------------------------------
-// Download helper
+// Download helper — hits /api/generate-report for the given format
 // ---------------------------------------------------------------------------
 
 async function downloadReport(
@@ -74,10 +77,18 @@ async function downloadReport(
       if (res.status === 501) {
         const msg = typeof message === "object" ? JSON.stringify(message) : String(message);
         alert(`PDF export is not yet available.\n\n${msg}`);
-      } else if (res.status === 500 && typeof message === "object" && message !== null) {
+      } else if (
+        res.status === 500 &&
+        typeof message === "object" &&
+        message !== null
+      ) {
         const errObj = message as { error?: string; detail?: string };
-        const detail = errObj.detail ? `\n\nCompiler log excerpt:\n${errObj.detail}` : "";
-        alert(`Failed to generate report (HTTP 500).\n\n${errObj.error ?? "Unknown error"}${detail}`);
+        const detail = errObj.detail
+          ? `\n\nCompiler log excerpt:\n${errObj.detail}`
+          : "";
+        alert(
+          `Failed to generate report (HTTP 500).\n\n${errObj.error ?? "Unknown error"}${detail}`
+        );
       } else {
         alert(`Failed to generate report (HTTP ${res.status}).\n\n${String(message)}`);
       }
@@ -118,23 +129,53 @@ export function GenerateReportButton({
   completionPercent,
 }: GenerateReportButtonProps) {
   const [loading, setLoading] = useState(false);
+
+  // Draft-warning dialog (shown when completionPercent < 100)
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pendingFormat, setPendingFormat] = useState<ExportFormat>("tex");
 
+  // Batch Export Progress Center modal (PDF path only)
+  const [progressModalOpen, setProgressModalOpen] = useState(false);
+
   const isComplete = completionPercent === 100;
+
+  // ── Format selection entry point ─────────────────────────────────────────
 
   function handleFormatSelect(format: ExportFormat) {
     if (isComplete) {
-      void downloadReport(format, setLoading);
+      initiateExport(format);
     } else {
       setPendingFormat(format);
       setDialogOpen(true);
     }
   }
 
+  // Called after the user confirms the draft warning dialog
   function handleGenerateDraft() {
     setDialogOpen(false);
-    void downloadReport(pendingFormat, setLoading);
+    initiateExport(pendingFormat);
+  }
+
+  // ── Export routing ───────────────────────────────────────────────────────
+  // PDF → open the progress modal (simulates the eSTAR pipeline UX)
+  // TeX → hit the API directly (already functional)
+
+  function initiateExport(format: ExportFormat) {
+    if (format === "pdf") {
+      setProgressModalOpen(true);
+    } else {
+      void downloadReport(format, setLoading);
+    }
+  }
+
+  // Called when user clicks "Download PDF" inside the progress modal
+  function handleProgressModalDownload() {
+    setProgressModalOpen(false);
+    void downloadReport("pdf", setLoading);
+  }
+
+  function handleProgressModalClose() {
+    setProgressModalOpen(false);
   }
 
   return (
@@ -158,7 +199,7 @@ export function GenerateReportButton({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="w-56">
-          {/* PDF export — API returns 501 until engine is wired */}
+          {/* PDF export — opens Batch Export Progress Center */}
           <DropdownMenuItem
             className="flex cursor-pointer items-center gap-2 text-sm"
             onClick={() => handleFormatSelect("pdf")}
@@ -167,7 +208,7 @@ export function GenerateReportButton({
             <div>
               <p className="font-medium">Export as PDF</p>
               <p className="text-[11px] text-zinc-400">
-                Compiled report · coming soon
+                Compiled eSTAR report · coming soon
               </p>
             </div>
           </DropdownMenuItem>
@@ -190,15 +231,15 @@ export function GenerateReportButton({
 
       {/* ── Draft warning modal ── */}
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <AlertDialogContent className="border-zinc-200 bg-white">
+        <AlertDialogContent className="border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
           <AlertDialogHeader>
             <div className="mb-2 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              <AlertDialogTitle className="text-zinc-900">
+              <AlertDialogTitle className="text-zinc-900 dark:text-zinc-100">
                 Incomplete Compliance Matrix
               </AlertDialogTitle>
             </div>
-            <AlertDialogDescription className="text-sm leading-relaxed text-zinc-600">
+            <AlertDialogDescription className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
               Your compliance matrix is{" "}
               <span className="font-semibold text-amber-600">
                 {completionPercent.toFixed(1)}% ready
@@ -218,7 +259,7 @@ export function GenerateReportButton({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-zinc-200 text-zinc-700 hover:bg-zinc-50">
+            <AlertDialogCancel className="border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -231,6 +272,13 @@ export function GenerateReportButton({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ── Batch Export Progress Center ── */}
+      <ExportProgressModal
+        open={progressModalOpen}
+        onClose={handleProgressModalClose}
+        onDownload={handleProgressModalDownload}
+      />
     </>
   );
 }
