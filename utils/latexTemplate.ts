@@ -60,6 +60,11 @@ export const fdaLatexTemplate = String.raw`\documentclass[11pt]{article}
 
 % ── Colour & links ───────────────────────────────────────────────────────────
 \usepackage{xcolor}
+% Named colours used in the AI risk summary paragraph (route.ts aiRiskSummary).
+% These MUST be defined before \begin{document} or \textcolor will halt pdflatex.
+\definecolor{passgreen}{RGB}{22, 101, 52}
+\definecolor{failred}{RGB}{185, 28, 28}
+\definecolor{warningyellow}{RGB}{146, 64, 14}
 \usepackage{hyperref}
 
 % ── Header / footer ──────────────────────────────────────────────────────────
@@ -70,14 +75,14 @@ export const fdaLatexTemplate = String.raw`\documentclass[11pt]{article}
 % pdflscape rotates the page body 90° and tells the PDF viewer to display
 % it upright.  We use it for Section 7 only.
 \usepackage{pdflscape}
-% everypage lets us inject header/footer code on every page inside the
-% landscape environment, where fancyhdr's normal portrait headers would
-% otherwise print sideways.
-\usepackage{everypage}
 % rotating provides \rotatebox used to orient the header/footer text
 % correctly on landscape pages.
 \usepackage{rotating}
 % eso-pic provides \AddToShipoutPictureBG for absolute page positioning.
+% We use it directly for the landscape header/footer overlay — this avoids
+% any dependency on the everypage package whose \AddEverypageHook API was
+% removed in TeX Live 2022+.  \AddToShipoutPictureBG fires on every page
+% automatically and we gate on the landscapemode counter inside the hook.
 \usepackage{eso-pic}
 
 % ── Hyperref config ──────────────────────────────────────────────────────────
@@ -116,119 +121,80 @@ export const fdaLatexTemplate = String.raw`\documentclass[11pt]{article}
 % Physical letter page in pdflscape: 11 in wide × 8.5 in tall.
 % Distances are measured from bottom-left of the physical (unrotated) page.
 %
-%   Top edge of landscape page   → physical LEFT  edge  (x ≈ 0.75 in from left)
-%   Bottom edge of landscape page → physical RIGHT edge  (x ≈ 10.25 in from left)
-%   Left edge of landscape page  → physical BOTTOM edge (y ≈ 0.75 in from bottom)
-%   Right edge of landscape page → physical TOP edge    (y ≈ 7.75 in from bottom)
-%
-% We place two header items near the top-left/top-right of the LANDSCAPE view
-% and two footer items at the bottom-left/bottom-right.  Each block is
-% \rotatebox{90} so the text reads correctly when the page is held landscape.
-%
 \newcounter{landscapemode}
 \setcounter{landscapemode}{0}
 
-% The hook fires on every shipout.  When landscapemode=1 it draws the overlay.
+% \AddToShipoutPictureBG fires on every page shipout (eso-pic, always present).
+% We gate on \value{landscapemode} so it only draws when we are inside the
+% landscape section.  This replaces the old \AddEverypageHook approach which
+% used the everypage package — that package's hook API was removed in TeX Live
+% 2022 and will cause a "undefined control sequence" fatal error on current
+% TeX installations.
 %
-% COORDINATE SYSTEM (eso-pic, \AtPageLowerLeft origin):
-%   Physical page (portrait storage): 612 pt tall × 792 pt wide.
+% COORDINATE SYSTEM (\AtPageLowerLeft origin = physical bottom-left):
+%   Physical page (portrait storage): 612 pt wide × 792 pt tall.
 %   1-inch margin = 72 pt each side.
 %
-%   pdflscape rotates the view 90° CCW, so in landscape:
-%     Landscape TOP    = physical RIGHT  edge  x = 540 pt from physical left
-%     Landscape BOTTOM = physical LEFT   edge  x =  72 pt from physical left
-%     Landscape LEFT   = physical BOTTOM edge  y =  72 pt from physical bottom
-%     Landscape RIGHT  = physical TOP    edge  y = 720 pt from physical bottom
+%   pdflscape rotates the *content* 90° CCW for viewing, but eso-pic
+%   coordinates remain in the physical (unrotated) frame:
+%     Landscape TOP    = physical RIGHT edge  → x = 612−72 = 540 pt
+%     Landscape BOTTOM = physical LEFT  edge  → x =       72 pt
+%     Landscape LEFT   = physical BOTTOM edge → y =       72 pt
+%     Landscape RIGHT  = physical TOP   edge  → y = 792−72 = 720 pt
 %
-%   Printable landscape width = 648 pt = 9 in (matches column budget).
-%
-%   Header: rule at x=538, text at x=524 (rule above, text ~14pt below).
-%   Footer: text at x=72,  rule at x=88  (rule above, text ~14pt below).
-%   All elements span y=72..720 (648 pt) matching the landscape text area.
-%
-\AddEverypageHook{%
+\AddToShipoutPictureBG{%
   \ifnum\value{landscapemode}=1
     \thispagestyle{empty}%
-    \AddToShipoutPictureBG*{%
-      %
-      % ── COORDINATE REFERENCE ──────────────────────────────────────────────
-      % Physical page (as stored): 612 pt tall × 792 pt wide.
-      % \AtPageLowerLeft origin = physical bottom-left corner (0,0).
-      % 1-inch margin = 72 pt.
-      %
-      % pdflscape rotates the *content* 90° CCW for viewing, but eso-pic
-      % coordinates remain in the physical (unrotated) frame:
-      %
-      %   Landscape TOP    = physical RIGHT edge  → x = 612−72 = 540 pt
-      %   Landscape BOTTOM = physical LEFT  edge  → x =       72 pt
-      %   Landscape LEFT   = physical BOTTOM edge → y =       72 pt
-      %   Landscape RIGHT  = physical TOP   edge  → y = 792−72 = 720 pt
-      %
-      % Each header/footer element is \rotatebox{90} so text reads L→R
-      % across the landscape width (648 pt = 9 in).
-      % We use separate \put calls for rule and text so their y-offsets
-      % can be tuned independently — no \parbox anchor-shift issues.
-      %
-      % ── HEADER RULE (landscape top, sits just below the top margin) ───────
-      % x = 540 pt  (right margin = landscape top)
-      % y = 72 pt   (left text margin = landscape left)
-      % The rule is drawn as a horizontal line across 648 pt, rotated 90°.
-      \AtPageLowerLeft{%
-        \put(538, 72){%
-          \rotatebox{90}{\rule{648pt}{0.4pt}}%
-        }%
+    %
+    % ── HEADER RULE ───────────────────────────────────────────────────────
+    \AtPageLowerLeft{%
+      \put(538, 72){%
+        \rotatebox{90}{\rule{648pt}{0.4pt}}%
       }%
-      %
-      % ── HEADER TEXT LEFT: Company | Product ───────────────────────────────
-      % Sits 4 pt below the rule (x = 540 − 4 − ~8pt descender = 528 pt).
-      % y = 72 pt anchors the left edge at the landscape-left margin.
-      \AtPageLowerLeft{%
-        \put(524, 72){%
-          \rotatebox{90}{%
-            \makebox[648pt][l]{%
-              \footnotesize\textbf{{{COMPANY_NAME}}} \textbar{} {{PRODUCT_NAME}}%
-            }%
+    }%
+    %
+    % ── HEADER TEXT LEFT: Company | Product ─────────────────────────────
+    \AtPageLowerLeft{%
+      \put(524, 72){%
+        \rotatebox{90}{%
+          \makebox[648pt][l]{%
+            \footnotesize\textbf{{{COMPANY_NAME}}} \textbar{} {{PRODUCT_NAME}}%
           }%
         }%
       }%
-      %
-      % ── HEADER TEXT RIGHT: DocID | Confidential ───────────────────────────
-      \AtPageLowerLeft{%
-        \put(524, 72){%
-          \rotatebox{90}{%
-            \makebox[648pt][r]{%
-              \footnotesize {{DOCUMENT_ID}} \textbar{} Confidential%
-            }%
+    }%
+    %
+    % ── HEADER TEXT RIGHT: DocID | Confidential ─────────────────────────
+    \AtPageLowerLeft{%
+      \put(524, 72){%
+        \rotatebox{90}{%
+          \makebox[648pt][r]{%
+            \footnotesize {{DOCUMENT_ID}} \textbar{} Confidential%
           }%
         }%
       }%
-      %
-      % ── FOOTER TEXT LEFT: Proprietary and Confidential ────────────────────
-      % x = 72 pt (left margin = landscape bottom).
-      % Text sits 14 pt above the bottom margin so the rule lands above it.
-      % 72 + 14 = 86 pt for text baseline; rule at 72 + 14 + 2 = 88 pt.
-      \AtPageLowerLeft{%
-        \put(72, 72){%
-          \rotatebox{90}{%
-            \makebox[648pt][l]{%
-              \footnotesize Proprietary and Confidential%
-            }%
+    }%
+    %
+    % ── FOOTER TEXT LEFT: Proprietary and Confidential ──────────────────
+    \AtPageLowerLeft{%
+      \put(72, 72){%
+        \rotatebox{90}{%
+          \makebox[648pt][l]{%
+            \footnotesize Proprietary and Confidential%
           }%
         }%
       }%
-      %
-      % ── FOOTER TEXT RIGHT: Page N of M ────────────────────────────────────
-      \AtPageLowerLeft{%
-        \put(72, 72){%
-          \rotatebox{90}{%
-            \makebox[648pt][r]{%
-              \footnotesize Page \thepage\ of \pageref{LastPage}%
-            }%
+    }%
+    %
+    % ── FOOTER TEXT RIGHT: Page N of M ──────────────────────────────────
+    \AtPageLowerLeft{%
+      \put(72, 72){%
+        \rotatebox{90}{%
+          \makebox[648pt][r]{%
+            \footnotesize Page \thepage\ of \pageref{LastPage}%
           }%
         }%
       }%
-      %
-      % ── FOOTER RULE — removed; table's own \bottomrule serves as the separator
     }%
   \fi
 }%
