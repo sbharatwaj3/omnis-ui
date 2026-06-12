@@ -277,7 +277,6 @@ export function GenerateReportButton({
       <ExportProgressModal
         open={progressModalOpen}
         onClose={handleProgressModalClose}
-        onDownload={handleProgressModalDownload}
       />
     </>
   );

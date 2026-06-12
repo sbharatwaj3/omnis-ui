@@ -6,10 +6,14 @@
 // simulated 5-step state machine representing the PDF export pipeline.
 // Opens when triggered and auto-advances through each step on a timer.
 // Once all steps complete it surfaces a Download PDF + Close action pair.
+//
+// The "Download PDF" button triggers client-side generation via
+// utils/generate-pdf.ts (html2canvas + jsPDF) — no server round-trip needed.
 
 import { useEffect, useState, useCallback } from "react";
 import { CheckCircle2, Circle, Loader2, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { generateCompliancePdf } from "@/utils/generate-pdf";
 
 // ---------------------------------------------------------------------------
 // Step definitions — label + timing (cumulative ms from modal open)
@@ -82,10 +86,8 @@ function buildInitialStepStates(): StepState[] {
 interface ExportProgressModalProps {
   /** Controls whether the modal is visible */
   open: boolean;
-  /** Called when user clicks the Close button or the backdrop */
+  /** Called when user clicks the Close button */
   onClose: () => void;
-  /** Called when user clicks the Download PDF button */
-  onDownload: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -95,11 +97,11 @@ interface ExportProgressModalProps {
 export function ExportProgressModal({
   open,
   onClose,
-  onDownload,
 }: ExportProgressModalProps) {
   const [stepStates, setStepStates] = useState<StepState[]>(buildInitialStepStates);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Reset state every time the modal opens
   useEffect(() => {
@@ -146,6 +148,19 @@ export function ExportProgressModal({
     },
     [isComplete, onClose]
   );
+
+  // Handles the Download PDF button — runs client-side generation
+  async function handleDownload() {
+    setIsGenerating(true);
+    try {
+      await generateCompliancePdf("compliance-report-content");
+    } catch (err) {
+      console.error("[export-progress-modal] PDF generation failed:", err);
+      alert("PDF generation failed. Please check the browser console for details.");
+    } finally {
+      setIsGenerating(false);
+    }
+  }
 
   if (!open) return null;
 
@@ -255,17 +270,23 @@ export function ExportProgressModal({
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="order-2 sm:order-1 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              disabled={isGenerating}
+              className="order-2 sm:order-1 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
             >
               Close
             </Button>
             <Button
               size="sm"
-              onClick={onDownload}
-              className="order-1 sm:order-2 flex items-center gap-2 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              onClick={() => void handleDownload()}
+              disabled={isGenerating}
+              className="order-1 sm:order-2 flex items-center gap-2 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 disabled:opacity-60"
             >
-              <Download className="h-3.5 w-3.5" />
-              Download PDF
+              {isGenerating ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Download className="h-3.5 w-3.5" />
+              )}
+              {isGenerating ? "Generating PDF…" : "Download PDF"}
             </Button>
           </div>
         )}
