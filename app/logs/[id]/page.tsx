@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ApproveLogButton } from "@/components/approve-log-button";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { SettingsMenu } from "@/components/settings-menu";
 import {
   ShieldCheck,
   Activity,
@@ -182,20 +182,20 @@ function formatTerminalText(raw: string): string {
 function SeverityBadge({ severity }: { severity: Severity }) {
   if (severity === "Critical") {
     return (
-      <Badge className="bg-red-100 text-red-700 border border-red-200 hover:bg-red-100 font-semibold px-3 py-1 text-sm">
+      <Badge className="bg-red-100 text-red-700 border border-red-200 hover:bg-red-100 font-semibold px-3 py-1 text-sm dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/40">
         ● Critical Anomaly
       </Badge>
     );
   }
   if (severity === "Clear") {
     return (
-      <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 font-medium px-3 py-1 text-sm">
+      <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 font-medium px-3 py-1 text-sm dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-950/40">
         ● Clear
       </Badge>
     );
   }
   return (
-    <Badge className="bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-100 font-medium px-3 py-1 text-sm">
+    <Badge className="bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-100 font-medium px-3 py-1 text-sm dark:border-amber-500/20 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-950/40">
       ● Pending Analysis
     </Badge>
   );
@@ -715,7 +715,7 @@ export default async function LogDetailPage({ params }: PageProps) {
                 IEC 62304 · 21 CFR Part 11
               </span>
             </div>
-            <ThemeToggle />
+            <SettingsMenu />
           </div>
         </div>
       </header>

@@ -197,18 +197,18 @@ function formatDateLabel(date: Date): string {
 function SeverityBadge({ severity }: { severity: DashboardRow["severity"] }) {
   if (severity === "Critical")
     return (
-      <Badge className="border border-red-200 bg-red-100 text-red-700 hover:bg-red-100 font-semibold">
+      <Badge className="border border-red-200 bg-red-100 text-red-700 hover:bg-red-100 font-semibold dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/40">
         ● Critical
       </Badge>
     );
   if (severity === "Clear")
     return (
-      <Badge className="border border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 font-medium">
+      <Badge className="border border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 font-medium dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-950/40">
         ● Clear
       </Badge>
     );
   return (
-    <Badge className="border border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-100 font-medium">
+    <Badge className="border border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-100 font-medium dark:border-amber-500/20 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-950/40">
       ● Pending
     </Badge>
   );
@@ -219,7 +219,9 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
-        isSuccess ? "bg-zinc-100 text-zinc-600" : "bg-orange-50 text-orange-700"
+        isSuccess
+          ? "bg-zinc-100 text-zinc-600 dark:bg-slate-800 dark:text-emerald-400 dark:border dark:border-emerald-500/20"
+          : "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400"
       }`}
     >
       {status ?? "—"}
@@ -518,8 +520,8 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                       drawerLogId === row.logId
                         ? "bg-zinc-100 dark:bg-zinc-800"
                         : isCritical
-                        ? "bg-red-50/60 active:bg-red-100"
-                        : "active:bg-zinc-50",
+                        ? "bg-red-50/60 active:bg-red-100 dark:bg-red-950/30 dark:active:bg-red-950/50"
+                        : "active:bg-zinc-50 dark:active:bg-slate-800/50",
                     ].join(" ")}
                   >
                     {/* Row 1: Test Suite name */}
@@ -575,8 +577,8 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                           drawerLogId === row.logId
                             ? "bg-zinc-100 dark:bg-zinc-800"
                             : isCritical
-                            ? "bg-red-50/60 hover:bg-red-100"
-                            : "hover:bg-zinc-50",
+                            ? "bg-red-50/60 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-950/50"
+                            : "hover:bg-zinc-50 dark:hover:bg-slate-800/50",
                         ].join(" ")}
                       >
                         {/* 1. Status */}
