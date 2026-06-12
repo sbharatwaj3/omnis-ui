@@ -297,26 +297,93 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
   }
 
-  // ── 6b. PDF export — moved to client-side generation ─────────────────────
+  // ── 6b. PDF export — POST LaTeX to the Omnis LaTeX microservice ──────────
   //
-  // PDF generation is now handled entirely in the browser via html2canvas +
-  // jsPDF (utils/generate-pdf.ts). This avoids Vercel serverless cold-start
-  // timeouts and removes the dependency on a remote LaTeX compiler for the
-  // PDF path.
+  // Compiler: omnis-latex-service (FastAPI + pdflatex on Render)
   //
-  // The LaTeX compiler path (?format=tex) remains fully functional for users
-  // who need a source file for self-compilation or offline archival.
+  // API CONTRACT (our own service — omnis-latex-service/main.py):
+  //   POST /api/compile
+  //   Content-Type: application/json
+  //   Body: { "tex_source": "<raw LaTeX string>" }
+  //   Response: application/pdf  (binary stream, two-pass pdflatex)
   //
-  // This endpoint should never be called with format=pdf by the current UI.
-  // If it is, return a clear explanatory error rather than silently failing.
-  return NextResponse.json(
-    {
-      error:
-        "PDF export is now handled client-side. " +
-        "Use the 'Generate Regulatory Report → Export as PDF' button in the UI, " +
-        "which renders the Traceability Matrix directly to PDF in the browser. " +
-        "Use ?format=tex for a LaTeX source export.",
+  // LATEX_COMPILER_URL must point to the Render service root, e.g.:
+  //   https://omnis-latex-service.onrender.com
+  // The /api/compile path is appended here.
+  //
+  // CONSTITUTION LAW: service URLs are NEVER hardcoded.
+  const compilerBaseUrl = process.env.LATEX_COMPILER_URL;
+
+  if (!compilerBaseUrl) {
+    console.error(
+      "[generate-report] LATEX_COMPILER_URL is not set in the environment."
+    );
+    return NextResponse.json(
+      {
+        error:
+          "PDF compilation is not configured. " +
+          "Set LATEX_COMPILER_URL to the Omnis LaTeX microservice URL " +
+          "(e.g. https://omnis-latex-service.onrender.com).",
+      },
+      { status: 500 }
+    );
+  }
+
+  // Strip any trailing slash so the path concatenation is always clean.
+  const compileEndpoint = `${compilerBaseUrl.replace(/\/$/, "")}/api/compile`;
+
+  // Our service expects a simple JSON body with a single `tex_source` field.
+  const compilerPayload = { tex_source: finalLatexString };
+
+  let compileRes: Response;
+  try {
+    compileRes = await fetch(compileEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(compilerPayload),
+    });
+  } catch (networkErr) {
+    console.error(
+      "[generate-report] Network error reaching LaTeX compiler:",
+      networkErr
+    );
+    return NextResponse.json(
+      {
+        error:
+          "Could not reach the LaTeX compiler service. " +
+          "Check LATEX_COMPILER_URL and ensure the Render service is running.",
+      },
+      { status: 502 }
+    );
+  }
+
+  if (!compileRes.ok) {
+    // Surface the pdflatex log tail that the service embeds in its 500 body.
+    const errorBody = await compileRes.text().catch(() => "(no body)");
+    console.error(
+      "[generate-report] LaTeX compiler returned an error:",
+      compileRes.status,
+      compileRes.statusText,
+      "\nService response body:\n",
+      errorBody
+    );
+    return NextResponse.json(
+      {
+        error: `LaTeX compiler failed: ${compileRes.statusText} (HTTP ${compileRes.status}).`,
+        detail: errorBody.slice(0, 1000), // surface first 1 KB of log to client
+      },
+      { status: 500 }
+    );
+  }
+
+  const pdfBuffer = await compileRes.arrayBuffer();
+
+  return new NextResponse(pdfBuffer, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": 'attachment; filename="fda_submission.pdf"',
+      "Cache-Control": "no-store",
     },
-    { status: 501 }
-  );
+  });
 }
