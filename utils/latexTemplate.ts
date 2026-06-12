@@ -177,14 +177,14 @@ export const fdaLatexTemplate = String.raw`\documentclass[11pt]{article}
     %
     % ── HEADER RULE ───────────────────────────────────────────────────────
     \AtPageLowerLeft{%
-      \put(538, 72){%
+      \put(555, 72){%
         \rotatebox{90}{\rule{648pt}{0.4pt}}%
       }%
     }%
     %
     % ── HEADER TEXT LEFT: Company | Product ─────────────────────────────
     \AtPageLowerLeft{%
-      \put(524, 72){%
+      \put(541, 72){%
         \rotatebox{90}{%
           \makebox[648pt][l]{%
             \footnotesize\textbf{{{COMPANY_NAME}}} \textbar{} {{PRODUCT_NAME}}%
@@ -195,7 +195,7 @@ export const fdaLatexTemplate = String.raw`\documentclass[11pt]{article}
     %
     % ── HEADER TEXT RIGHT: DocID | Confidential ─────────────────────────
     \AtPageLowerLeft{%
-      \put(524, 72){%
+      \put(541, 72){%
         \rotatebox{90}{%
           \makebox[648pt][r]{%
             \footnotesize {{DOCUMENT_ID}} \textbar{} Confidential%
@@ -206,7 +206,7 @@ export const fdaLatexTemplate = String.raw`\documentclass[11pt]{article}
     %
     % ── FOOTER TEXT LEFT: Proprietary and Confidential ──────────────────
     \AtPageLowerLeft{%
-      \put(72, 72){%
+      \put(45, 72){%
         \rotatebox{90}{%
           \makebox[648pt][l]{%
             \footnotesize Proprietary and Confidential%
@@ -217,7 +217,7 @@ export const fdaLatexTemplate = String.raw`\documentclass[11pt]{article}
     %
     % ── FOOTER TEXT RIGHT: Page N of M ──────────────────────────────────
     \AtPageLowerLeft{%
-      \put(72, 72){%
+      \put(45, 72){%
         \rotatebox{90}{%
           \makebox[648pt][r]{%
             \footnotesize Page \thepage\ of \pageref{LastPage}%
@@ -660,6 +660,12 @@ and verification and validation.
 %   Gaps: 6 × 2 × 0.2117 cm (\tabcolsep)             =  2.54 cm
 %   Total: 21.64 cm  ≤  22.86 cm  ✓
 % @{} strips outer padding — table left edge aligns with header rule.
+%
+% \clearpage forces the preceding portrait content (section heading, intro
+% paragraph) to ship out BEFORE we flip the landscapemode counter, so the
+% eso-pic landscape overlay only fires on the newly created landscape pages
+% and never bleeds onto the trailing portrait page.
+\clearpage
 \setcounter{landscapemode}{1}
 \begin{landscape}
 
