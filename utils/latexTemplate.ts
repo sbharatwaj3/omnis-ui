@@ -97,10 +97,24 @@ export const fdaLatexTemplate = String.raw`\documentclass[11pt]{article}
 \newcolumntype{R}[1]{>{\RaggedRight\arraybackslash}p{#1}}
 
 % ── UUID line-break helper ────────────────────────────────────────────────────
+% \breakuuid{<string>} inserts \hspace{0pt} after every hyphen so the
+% typesetter has legal line-break opportunities inside long identifiers.
+%
+% Recursive character scanner.  The outer \ifx#1\relax guards the
+% sentinel inserted by \breakuuid, closing only after we output the
+% current character and schedule the next recursive call.  The inner
+% \ifx#1- selects the hyphen branch.
+%
+% CRITICAL: \expandafter\breakuuidaux MUST appear BEFORE the closing \fi
+% of the outer conditional so that the recursion is scheduled *inside*
+% the \else branch.  Placing it after the \fi would recurse outside the
+% conditional scope, causing a "Missing \fi" fatal TeX error.
 \newcommand{\breakuuid}[1]{\def\temp{#1}\expandafter\breakuuidaux\temp\relax}
-\def\breakuuidaux#1{\ifx#1\relax\else
-  \ifx#1-{-\hspace{0pt}}\else#1\fi
-  \expandafter\breakuuidaux\fi}
+\def\breakuuidaux#1{%
+  \ifx#1\relax\else
+    \ifx#1-{-\hspace{0pt}}\else#1\fi
+    \expandafter\breakuuidaux
+  \fi}
 
 % ── Portrait page style ───────────────────────────────────────────────────────
 \pagestyle{fancy}
