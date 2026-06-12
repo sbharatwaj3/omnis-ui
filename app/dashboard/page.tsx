@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { SettingsMenu } from "@/components/settings-menu";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { DashboardClient, type DashboardRow } from "@/components/dashboard-client";
 
 // ---------------------------------------------------------------------------
@@ -210,7 +209,7 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Right: informational badge (hidden on mobile) + theme toggle + settings */}
+          {/* Right: informational badge (hidden on mobile) + settings */}
           <div className="flex items-center gap-2 ml-auto sm:ml-0 shrink-0">
             <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none dark:border-zinc-700 dark:bg-zinc-800">
               <Activity className="h-3.5 w-3.5 text-emerald-500" />
@@ -218,7 +217,6 @@ export default function DashboardPage() {
                 IEC 62304 · 21 CFR Part 11
               </span>
             </span>
-            <ThemeToggle />
             <SettingsMenu />
           </div>
         </div>

@@ -3,13 +3,14 @@
 // Settings dropdown for the Dashboard header.
 //
 // Client Component — requires browser APIs for Supabase sign-out and router.
-// Renders a Settings icon that opens a dropdown with a Sign Out action.
+// Renders a Settings icon that opens a dropdown with navigation to the
+// dedicated Settings page and a Sign Out action.
 // On successful sign-out, clears the session and redirects to root (/).
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { Settings, LogOut, Loader2, User } from "lucide-react";
+import { Settings, LogOut, Loader2, SlidersHorizontal } from "lucide-react";
 
 export function SettingsMenu() {
   const [open, setOpen] = useState(false);
@@ -60,19 +61,22 @@ export function SettingsMenu() {
           {/* Section label */}
           <div className="border-b border-zinc-100 px-4 py-2.5 dark:border-zinc-800">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-              Account
+              Workspace
             </p>
           </div>
 
-          {/* Settings item (placeholder — extend as needed) */}
+          {/* Settings page link */}
           <div className="px-1 py-1">
             <button
               role="menuitem"
-              disabled
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-400 cursor-not-allowed opacity-50"
+              onClick={() => {
+                setOpen(false);
+                router.push("/dashboard/settings");
+              }}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
             >
-              <User className="h-3.5 w-3.5" strokeWidth={1.75} />
-              Profile Settings
+              <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={1.75} />
+              Settings
             </button>
           </div>
 
