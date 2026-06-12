@@ -25,8 +25,8 @@ export function ClickableTableRow({
       className={[
         "cursor-pointer transition-colors",
         isCritical
-          ? "bg-red-50/60 hover:bg-red-100"
-          : "hover:bg-zinc-100/80",
+          ? "bg-red-50/60 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-950/50"
+          : "hover:bg-zinc-100/80 dark:hover:bg-slate-800/50",
       ].join(" ")}
     >
       {children}

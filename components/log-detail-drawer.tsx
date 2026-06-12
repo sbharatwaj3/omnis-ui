@@ -62,18 +62,18 @@ function mapSeverity(summary: string | null | undefined): Severity {
 function SeverityBadge({ severity }: { severity: Severity }) {
   if (severity === "Critical")
     return (
-      <Badge className="border border-red-200 bg-red-100 text-red-700 hover:bg-red-100 font-semibold">
+      <Badge className="border border-red-200 bg-red-100 text-red-700 hover:bg-red-100 font-semibold dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/40">
         ● Critical
       </Badge>
     );
   if (severity === "Clear")
     return (
-      <Badge className="border border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 font-medium">
+      <Badge className="border border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 font-medium dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-950/40">
         ● Clear
       </Badge>
     );
   return (
-    <Badge className="border border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-100 font-medium">
+    <Badge className="border border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-100 font-medium dark:border-amber-500/20 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-950/40">
       ● Pending
     </Badge>
   );
@@ -295,8 +295,8 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
                     <span
                       className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
                         log.execution_status?.toUpperCase() === "SUCCESS"
-                          ? "bg-zinc-100 text-zinc-600"
-                          : "bg-orange-50 text-orange-700"
+                          ? "bg-zinc-100 text-zinc-600 dark:bg-slate-800 dark:text-emerald-400 dark:border dark:border-emerald-500/20"
+                          : "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400"
                       }`}
                     >
                       {log.execution_status ?? "—"}
