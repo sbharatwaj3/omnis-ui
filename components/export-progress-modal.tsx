@@ -2,18 +2,18 @@
 // omnis-ui/components/export-progress-modal.tsx
 // Batch Export Progress Center — eSTAR Documentation Generation
 //
-// Renders a centered modal dialog with a blurred backdrop that runs a
-// simulated 5-step state machine representing the PDF export pipeline.
-// Opens when triggered and auto-advances through each step on a timer.
-// Once all steps complete it surfaces a Download PDF + Close action pair.
+// Renders a centered modal dialog that runs the REAL PDF compile pipeline
+// while showing animated progress steps to the user.
 //
-// The "Download PDF" button triggers client-side generation via
-// utils/generate-pdf.ts (html2canvas + jsPDF) — no server round-trip needed.
+// KEY DESIGN:
+//   The API fetch starts the moment the modal opens (not after the animation).
+//   The progress animation runs in parallel as a UX affordance; on completion
+//   (or on API resolution, whichever is later) the Download button appears.
+//   If the API errors, the modal surfaces the error in-place with a Retry option.
 
-import { useEffect, useState, useCallback } from "react";
-import { CheckCircle2, Circle, Loader2, Download, X } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { CheckCircle2, Circle, Loader2, Download, X, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { generateCompliancePdf } from "@/utils/generate-pdf";
 
 // ---------------------------------------------------------------------------
 // Step definitions — label + timing (cumulative ms from modal open)
@@ -57,17 +57,18 @@ const EXPORT_STEPS: ExportStep[] = [
     id: 5,
     label: "Ready for Download.",
     startsAt: 12_000,
-    completesAt: 12_000, // completes immediately when it becomes active
+    completesAt: 12_000,
   },
 ];
 
-const TOTAL_DURATION_MS = 12_000;
+const ANIMATION_DURATION_MS = 12_000;
 
 // ---------------------------------------------------------------------------
 // State types
 // ---------------------------------------------------------------------------
 
 type StepStatus = "pending" | "active" | "completed";
+type ApiState = "pending" | "success" | "error";
 
 interface StepState {
   status: StepStatus;
@@ -88,6 +89,12 @@ interface ExportProgressModalProps {
   open: boolean;
   /** Called when user clicks the Close button */
   onClose: () => void;
+  /**
+   * Called when user clicks "Download PDF" after a successful compile.
+   * Receives the compiled PDF Blob so the caller can trigger the browser
+   * file download directly from the already-fetched data.
+   */
+  onDownload: (blob: Blob) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -97,19 +104,88 @@ interface ExportProgressModalProps {
 export function ExportProgressModal({
   open,
   onClose,
+  onDownload,
 }: ExportProgressModalProps) {
   const [stepStates, setStepStates] = useState<StepState[]>(buildInitialStepStates);
   const [elapsedMs, setElapsedMs] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  // animationDone: the 12-second UX animation has finished
+  const [animationDone, setAnimationDone] = useState(false);
+  // apiState: tracks the actual fetch to /api/generate-report?format=pdf
+  const [apiState, setApiState] = useState<ApiState>("pending");
+  const [apiError, setApiError] = useState<string | null>(null);
+  // pdfBlob: holds the compiled PDF in memory once ready
+  const pdfBlobRef = useRef<Blob | null>(null);
+  // retryCount: incremented each time the user clicks Retry, re-triggering the fetch
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Reset state every time the modal opens
+  // Both the animation AND the API call must finish before "Download" appears.
+  const isComplete = animationDone && apiState === "success";
+
+  // ── API fetch ─────────────────────────────────────────────────────────────
+  // Runs immediately when the modal opens (or when the user retries).
+  // Independent of the animation timer.
+  useEffect(() => {
+    if (!open) return;
+
+    setApiState("pending");
+    setApiError(null);
+    pdfBlobRef.current = null;
+
+    let cancelled = false;
+
+    async function fetchPdf() {
+      try {
+        const res = await fetch("/api/generate-report?format=pdf");
+
+        if (cancelled) return;
+
+        if (!res.ok) {
+          const contentType = res.headers.get("Content-Type") ?? "";
+          let detail = `HTTP ${res.status}`;
+          if (contentType.includes("application/json")) {
+            const body = await res.json().catch(() => ({})) as { error?: string; detail?: string };
+            detail = body.error ?? detail;
+            if (body.detail) detail += `\n\n${body.detail.slice(0, 300)}`;
+          } else {
+            const text = await res.text().catch(() => "");
+            if (text) detail += `: ${text.slice(0, 200)}`;
+          }
+          setApiError(detail);
+          setApiState("error");
+          return;
+        }
+
+        const blob = await res.blob();
+        if (cancelled) return;
+
+        pdfBlobRef.current = blob;
+        setApiState("success");
+      } catch (err) {
+        if (cancelled) return;
+        const msg = err instanceof Error ? err.message : "Network error";
+        setApiError(msg);
+        setApiState("error");
+      }
+    }
+
+    void fetchPdf();
+
+    return () => {
+      cancelled = true;
+    };
+    // retryCount in deps so a Retry click re-runs this effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, retryCount]);
+
+  // ── Animation timer ───────────────────────────────────────────────────────
+  // Runs the 12-second visual progress animation.
+  // Fully independent of the API call.
   useEffect(() => {
     if (!open) return;
 
     setStepStates(buildInitialStepStates());
     setElapsedMs(0);
-    setIsComplete(false);
+    setAnimationDone(false);
 
     const startTime = Date.now();
 
@@ -120,7 +196,6 @@ export function ExportProgressModal({
       setStepStates(
         EXPORT_STEPS.map((step) => {
           if (now >= step.completesAt && step.id === EXPORT_STEPS[EXPORT_STEPS.length - 1].id) {
-            // Last step — mark complete only if we've actually reached it
             return { status: now >= step.startsAt ? "completed" : "pending" };
           }
           if (now >= step.completesAt) return { status: "completed" };
@@ -129,37 +204,41 @@ export function ExportProgressModal({
         })
       );
 
-      if (now >= TOTAL_DURATION_MS) {
+      if (now >= ANIMATION_DURATION_MS) {
         clearInterval(tick);
-        setIsComplete(true);
+        setAnimationDone(true);
       }
-    }, 80); // ~12 fps tick — smooth enough, lightweight
+    }, 80);
 
     return () => clearInterval(tick);
   }, [open]);
 
-  // Progress bar percentage (0–100), capped at 100
-  const progressPercent = Math.min(100, (elapsedMs / TOTAL_DURATION_MS) * 100);
+  // ── Retry handler ─────────────────────────────────────────────────────────
+  function handleRetry() {
+    setRetryCount((c) => c + 1);
+  }
 
-  // Trap keyboard: close on Escape
+  // Progress bar: while API is still pending after animation, hold at 95% to
+  // signal "waiting on server" without bouncing back. On success/error → 100%.
+  const rawPercent = Math.min(100, (elapsedMs / ANIMATION_DURATION_MS) * 100);
+  const progressPercent =
+    apiState !== "pending"
+      ? 100
+      : animationDone
+        ? 95
+        : rawPercent;
+
+  // Trap keyboard: close on Escape (only when complete or errored)
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === "Escape" && isComplete) onClose();
+      if (e.key === "Escape" && (isComplete || apiState === "error")) onClose();
     },
-    [isComplete, onClose]
+    [isComplete, apiState, onClose]
   );
 
-  // Handles the Download PDF button — runs client-side generation
-  async function handleDownload() {
-    setIsGenerating(true);
-    try {
-      await generateCompliancePdf("compliance-report-content");
-    } catch (err) {
-      console.error("[export-progress-modal] PDF generation failed:", err);
-      alert("PDF generation failed. Please check the browser console for details.");
-    } finally {
-      setIsGenerating(false);
-    }
+  function handleDownloadClick() {
+    const blob = pdfBlobRef.current;
+    if (blob) onDownload(blob);
   }
 
   if (!open) return null;
@@ -176,8 +255,8 @@ export function ExportProgressModal({
       {/* Modal panel */}
       <div className="relative w-full max-w-md mx-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-6 flex flex-col gap-5">
 
-        {/* Close button — only enabled once complete */}
-        {isComplete && (
+        {/* Close button — only enabled once complete or errored */}
+        {(isComplete || apiState === "error") && (
           <button
             onClick={onClose}
             aria-label="Close modal"
@@ -210,7 +289,14 @@ export function ExportProgressModal({
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
             <div
-              className="h-full rounded-full bg-blue-500 transition-all duration-150 ease-linear"
+              className={[
+                "h-full rounded-full transition-all duration-150 ease-linear",
+                apiState === "error"
+                  ? "bg-red-500"
+                  : isComplete
+                    ? "bg-emerald-500"
+                    : "bg-blue-500",
+              ].join(" ")}
               style={{ width: `${progressPercent}%` }}
               role="progressbar"
               aria-valuenow={Math.round(progressPercent)}
@@ -220,48 +306,86 @@ export function ExportProgressModal({
           </div>
         </div>
 
-        {/* Vertical timeline */}
-        <ol className="flex flex-col gap-0" aria-label="Export steps">
-          {EXPORT_STEPS.map((step, idx) => {
-            const status = stepStates[idx]?.status ?? "pending";
-            const isLast = idx === EXPORT_STEPS.length - 1;
+        {/* Vertical timeline — hidden if errored, replaced by error panel */}
+        {apiState !== "error" && (
+          <ol className="flex flex-col gap-0" aria-label="Export steps">
+            {EXPORT_STEPS.map((step, idx) => {
+              const status = stepStates[idx]?.status ?? "pending";
+              const isLast = idx === EXPORT_STEPS.length - 1;
 
-            return (
-              <li key={step.id} className="flex items-stretch gap-3">
-                {/* Icon + connector line column */}
-                <div className="flex flex-col items-center">
-                  <StepIcon status={status} />
-                  {!isLast && (
-                    <div
+              return (
+                <li key={step.id} className="flex items-stretch gap-3">
+                  {/* Icon + connector line column */}
+                  <div className="flex flex-col items-center">
+                    <StepIcon status={status} />
+                    {!isLast && (
+                      <div
+                        className={[
+                          "mt-1 w-px flex-1 min-h-[20px] rounded-full transition-colors duration-300",
+                          status === "completed"
+                            ? "bg-emerald-400"
+                            : "bg-zinc-200 dark:bg-zinc-700",
+                        ].join(" ")}
+                      />
+                    )}
+                  </div>
+
+                  {/* Label */}
+                  <div className={`pb-4 pt-0.5 flex items-start ${isLast ? "pb-0" : ""}`}>
+                    <span
                       className={[
-                        "mt-1 w-px flex-1 min-h-[20px] rounded-full transition-colors duration-300",
+                        "text-sm leading-snug transition-colors duration-200",
                         status === "completed"
-                          ? "bg-emerald-400"
-                          : "bg-zinc-200 dark:bg-zinc-700",
+                          ? "font-semibold text-emerald-600 dark:text-emerald-400"
+                          : status === "active"
+                            ? "font-semibold text-blue-600 dark:text-blue-400"
+                            : "font-normal text-zinc-400 dark:text-zinc-500",
                       ].join(" ")}
-                    />
-                  )}
-                </div>
+                    >
+                      {step.label}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
 
-                {/* Label */}
-                <div className={`pb-4 pt-0.5 flex items-start ${isLast ? "pb-0" : ""}`}>
-                  <span
-                    className={[
-                      "text-sm leading-snug transition-colors duration-200",
-                      status === "completed"
-                        ? "font-semibold text-emerald-600 dark:text-emerald-400"
-                        : status === "active"
-                          ? "font-semibold text-blue-600 dark:text-blue-400"
-                          : "font-normal text-zinc-400 dark:text-zinc-500",
-                    ].join(" ")}
-                  >
-                    {step.label}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ol>
+        {/* Waiting-on-server indicator (animation done but API still running) */}
+        {animationDone && apiState === "pending" && (
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0 text-blue-500" />
+            <span>Waiting for LaTeX compiler service…</span>
+          </div>
+        )}
+
+        {/* Error panel */}
+        {apiState === "error" && (
+          <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-900/60 dark:bg-red-950/30 p-4 space-y-3">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                  Compilation Failed
+                </p>
+                {apiError && (
+                  <p className="mt-1 text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap break-words">
+                    {apiError}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRetry}
+              className="flex items-center gap-2 border-red-300 text-red-700 hover:bg-red-100 dark:border-red-800 dark:text-red-400"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Retry
+            </Button>
+          </div>
+        )}
 
         {/* Completion actions */}
         {isComplete && (
@@ -270,23 +394,17 @@ export function ExportProgressModal({
               variant="outline"
               size="sm"
               onClick={onClose}
-              disabled={isGenerating}
-              className="order-2 sm:order-1 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
+              className="order-2 sm:order-1 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
             >
               Close
             </Button>
             <Button
               size="sm"
-              onClick={() => void handleDownload()}
-              disabled={isGenerating}
-              className="order-1 sm:order-2 flex items-center gap-2 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 disabled:opacity-60"
+              onClick={handleDownloadClick}
+              className="order-1 sm:order-2 flex items-center gap-2 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
-              {isGenerating ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Download className="h-3.5 w-3.5" />
-              )}
-              {isGenerating ? "Generating PDF…" : "Download PDF"}
+              <Download className="h-3.5 w-3.5" />
+              Download PDF
             </Button>
           </div>
         )}

@@ -7,10 +7,13 @@
 //   - If completion is 100% → immediately triggers download for the selected format
 //   - If completion is < 100% → opens the draft-warning AlertDialog first
 //
-// PDF path: opens the ExportProgressModal (Batch Export Progress Center) to
-// simulate the eSTAR pipeline, then fires the real download on user confirmation.
+// PDF path: opens the ExportProgressModal which IMMEDIATELY fires the real API
+// call to /api/generate-report?format=pdf in the background while the progress
+// animation plays. When both the animation and the compile are done, the modal
+// surfaces the Download PDF button which triggers a blob download directly from
+// the already-fetched data — no second round-trip.
+//
 // LaTeX path hits /api/generate-report?format=tex directly (fully functional).
-// The PDF API endpoint currently returns 501 until the engine is wired.
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -51,19 +54,17 @@ interface GenerateReportButtonProps {
 }
 
 // ---------------------------------------------------------------------------
-// Download helper — hits /api/generate-report for the given format
+// Download helper — hits /api/generate-report for the given format.
+// Used only for the LaTeX (.tex) path. The PDF path uses the blob returned
+// directly by ExportProgressModal via its onDownload callback.
 // ---------------------------------------------------------------------------
 
-async function downloadReport(
-  format: ExportFormat,
-  setLoading: (v: boolean) => void
-) {
+async function downloadTexReport(setLoading: (v: boolean) => void) {
   setLoading(true);
   try {
-    const res = await fetch(`/api/generate-report?format=${format}`);
+    const res = await fetch("/api/generate-report?format=tex");
 
     if (!res.ok) {
-      // Try to parse a JSON error body first, fall back to status text
       const contentType = res.headers.get("Content-Type") ?? "";
       let message: unknown;
       if (contentType.includes("application/json")) {
@@ -73,52 +74,42 @@ async function downloadReport(
       }
 
       console.error("[generate-report] API error:", res.status, message);
-
-      if (res.status === 501) {
-        const msg = typeof message === "object" ? JSON.stringify(message) : String(message);
-        alert(`PDF export is not yet available.\n\n${msg}`);
-      } else if (
-        res.status === 500 &&
-        typeof message === "object" &&
-        message !== null
-      ) {
-        const errObj = message as { error?: string; detail?: string };
-        const detail = errObj.detail
-          ? `\n\nCompiler log excerpt:\n${errObj.detail}`
-          : "";
-        alert(
-          `Failed to generate report (HTTP 500).\n\n${errObj.error ?? "Unknown error"}${detail}`
-        );
-      } else {
-        alert(`Failed to generate report (HTTP ${res.status}).\n\n${String(message)}`);
-      }
+      const errMsg =
+        typeof message === "object" && message !== null
+          ? (message as { error?: string }).error ?? JSON.stringify(message)
+          : String(message);
+      alert(`Failed to generate LaTeX source (HTTP ${res.status}).\n\n${errMsg}`);
       return;
     }
 
-    // Derive filename from Content-Disposition or fall back to format default
     const disposition = res.headers.get("Content-Disposition") ?? "";
     const filenameMatch = disposition.match(/filename="?([^";\n]+)"?/);
-    const filename =
-      filenameMatch?.[1] ??
-      (format === "pdf" ? "fda_submission_draft.pdf" : "fda_submission_draft.tex");
+    const filename = filenameMatch?.[1] ?? "fda_submission_draft.tex";
 
     const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = filename;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 5_000);
+    triggerBlobDownload(blob, filename);
   } catch (err) {
     console.error("[generate-report] Network error:", err);
-    alert("Network error while generating report. Check the console.");
+    alert("Network error while generating LaTeX source. Check the console.");
   } finally {
     setLoading(false);
   }
+}
+
+// ---------------------------------------------------------------------------
+// triggerBlobDownload — creates a temporary anchor, clicks it, cleans up.
+// Works for any Blob regardless of MIME type.
+// ---------------------------------------------------------------------------
+
+function triggerBlobDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5_000);
 }
 
 // ---------------------------------------------------------------------------
@@ -157,21 +148,23 @@ export function GenerateReportButton({
   }
 
   // ── Export routing ───────────────────────────────────────────────────────
-  // PDF → open the progress modal (simulates the eSTAR pipeline UX)
-  // TeX → hit the API directly (already functional)
+  // PDF → open the progress modal, which fires the API call immediately.
+  // TeX → hit the API directly.
 
   function initiateExport(format: ExportFormat) {
     if (format === "pdf") {
       setProgressModalOpen(true);
     } else {
-      void downloadReport(format, setLoading);
+      void downloadTexReport(setLoading);
     }
   }
 
-  // Called when user clicks "Download PDF" inside the progress modal
-  function handleProgressModalDownload() {
+  // Called by the progress modal when the compile succeeded and the user
+  // clicks "Download PDF". The blob was already fetched inside the modal —
+  // we just trigger the browser save-as dialog here.
+  function handleProgressModalDownload(blob: Blob) {
     setProgressModalOpen(false);
-    void downloadReport("pdf", setLoading);
+    triggerBlobDownload(blob, "fda_submission.pdf");
   }
 
   function handleProgressModalClose() {
@@ -208,7 +201,7 @@ export function GenerateReportButton({
             <div>
               <p className="font-medium">Export as PDF</p>
               <p className="text-[11px] text-zinc-400">
-                Compiled eSTAR report · coming soon
+                Compiled eSTAR report · pdflatex
               </p>
             </div>
           </DropdownMenuItem>
@@ -277,6 +270,7 @@ export function GenerateReportButton({
       <ExportProgressModal
         open={progressModalOpen}
         onClose={handleProgressModalClose}
+        onDownload={handleProgressModalDownload}
       />
     </>
   );

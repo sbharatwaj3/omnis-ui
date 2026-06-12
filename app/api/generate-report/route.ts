@@ -7,20 +7,24 @@
 // ?format=pdf  → Builds the same LaTeX string, POSTs it to the remote
 //                compiler at LATEX_COMPILER_URL, and streams the PDF back.
 //
-// The LaTeX string-generation logic (DB queries, row-building, placeholder
-// injection) is shared between both formats. Branching happens only at the
-// final return so gap-detection, signature rows, and all compliance logic
-// are identical for both outputs.
-//
 // CONSTITUTION ALIGNMENT:
 //   - Uses @supabase/ssr server client — session-aware, RLS-respecting.
 //   - Strictly follows the DDL schema. No hallucinated column names.
 //   - Compiler URL loaded from process.env.LATEX_COMPILER_URL — never hardcoded.
 //   - No auth bypass. Unauthenticated requests are gated by middleware / RLS.
+//
+// VERCEL TIMEOUT:
+//   maxDuration = 60 tells Vercel to allow up to 60 seconds for this function.
+//   Required because pdflatex on Render free tier (cold start + two-pass compile)
+//   can take 30–50 seconds. Without this the default 10 s limit kills the request.
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { fdaLatexTemplate } from "@/utils/latexTemplate";
+
+// Raise the Vercel serverless function timeout to 60 s (max on Hobby plan).
+// The Pro plan allows up to 300 s if you need more headroom later.
+export const maxDuration = 60;
 
 // ---------------------------------------------------------------------------
 // DDL-aligned types (strictly match Constitution schema)
