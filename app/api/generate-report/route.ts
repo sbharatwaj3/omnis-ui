@@ -297,100 +297,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
   }
 
-  // ── 6b. PDF export — POST LaTeX to remote compiler, stream PDF back ──────
+  // ── 6b. PDF export — moved to client-side generation ─────────────────────
   //
-  // Compiler API: latex-on-http (YtoTech compatible)
-  // Docs: https://github.com/YtoTech/latex-on-http
+  // PDF generation is now handled entirely in the browser via html2canvas +
+  // jsPDF (utils/generate-pdf.ts). This avoids Vercel serverless cold-start
+  // timeouts and removes the dependency on a remote LaTeX compiler for the
+  // PDF path.
   //
-  // CRITICAL API CONTRACT:
-  //   "content" → plain UTF-8 string (JSON-encoded). NOT base64.
-  //   "file"    → base64-encoded binary. For .tex sources, use "content".
-  //   "path"    → relative filename for dependency files (not needed for single-file jobs).
+  // The LaTeX compiler path (?format=tex) remains fully functional for users
+  // who need a source file for self-compilation or offline archival.
   //
-  // The compiler URL is read exclusively from the environment.
-  // CONSTITUTION LAW: service URLs are NEVER hardcoded.
-  const compilerUrl = process.env.LATEX_COMPILER_URL;
-
-  if (!compilerUrl) {
-    console.error(
-      "[generate-report] LATEX_COMPILER_URL is not set in the environment."
-    );
-    return NextResponse.json(
-      {
-        error:
-          "PDF compilation is not configured. " +
-          "Set the LATEX_COMPILER_URL environment variable to enable this feature.",
-      },
-      { status: 500 }
-    );
-  }
-
-  // Build the JSON payload.
-  // "content" accepts a plain UTF-8 string — the API JSON-encodes it internally.
-  // Do NOT base64-encode for "content" mode; that is only for the "file" mode.
-  const compilerPayload = {
-    compiler: "pdflatex",
-    options: {
-      // Return full compiler log on failure so we can surface the actual error
-      response: { log_files_on_failure: true },
+  // This endpoint should never be called with format=pdf by the current UI.
+  // If it is, return a clear explanatory error rather than silently failing.
+  return NextResponse.json(
+    {
+      error:
+        "PDF export is now handled client-side. " +
+        "Use the 'Generate Regulatory Report → Export as PDF' button in the UI, " +
+        "which renders the Traceability Matrix directly to PDF in the browser. " +
+        "Use ?format=tex for a LaTeX source export.",
     },
-    resources: [
-      {
-        main: true,
-        content: finalLatexString,
-      },
-    ],
-  };
-
-  let compileRes: Response;
-  try {
-    compileRes = await fetch(compilerUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(compilerPayload),
-    });
-  } catch (networkErr) {
-    console.error(
-      "[generate-report] Network error reaching LaTeX compiler:",
-      networkErr
-    );
-    return NextResponse.json(
-      {
-        error:
-          "Could not reach the LaTeX compiler service. " +
-          "Check LATEX_COMPILER_URL and ensure the service is reachable.",
-      },
-      { status: 502 }
-    );
-  }
-
-  if (!compileRes.ok) {
-    // Read the compiler's error body — it may contain the pdflatex log
-    const errorBody = await compileRes.text().catch(() => "(no body)");
-    console.error(
-      "[generate-report] LaTeX compiler returned an error:",
-      compileRes.status,
-      compileRes.statusText,
-      "\nCompiler response body:\n",
-      errorBody
-    );
-    return NextResponse.json(
-      {
-        error: `LaTeX compiler failed: ${compileRes.statusText} (HTTP ${compileRes.status}).`,
-        detail: errorBody.slice(0, 500), // surface first 500 chars to client
-      },
-      { status: 500 }
-    );
-  }
-
-  const pdfBuffer = await compileRes.arrayBuffer();
-
-  return new NextResponse(pdfBuffer, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="fda_submission.pdf"',
-      "Cache-Control": "no-store",
-    },
-  });
+    { status: 501 }
+  );
 }

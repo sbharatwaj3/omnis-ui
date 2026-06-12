@@ -257,7 +257,7 @@ async function ReadinessContent() {
   }
 
   return (
-    <div className="space-y-8">
+    <div id="compliance-report-content" className="space-y-8">
       {/* ------------------------------------------------------------------ */}
       {/* HEADER ROW: completion % + generate button                          */}
       {/* ------------------------------------------------------------------ */}
