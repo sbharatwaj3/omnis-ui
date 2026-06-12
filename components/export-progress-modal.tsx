@@ -143,12 +143,25 @@ export function ExportProgressModal({
           const contentType = res.headers.get("Content-Type") ?? "";
           let detail = `HTTP ${res.status}`;
           if (contentType.includes("application/json")) {
-            const body = await res.json().catch(() => ({})) as { error?: string; detail?: string };
-            detail = body.error ?? detail;
-            if (body.detail) detail += `\n\n${body.detail.slice(0, 300)}`;
+            // The API returns { error: string, detail: { error, log_tail, job_id } }
+            // We extract the inner log_tail for the most useful debug info.
+            const body = await res.json().catch(() => ({})) as {
+              error?: string;
+              detail?: { error?: string; log_tail?: string; job_id?: string } | string;
+            };
+            const outerError = body.error ?? `HTTP ${res.status}`;
+            const inner = body.detail;
+            if (inner && typeof inner === "object") {
+              detail = inner.error ?? outerError;
+              if (inner.log_tail) detail += `\n\n── pdflatex log ──\n${inner.log_tail}`;
+            } else if (typeof inner === "string") {
+              detail = outerError + (inner ? `\n\n${inner}` : "");
+            } else {
+              detail = outerError;
+            }
           } else {
             const text = await res.text().catch(() => "");
-            if (text) detail += `: ${text.slice(0, 200)}`;
+            if (text) detail += `: ${text}`;
           }
           setApiError(detail);
           setApiState("error");
