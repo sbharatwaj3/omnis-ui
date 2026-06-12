@@ -362,19 +362,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   if (!compileRes.ok) {
-    // Surface the pdflatex log tail that the service embeds in its 500 body.
-    const errorBody = await compileRes.text().catch(() => "(no body)");
+    // The Render service returns JSON: { detail: { error, log_tail, job_id } }
+    // Parse it properly and forward the structured object so the frontend can
+    // display the full pdflatex log without any truncation.
+    let errorDetail: unknown = "(no body)";
+    try {
+      errorDetail = await compileRes.json();
+    } catch {
+      errorDetail = await compileRes.text().catch(() => "(no body)");
+    }
     console.error(
       "[generate-report] LaTeX compiler returned an error:",
       compileRes.status,
       compileRes.statusText,
       "\nService response body:\n",
-      errorBody
+      JSON.stringify(errorDetail, null, 2)
     );
     return NextResponse.json(
       {
         error: `LaTeX compiler failed: ${compileRes.statusText} (HTTP ${compileRes.status}).`,
-        detail: errorBody.slice(0, 1000), // surface first 1 KB of log to client
+        detail: errorDetail,
       },
       { status: 500 }
     );
