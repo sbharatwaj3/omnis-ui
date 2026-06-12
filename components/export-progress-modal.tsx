@@ -190,8 +190,16 @@ export function ExportProgressModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, retryCount]);
 
+  // ── Organic jitter progress state ────────────────────────────────────────
+  // Separate from elapsedMs — this is the value shown in the progress bar.
+  // It never exceeds 95 while the API is still pending; the final jump to
+  // 100 only happens when apiState resolves to success or error.
+  const [jitterProgress, setJitterProgress] = useState(0);
+
   // ── Animation timer ───────────────────────────────────────────────────────
-  // Runs the 12-second visual progress animation.
+  // Drives two things in parallel:
+  //   1. elapsedMs → step label transitions (unchanged, time-based)
+  //   2. jitterProgress → the progress bar fill (randomised jitter loop)
   // Fully independent of the API call.
   useEffect(() => {
     if (!open) return;
@@ -199,10 +207,12 @@ export function ExportProgressModal({
     setStepStates(buildInitialStepStates());
     setElapsedMs(0);
     setAnimationDone(false);
+    setJitterProgress(0);
 
     const startTime = Date.now();
 
-    const tick = setInterval(() => {
+    // ── Step label ticker (fixed 80 ms, same as before) ──────────────────
+    const stepTick = setInterval(() => {
       const now = Date.now() - startTime;
       setElapsedMs(now);
 
@@ -218,12 +228,55 @@ export function ExportProgressModal({
       );
 
       if (now >= ANIMATION_DURATION_MS) {
-        clearInterval(tick);
+        clearInterval(stepTick);
         setAnimationDone(true);
       }
     }, 80);
 
-    return () => clearInterval(tick);
+    // ── Organic jitter loop (randomised setTimeout chain) ─────────────────
+    // Each tick adds a random Δ that shrinks as we approach the 95% ceiling,
+    // then waits a random interval before the next tick — giving a natural
+    // "stall and sprint" feel instead of a mechanical linear march.
+    const CEILING = 95;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let stopped = false;
+
+    function scheduleNextTick(current: number) {
+      if (stopped) return;
+
+      // How much headroom is left before the ceiling?
+      const headroom = CEILING - current;
+      if (headroom <= 0) return; // parked at ceiling — wait for API
+
+      // Jump size: full range (1–7) when far away, shrinks to (0.2–1.5) in
+      // the last 10 points so the bar visibly labours near the end.
+      const nearingEnd = headroom < 10;
+      const minJump = nearingEnd ? 0.2 : 1;
+      const maxJump = nearingEnd ? 1.5 : 7;
+      const delta = minJump + Math.random() * (maxJump - minJump);
+
+      const next = Math.min(current + delta, CEILING);
+
+      // Delay: 150–600 ms normally; slow down even more in the last stretch.
+      const minDelay = nearingEnd ? 300 : 150;
+      const maxDelay = nearingEnd ? 900 : 600;
+      const delay = minDelay + Math.random() * (maxDelay - minDelay);
+
+      timeoutId = setTimeout(() => {
+        if (stopped) return;
+        setJitterProgress(next);
+        scheduleNextTick(next);
+      }, delay);
+    }
+
+    // Kick off with a short initial pause so the bar doesn't jump instantly.
+    timeoutId = setTimeout(() => scheduleNextTick(0), 120);
+
+    return () => {
+      stopped = true;
+      clearInterval(stepTick);
+      if (timeoutId !== null) clearTimeout(timeoutId);
+    };
   }, [open]);
 
   // ── Retry handler ─────────────────────────────────────────────────────────
@@ -231,15 +284,13 @@ export function ExportProgressModal({
     setRetryCount((c) => c + 1);
   }
 
-  // Progress bar: while API is still pending after animation, hold at 95% to
-  // signal "waiting on server" without bouncing back. On success/error → 100%.
-  const rawPercent = Math.min(100, (elapsedMs / ANIMATION_DURATION_MS) * 100);
+  // Progress bar: driven by the organic jitter state while waiting.
+  // Once the API resolves (success or error) we jump straight to 100%,
+  // which can never happen before the response is actually received.
   const progressPercent =
     apiState !== "pending"
       ? 100
-      : animationDone
-        ? 95
-        : rawPercent;
+      : jitterProgress;
 
   // Trap keyboard: close on Escape (only when complete or errored)
   const handleKeyDown = useCallback(
