@@ -55,11 +55,22 @@ export const fdaLatexTemplate = String.raw`\documentclass[11pt]{article}
 
 % ── Typography ───────────────────────────────────────────────────────────────
 \usepackage[T1]{fontenc}
+% lmodern: Latin Modern is the scalable/outline (Type 1) successor to the
+% Knuth Computer Modern bitmap fonts.  Loading it BEFORE microtype is the
+% canonical fix for the pdfTeX error:
+%   ! pdfTeX error (font expansion): auto expansion is only possible
+%     with scalable fonts.
+% which fires when T1 encoding falls back to bitmap (PK / Type 3) fonts
+% like cmex10 / ecrm.  lmodern provides the same glyph metrics as the
+% original CM family but as scalable outlines, so font expansion and
+% protrusion both work cleanly on the Render container's TeX Live build
+% (which does not ship cm-super).
+\usepackage{lmodern}
 \usepackage[utf8]{inputenc}
-% expansion=false: disables pdfTeX font expansion (auto expansion requires
-% scalable/outline fonts; bitmap/Type3 fonts on TeX Live 2022 trigger a
-% fatal "auto expansion is only possible with scalable fonts" error).
-% protrusion and all other microtype features remain active.
+% expansion=false retained as a defensive safety net: if any glyph in the
+% document falls back to a non-scalable font (e.g. a math symbol from a
+% package not covered by lmodern), microtype will skip expansion for it
+% rather than aborting the compile.  Protrusion remains active.
 \usepackage[expansion=false]{microtype}
 
 % ── Colour & links ───────────────────────────────────────────────────────────
