@@ -8,10 +8,23 @@
 // This client bypasses RLS and has full access to auth.users via the Admin
 // API. It must only be used in Server Components, Server Actions, and
 // Route Handlers — never in Client Components.
+//
+// NO MODULE-LEVEL SINGLETON: Previous versions exported a top-level constant
+// created at module load time. In a Vercel serverless / Node runtime that
+// constant is shared across requests in the same warm Lambda. A service-role
+// client that bypasses RLS is the worst possible candidate for cross-request
+// sharing — any accidentally attached state would leak globally. The lazy
+// getter pattern below ensures the client is created on first use within a
+// request and never persists state across users.
 
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import {
+  createClient as createSupabaseClient,
+  type SupabaseClient,
+} from "@supabase/supabase-js";
 
-function createAdminClient() {
+let _cachedClient: SupabaseClient | null = null;
+
+function buildAdminClient(): SupabaseClient {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -30,10 +43,41 @@ function createAdminClient() {
       autoRefreshToken: false,
       persistSession: false,
     },
+    global: {
+      // Bypass the Next.js Data Cache for every admin request.
+      fetch: (input, init) =>
+        fetch(input, {
+          ...init,
+          cache: "no-store",
+          next: { revalidate: 0 },
+        }),
+    },
   });
 }
 
-// Export a lazily-created singleton. The instance is created on first call
-// and reused within the same server request lifecycle.
-// Never call this from a Client Component.
-export const adminClient = createAdminClient();
+/**
+ * Lazily-built service-role client. Safe across serverless cold starts because
+ * it carries no per-user state and uses no cookie / session storage.
+ *
+ * Call as a function: `getAdminClient().from("organizations").insert(...)`.
+ */
+export function getAdminClient(): SupabaseClient {
+  if (_cachedClient) return _cachedClient;
+  _cachedClient = buildAdminClient();
+  return _cachedClient;
+}
+
+/**
+ * Backwards-compatible Proxy export. Existing call-sites that wrote
+ *   `import { adminClient } from "@/utils/supabase/admin";`
+ *   `adminClient.from("...").insert(...)`
+ * continue to work — every property access on `adminClient` is forwarded to
+ * the lazily-built underlying SupabaseClient.
+ */
+export const adminClient: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_target, prop, receiver) {
+    const client = getAdminClient();
+    const value = Reflect.get(client, prop, receiver);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});
