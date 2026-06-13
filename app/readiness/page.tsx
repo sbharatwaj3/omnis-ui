@@ -7,25 +7,38 @@
 // full gap analysis matrix.
 //
 // CONSTITUTION ALIGNMENT:
-// - Uses @supabase/ssr createClient (session-aware, RLS-respecting)
+// - Uses @supabase/ssr createClient (session-aware, RLS-respecting, anon-key)
 // - Strictly matches the DDL schema: regulatory_rules.req_id PK,
 //   evidence_logs.req_id FK → regulatory_rules.req_id
 // - Compliant state requires approved_by IS NOT NULL (21 CFR Part 11 §11.100)
 // - No cross-schema joins — auth.users is never touched here
+// - NEVER uses the service_role admin client. Authentication is the user's
+//   session cookie carrying their JWT.
 //
-// force-dynamic: disables Next.js static/ISR caching so every request fetches
-// a fresh snapshot from Supabase. Required after any DB backfill so the page
-// never serves a stale cached empty state.
+// SECURITY (defense-in-depth against cross-tenant leakage):
+//   1. force-dynamic and unstable_noStore() opt the route out of every layer
+//      of Next.js caching, so a previous user's PostgREST response can never
+//      be served to a different user.
+//   2. After resolving the authenticated user, we explicitly look up the
+//      caller's org_id from public.users (the same anchor RLS uses).
+//   3. If org_id is NULL (pending onboarding), we short-circuit — the user
+//      sees zero evidence and 0% compliance, which is the correct state.
+//   4. The embedded evidence_logs(...) foreign-table query is filtered by
+//      .eq("evidence_logs.org_id", userOrgId), so even if a server-side RLS
+//      policy were misconfigured or removed, the application layer still
+//      rejects any row whose org_id does not match the caller's.
+//   5. RLS on evidence_logs remains the primary control; this code is the
+//      secondary control mandated by Constitution Law II ("never lower the
+//      backend's shield").
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 import { Suspense } from "react";
+import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -113,25 +126,88 @@ function classifyRule(rule: RegulatoryRuleRow): ParsedRule {
 }
 
 // ---------------------------------------------------------------------------
-// DATA FETCHING
-// Uses PostgREST foreign key embed: evidence_logs has req_id FK → regulatory_rules
-// The embed returns an array of matching evidence_logs for each rule.
-// Only log_id and approved_by are selected — no auth.users join.
+// DATA FETCHING — RLS + APPLICATION-LAYER ORG FILTERING
 // ---------------------------------------------------------------------------
-
 async function fetchReadinessData(): Promise<ParsedRule[]> {
+  // Defeat every layer of fetch / route caching. Even with force-dynamic,
+  // Next.js can deduplicate fetches within a single render and may reuse a
+  // cached PostgREST response if the URL/headers happen to match.
+  // noStore() is the strongest opt-out and removes any chance that an admin's
+  // earlier response is served to a different user.
+  noStore();
+
   const supabase = await createClient();
 
-  // Resolve the authenticated user first — defence-in-depth.
-  // RLS on evidence_logs (enforced via the FK embed) already filters to the
-  // current user's logs, but we guard here too so an unauthenticated render
-  // returns an empty array rather than a Supabase permission error.
-  const { data: { user } } = await supabase.auth.getUser();
+  // STEP 1 — Resolve the authenticated user from the session cookie.
+  // Anon key + cookie-based JWT only. NO service_role bypass.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return [];
 
+  // STEP 2 — Resolve the caller's org_id from public.users.
+  // This is the same anchor private.get_auth_org_id() uses for RLS, but
+  // executed at the application layer for defense-in-depth. RLS on the
+  // users table allows a user to read only their own row, so this query
+  // also benefits from RLS isolation.
+  const { data: profile, error: profileError } = await supabase
+    .from("users")
+    .select("org_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    console.error("Supabase error fetching profile org_id:", {
+      code: profileError.code,
+      message: profileError.message,
+      hint: profileError.hint,
+    });
+    return [];
+  }
+
+  const userOrgId: string | null = profile?.org_id ?? null;
+
+  // STEP 3 — Pending-onboarding short-circuit.
+  // A user with no org assignment must never see another org's evidence.
+  // Return regulatory rules with empty embedded logs so the matrix renders
+  // 0% compliance — the correct state until onboarding completes.
+  if (!userOrgId) {
+    const { data: rulesOnly, error: rulesOnlyError } = await supabase
+      .from("regulatory_rules")
+      .select("req_id, rule_source, description, evidence_type")
+      .neq("rule_source", "SEED-TEST-DEPRECATED")
+      .order("req_id", { ascending: true });
+
+    if (rulesOnlyError) {
+      console.error("Supabase error fetching regulatory_rules (pending onboarding):", {
+        code: rulesOnlyError.code,
+        message: rulesOnlyError.message,
+        hint: rulesOnlyError.hint,
+      });
+      return [];
+    }
+
+    return (rulesOnlyError ? [] : (rulesOnly ?? [])).map((r) =>
+      classifyRule({ ...r, evidence_logs: [] } as RegulatoryRuleRow),
+    );
+  }
+
+  // STEP 4 — Fetch rules with embedded evidence_logs filtered by org_id.
+  //
+  // The .eq("evidence_logs.org_id", userOrgId) clause filters the embedded
+  // children at the PostgREST layer. Each parent regulatory_rules row is
+  // still returned (so "Missing" rules render correctly), but its
+  // evidence_logs array contains only rows whose org_id matches the caller.
+  //
+  // This is the defense-in-depth backstop. RLS on evidence_logs is the
+  // primary control; if a policy ever drifts or is dropped, the application
+  // filter still prevents cross-tenant leakage.
   const { data, error } = await supabase
     .from("regulatory_rules")
-    .select("req_id, rule_source, description, evidence_type, evidence_logs(log_id, approved_by)")
+    .select(
+      "req_id, rule_source, description, evidence_type, evidence_logs(log_id, approved_by, org_id)",
+    )
+    .eq("evidence_logs.org_id", userOrgId)
     .neq("rule_source", "SEED-TEST-DEPRECATED")
     .order("req_id", { ascending: true });
 
@@ -144,7 +220,17 @@ async function fetchReadinessData(): Promise<ParsedRule[]> {
     return [];
   }
 
-  return (data as unknown as RegulatoryRuleRow[]).map(classifyRule);
+  // STEP 5 — Final tripwire: drop any embedded log whose org_id doesn't
+  // match the caller's. This is paranoid but cheap, and protects against
+  // any future PostgREST quirk that might leak rows past the .eq filter.
+  const rows = (data as unknown as RegulatoryRuleRow[]).map((rule) => ({
+    ...rule,
+    evidence_logs: (rule.evidence_logs ?? []).filter(
+      (log) => (log as EvidenceLogEmbed & { org_id?: string }).org_id === userOrgId,
+    ),
+  }));
+
+  return rows.map(classifyRule);
 }
 
 // ---------------------------------------------------------------------------
