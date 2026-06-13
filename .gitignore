@@ -2,13 +2,6 @@
 
 # dependencies
 /node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
 
 # testing
 /coverage
@@ -24,11 +17,12 @@
 .DS_Store
 *.pem
 
-# debug
+# debug logs (all package managers)
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+bun-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
@@ -43,3 +37,7 @@ next-env.d.ts
 # Duplicate/legacy artifacts — not part of the deployable app
 src/
 public/fda_template.tex
+
+# bun lockfiles ARE committed (signals Vercel to use Bun)
+!bun.lockb
+!bun.lock
