@@ -430,39 +430,28 @@ function SuiteAccordionItem({
   const hasCritical = group.criticalCount > 0;
   const hasFailures = group.failedCount > 0;
 
-  const headerBorderClass = hasCritical
-    ? "border-red-200 dark:border-red-900/60"
+  // Task 1: neutral outer border — colour only on the left accent stripe
+  const leftAccentClass = hasCritical
+    ? "border-l-2 border-l-red-400 dark:border-l-red-600"
     : hasFailures
-    ? "border-amber-200 dark:border-amber-800/60"
-    : "border-zinc-200 dark:border-zinc-700";
-
-  const headerBgClass = hasCritical
-    ? "bg-red-50/60 dark:bg-red-950/20"
-    : "bg-white dark:bg-zinc-900";
-
-  const headerHoverClass = hasCritical
-    ? "hover:bg-red-50 dark:hover:bg-red-950/30"
-    : hasFailures
-    ? "hover:bg-amber-50/30 dark:hover:bg-amber-950/20"
-    : "hover:bg-zinc-50 dark:hover:bg-zinc-800/60";
+    ? "border-l-2 border-l-amber-400 dark:border-l-amber-500"
+    : "border-l-2 border-l-emerald-400 dark:border-l-emerald-600";
 
   return (
+    // Task 1: always neutral bg/border on the outer shell
     <div
-      className={`rounded-xl border shadow-sm overflow-hidden transition-shadow ${headerBorderClass} ${isOpen ? "shadow-md" : ""}`}
+      className={`rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden transition-shadow ${leftAccentClass} ${isOpen ? "shadow-md" : ""}`}
     >
       {/* ── Accordion header ──────────────────────────────────────────── */}
+      {/* Task 1 & 2: neutral bg, tighter py-2.5 */}
       <button
         onClick={onToggle}
         aria-expanded={isOpen}
-        className={[
-          "w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 md:px-6 md:py-4",
-          headerBgClass,
-          headerHoverClass,
-        ].join(" ")}
+        className="w-full flex items-center gap-3 px-4 py-2.5 text-left bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 md:px-6"
       >
         {/* Chevron */}
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 ${
+          className={`h-3.5 w-3.5 shrink-0 text-zinc-400 transition-transform duration-200 ${
             isOpen ? "rotate-180" : "rotate-0"
           }`}
         />
@@ -492,7 +481,8 @@ function SuiteAccordionItem({
         ].join(" ")}
         aria-hidden={!isOpen}
       >
-        <div className="border-t border-zinc-100 dark:border-zinc-800">
+        {/* Task 3: inner container with slate-50 bg and inner top border */}
+        <div className="border-t border-zinc-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/60">
           {/* Mobile card list */}
           <div className="flex flex-col divide-y divide-zinc-100 md:hidden dark:divide-zinc-800">
             {group.rows.map((row) => {
@@ -501,20 +491,21 @@ function SuiteAccordionItem({
                 <button
                   key={row.logId}
                   onClick={() => onOpenDrawer(row.logId)}
+                  // Task 2: tighter py-2.5 on mobile cards too
                   className={[
-                    "w-full text-left px-4 py-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
+                    "w-full text-left px-4 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
                     activeDrawerLogId === row.logId
                       ? "bg-zinc-100 dark:bg-zinc-800"
                       : isCritical
-                      ? "bg-red-50/40 active:bg-red-100 dark:bg-red-950/20 dark:active:bg-red-950/40"
-                      : "active:bg-zinc-50 dark:active:bg-slate-800/50",
+                      ? "active:bg-red-50 dark:active:bg-red-950/20"
+                      : "active:bg-zinc-100 dark:active:bg-slate-800/50",
                   ].join(" ")}
                 >
                   <div className="flex items-center gap-2 flex-wrap">
                     <StatusBadge status={row.executionStatus} />
                     <SeverityBadge severity={row.severity} />
                   </div>
-                  <div className="mt-2 flex items-center justify-between gap-2">
+                  <div className="mt-1.5 flex items-center justify-between gap-2">
                     <p className="text-xs text-zinc-500 truncate">{row.executionTime}</p>
                     <code className="shrink-0 font-mono text-[10px] text-zinc-400">
                       {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
@@ -525,15 +516,17 @@ function SuiteAccordionItem({
             })}
           </div>
 
-          {/* Desktop table */}
-          <div className="hidden md:block overflow-x-auto">
+          {/* Task 3: Desktop table — inner border wraps the table */}
+          <div className="hidden md:block overflow-x-auto mx-3 my-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm">
             <Table>
               <TableHeader>
-                <TableRow className="bg-zinc-50/80 hover:bg-zinc-50/80 dark:bg-zinc-900/60">
+                {/* Task 3: slightly darker header to anchor the columns */}
+                <TableRow className="bg-zinc-100 hover:bg-zinc-100 dark:bg-zinc-800/80 dark:hover:bg-zinc-800/80">
                   {["Status", "AI Risk", "Execution Time", "Log ID"].map((h) => (
                     <TableHead
                       key={h}
-                      className="text-xs font-semibold uppercase tracking-wider text-zinc-400"
+                      // Task 3: bolder/darker header text
+                      className="py-2 text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300"
                     >
                       {h}
                     </TableHead>
@@ -547,29 +540,27 @@ function SuiteAccordionItem({
                     <TableRow
                       key={row.logId}
                       onClick={() => onOpenDrawer(row.logId)}
+                      // Task 2: tighter py via TableCell below; Task 1: no red bg on rows
                       className={[
                         "cursor-pointer transition-colors",
                         activeDrawerLogId === row.logId
                           ? "bg-zinc-100 dark:bg-zinc-800"
                           : isCritical
-                          ? "bg-red-50/40 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40"
+                          ? "hover:bg-red-50/60 dark:hover:bg-red-950/20"
                           : "hover:bg-zinc-50 dark:hover:bg-slate-800/50",
                       ].join(" ")}
                     >
-                      {/* 1. Status */}
-                      <TableCell>
+                      {/* Task 2: py-1.5 on all cells for tight density */}
+                      <TableCell className="py-1.5">
                         <StatusBadge status={row.executionStatus} />
                       </TableCell>
-                      {/* 2. AI Risk */}
-                      <TableCell>
+                      <TableCell className="py-1.5">
                         <SeverityBadge severity={row.severity} />
                       </TableCell>
-                      {/* 3. Execution Time */}
-                      <TableCell className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+                      <TableCell className="py-1.5 text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
                         {row.executionTime}
                       </TableCell>
-                      {/* 4. Log ID */}
-                      <TableCell className="font-mono text-xs text-zinc-400">
+                      <TableCell className="py-1.5 font-mono text-xs text-zinc-400">
                         {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
                       </TableCell>
                     </TableRow>
@@ -799,7 +790,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
             </p>
           </div>
         ) : (
-          <div className="space-y-2 p-4 md:p-5">
+          <div className="space-y-1.5 p-3 md:p-4">
             {pageGroups.map((group) => (
               <SuiteAccordionItem
                 key={group.suiteKey}
