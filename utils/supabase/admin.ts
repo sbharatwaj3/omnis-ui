@@ -9,21 +9,33 @@
 // API. It must only be used in Server Components, Server Actions, and
 // Route Handlers — never in Client Components.
 //
-// NO MODULE-LEVEL SINGLETON: Previous versions exported a top-level constant
-// created at module load time. In a Vercel serverless / Node runtime that
-// constant is shared across requests in the same warm Lambda. A service-role
-// client that bypasses RLS is the worst possible candidate for cross-request
-// sharing — any accidentally attached state would leak globally. The lazy
-// getter pattern below ensures the client is created on first use within a
-// request and never persists state across users.
+// NO MODULE-LEVEL SINGLETON: No top-level singleton is created at module load
+// time. In a Vercel serverless / Node runtime, module-level state is shared
+// across requests in the same warm Lambda invocation. A service-role client
+// that bypasses RLS must never cache a failed initialisation state (e.g. a
+// cold start that fired before env vars were injected), as the poisoned null
+// would persist for the lifetime of the Lambda. The factory function below
+// constructs a fresh client on every call-site invocation, which is safe
+// because the SupabaseClient constructor is cheap and carries no per-user
+// session state.
 
 import {
   createClient as createSupabaseClient,
   type SupabaseClient,
 } from "@supabase/supabase-js";
 
-let _cachedClient: SupabaseClient | null = null;
-
+/**
+ * Factory — builds a fresh service-role SupabaseClient on every invocation.
+ *
+ * Reads NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from
+ * process.env at call time (never at module load time), which guarantees the
+ * correct values are read after Vercel injects environment variables into the
+ * serverless function.
+ *
+ * Throws a loud FATAL error if either variable is absent so misconfiguration
+ * surfaces immediately in Vercel Function logs rather than producing a silent
+ * RLS bypass or a cryptic downstream Supabase 401.
+ */
 function buildAdminClient(): SupabaseClient {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -56,15 +68,12 @@ function buildAdminClient(): SupabaseClient {
 }
 
 /**
- * Lazily-built service-role client. Safe across serverless cold starts because
- * it carries no per-user state and uses no cookie / session storage.
+ * Returns a service-role SupabaseClient built from the current process.env.
  *
  * Call as a function: `getAdminClient().from("organizations").insert(...)`.
  */
 export function getAdminClient(): SupabaseClient {
-  if (_cachedClient) return _cachedClient;
-  _cachedClient = buildAdminClient();
-  return _cachedClient;
+  return buildAdminClient();
 }
 
 /**
@@ -72,7 +81,7 @@ export function getAdminClient(): SupabaseClient {
  *   `import { adminClient } from "@/utils/supabase/admin";`
  *   `adminClient.from("...").insert(...)`
  * continue to work — every property access on `adminClient` is forwarded to
- * the lazily-built underlying SupabaseClient.
+ * a freshly-built underlying SupabaseClient, reading env vars at access time.
  */
 export const adminClient: SupabaseClient = new Proxy({} as SupabaseClient, {
   get(_target, prop, receiver) {
