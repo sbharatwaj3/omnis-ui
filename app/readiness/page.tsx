@@ -60,7 +60,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { GenerateReportButton } from "@/components/generate-report-button";
-import { ThemeToggle } from "@/components/theme-toggle";
 import {
   ShieldCheck,
   Activity,
@@ -69,6 +68,7 @@ import {
   XCircle,
   FileText,
   Building2,
+  Settings,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 
@@ -707,7 +707,13 @@ export default function ReadinessPage() {
                 IEC 62304 · 21 CFR Part 11
               </span>
             </span>
-            <ThemeToggle />
+            <Link
+              href="/dashboard/settings"
+              aria-label="Settings"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+            >
+              <Settings className="h-4 w-4" strokeWidth={1.75} />
+            </Link>
           </div>
         </div>
 
