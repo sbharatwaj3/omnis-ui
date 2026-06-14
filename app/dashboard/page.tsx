@@ -36,6 +36,7 @@ interface EvidenceLogRow {
   execution_status: string;
   raw_command: string;
   event_source: string;
+  req_id: string;
 }
 
 interface AiInsightRow {
@@ -73,7 +74,7 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
   while (true) {
     const { data: batch, error } = await supabase
       .from("evidence_logs")
-      .select("log_id, execution_timestamp, execution_status, raw_command, event_source")
+      .select("log_id, execution_timestamp, execution_status, raw_command, event_source, req_id")
       // Explicit user_id filter — defence-in-depth on top of RLS.
       // RLS enforces user_id = auth.uid() at the DB layer; this clause ensures
       // the query itself never requests another user's rows even if RLS were
@@ -139,6 +140,7 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
       executionStatus: log.execution_status,
       aiSummary,
       severity: mapSeverity(aiSummary),
+      reqId: log.req_id ?? null,
     };
   });
 }

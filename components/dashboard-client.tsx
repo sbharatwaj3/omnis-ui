@@ -5,7 +5,9 @@
 // Receives the full pre-fetched dataset from the server page and owns:
 //   1. Timeframe dropdown filter (Today / This Week / This Month / This Year)
 //   2. Custom date-range picker (react-day-picker v9 via shadcn Calendar)
-//   3. Strict pagination — 50 logs per page
+//   3. Accordion-grouped view — rows are grouped by Test Suite name.
+//      Each group header shows: suite name, total count, failed/pending count.
+//      Clicking a header smoothly expands to reveal the underlying log rows.
 //   4. "Parse and Simplify" log title helper with raw-command tooltip
 //   5. Two-step Quick View → Full View architecture:
 //      - Step A: Centered quick-view modal (LogDetailDrawer) with high-level metadata
@@ -40,6 +42,7 @@ import {
   BarChart3,
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   X,
@@ -58,13 +61,27 @@ export interface DashboardRow {
   executionStatus: string;
   aiSummary: string | null;
   severity: "Critical" | "Clear" | "Pending";
+  reqId: string | null;          // regulatory requirement ID
+}
+
+// ---------------------------------------------------------------------------
+// Grouped suite type
+// ---------------------------------------------------------------------------
+
+interface SuiteGroup {
+  suiteKey: string;              // unique key for the group (normalised testSuite)
+  suiteLabel: string;            // human-readable parsed label
+  rows: DashboardRow[];
+  totalCount: number;
+  criticalCount: number;         // logs with severity Critical
+  failedCount: number;           // logs with executionStatus !== SUCCESS
 }
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 50; // max groups per page (not rows)
 
 type Timeframe = "today" | "week" | "month" | "year" | "custom" | "all";
 
@@ -191,6 +208,59 @@ function formatDateLabel(date: Date): string {
 }
 
 // ---------------------------------------------------------------------------
+// Grouping helper — groups DashboardRows by normalised testSuite key.
+// Rows within each group are sorted newest-first.
+// Groups are sorted by: most-critical first, then most-recent execution.
+// ---------------------------------------------------------------------------
+
+function groupBySuite(rows: DashboardRow[]): SuiteGroup[] {
+  const map = new Map<string, DashboardRow[]>();
+
+  for (const row of rows) {
+    // Normalise the suite key: use the parsed label so that minor
+    // variations in the raw command still collapse into one group.
+    const key = parseLogTitle(row.rawCommand || row.testSuite);
+    const bucket = map.get(key);
+    if (bucket) bucket.push(row);
+    else map.set(key, [row]);
+  }
+
+  const groups: SuiteGroup[] = [];
+  for (const [suiteLabel, suiteRows] of map.entries()) {
+    // Sort rows inside the group newest-first
+    const sorted = [...suiteRows].sort(
+      (a, b) =>
+        new Date(b.rawExecutionTimestamp).getTime() -
+        new Date(a.rawExecutionTimestamp).getTime(),
+    );
+
+    const criticalCount = sorted.filter((r) => r.severity === "Critical").length;
+    const failedCount = sorted.filter(
+      (r) => r.executionStatus?.toUpperCase() !== "SUCCESS",
+    ).length;
+
+    groups.push({
+      suiteKey: suiteLabel,
+      suiteLabel,
+      rows: sorted,
+      totalCount: sorted.length,
+      criticalCount,
+      failedCount,
+    });
+  }
+
+  // Sort groups: critical groups first, then by most-recent execution descending
+  groups.sort((a, b) => {
+    if (b.criticalCount !== a.criticalCount) return b.criticalCount - a.criticalCount;
+    const aLatest = new Date(a.rows[0]?.rawExecutionTimestamp ?? 0).getTime();
+    const bLatest = new Date(b.rows[0]?.rawExecutionTimestamp ?? 0).getTime();
+    return bLatest - aLatest;
+  });
+
+  return groups;
+}
+
+// ---------------------------------------------------------------------------
 // Badges
 // ---------------------------------------------------------------------------
 
@@ -225,6 +295,34 @@ function StatusBadge({ status }: { status: string }) {
       }`}
     >
       {status ?? "—"}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Suite header badge — shows issue count pill in the accordion header
+// ---------------------------------------------------------------------------
+
+function SuiteIssuePill({ criticalCount, failedCount }: { criticalCount: number; failedCount: number }) {
+  if (criticalCount > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400">
+        <AlertTriangle className="h-2.5 w-2.5" />
+        {criticalCount} critical
+      </span>
+    );
+  }
+  if (failedCount > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-400">
+        {failedCount} failed
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:border-emerald-700/60 dark:bg-emerald-950/40 dark:text-emerald-400">
+      <CheckCircle2 className="h-2.5 w-2.5" />
+      all clear
     </span>
   );
 }
@@ -311,6 +409,182 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
 }
 
 // ---------------------------------------------------------------------------
+// Suite accordion item — renders the header + expandable rows for one group
+// ---------------------------------------------------------------------------
+
+interface SuiteAccordionItemProps {
+  group: SuiteGroup;
+  isOpen: boolean;
+  onToggle: () => void;
+  onOpenDrawer: (logId: string) => void;
+  activeDrawerLogId: string | null;
+}
+
+function SuiteAccordionItem({
+  group,
+  isOpen,
+  onToggle,
+  onOpenDrawer,
+  activeDrawerLogId,
+}: SuiteAccordionItemProps) {
+  const hasCritical = group.criticalCount > 0;
+  const hasFailures = group.failedCount > 0;
+
+  const headerBorderClass = hasCritical
+    ? "border-red-200 dark:border-red-900/60"
+    : hasFailures
+    ? "border-amber-200 dark:border-amber-800/60"
+    : "border-zinc-200 dark:border-zinc-700";
+
+  const headerBgClass = hasCritical
+    ? "bg-red-50/60 dark:bg-red-950/20"
+    : "bg-white dark:bg-zinc-900";
+
+  const headerHoverClass = hasCritical
+    ? "hover:bg-red-50 dark:hover:bg-red-950/30"
+    : hasFailures
+    ? "hover:bg-amber-50/30 dark:hover:bg-amber-950/20"
+    : "hover:bg-zinc-50 dark:hover:bg-zinc-800/60";
+
+  return (
+    <div
+      className={`rounded-xl border shadow-sm overflow-hidden transition-shadow ${headerBorderClass} ${isOpen ? "shadow-md" : ""}`}
+    >
+      {/* ── Accordion header ──────────────────────────────────────────── */}
+      <button
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className={[
+          "w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 md:px-6 md:py-4",
+          headerBgClass,
+          headerHoverClass,
+        ].join(" ")}
+      >
+        {/* Chevron */}
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : "rotate-0"
+          }`}
+        />
+
+        {/* Suite name */}
+        <span className="flex-1 min-w-0 text-sm font-semibold text-zinc-800 dark:text-zinc-100 truncate">
+          {group.suiteLabel}
+        </span>
+
+        {/* Summary pills */}
+        <div className="flex shrink-0 items-center gap-2">
+          <SuiteIssuePill
+            criticalCount={group.criticalCount}
+            failedCount={group.failedCount}
+          />
+          <span className="hidden sm:inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+            {group.totalCount} log{group.totalCount !== 1 ? "s" : ""}
+          </span>
+        </div>
+      </button>
+
+      {/* ── Expandable rows ───────────────────────────────────────────── */}
+      <div
+        className={[
+          "overflow-hidden transition-all duration-200 ease-in-out",
+          isOpen ? "max-h-[9999px] opacity-100" : "max-h-0 opacity-0",
+        ].join(" ")}
+        aria-hidden={!isOpen}
+      >
+        <div className="border-t border-zinc-100 dark:border-zinc-800">
+          {/* Mobile card list */}
+          <div className="flex flex-col divide-y divide-zinc-100 md:hidden dark:divide-zinc-800">
+            {group.rows.map((row) => {
+              const isCritical = row.severity === "Critical";
+              return (
+                <button
+                  key={row.logId}
+                  onClick={() => onOpenDrawer(row.logId)}
+                  className={[
+                    "w-full text-left px-4 py-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
+                    activeDrawerLogId === row.logId
+                      ? "bg-zinc-100 dark:bg-zinc-800"
+                      : isCritical
+                      ? "bg-red-50/40 active:bg-red-100 dark:bg-red-950/20 dark:active:bg-red-950/40"
+                      : "active:bg-zinc-50 dark:active:bg-slate-800/50",
+                  ].join(" ")}
+                >
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <StatusBadge status={row.executionStatus} />
+                    <SeverityBadge severity={row.severity} />
+                  </div>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <p className="text-xs text-zinc-500 truncate">{row.executionTime}</p>
+                    <code className="shrink-0 font-mono text-[10px] text-zinc-400">
+                      {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
+                    </code>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-zinc-50/80 hover:bg-zinc-50/80 dark:bg-zinc-900/60">
+                  {["Status", "AI Risk", "Execution Time", "Log ID"].map((h) => (
+                    <TableHead
+                      key={h}
+                      className="text-xs font-semibold uppercase tracking-wider text-zinc-400"
+                    >
+                      {h}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {group.rows.map((row) => {
+                  const isCritical = row.severity === "Critical";
+                  return (
+                    <TableRow
+                      key={row.logId}
+                      onClick={() => onOpenDrawer(row.logId)}
+                      className={[
+                        "cursor-pointer transition-colors",
+                        activeDrawerLogId === row.logId
+                          ? "bg-zinc-100 dark:bg-zinc-800"
+                          : isCritical
+                          ? "bg-red-50/40 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40"
+                          : "hover:bg-zinc-50 dark:hover:bg-slate-800/50",
+                      ].join(" ")}
+                    >
+                      {/* 1. Status */}
+                      <TableCell>
+                        <StatusBadge status={row.executionStatus} />
+                      </TableCell>
+                      {/* 2. AI Risk */}
+                      <TableCell>
+                        <SeverityBadge severity={row.severity} />
+                      </TableCell>
+                      {/* 3. Execution Time */}
+                      <TableCell className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+                        {row.executionTime}
+                      </TableCell>
+                      {/* 4. Log ID */}
+                      <TableCell className="font-mono text-xs text-zinc-400">
+                        {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main client component
 // ---------------------------------------------------------------------------
 
@@ -324,7 +598,10 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
   const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  // ── Pagination state ──────────────────────────────────────────────────────
+  // ── Accordion open state — track which suite keys are expanded ────────────
+  const [openSuites, setOpenSuites] = useState<Set<string>>(new Set());
+
+  // ── Pagination state (over groups, not rows) ──────────────────────────────
   const [currentPage, setCurrentPage] = useState(1);
 
   // ── Modal state ───────────────────────────────────────────────────────────
@@ -351,15 +628,22 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
     });
   }, [allRows, timeframe, customRange]);
 
-  // ── Pagination ────────────────────────────────────────────────────────────
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
-  const safePage = Math.min(currentPage, totalPages);
-  const pageRows = filteredRows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  // ── Group filtered rows by suite ──────────────────────────────────────────
+  const suiteGroups = useMemo(() => groupBySuite(filteredRows), [filteredRows]);
 
-  // Reset to page 1 when filter changes
+  // ── Pagination (over groups) ──────────────────────────────────────────────
+  const totalPages = Math.max(1, Math.ceil(suiteGroups.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageGroups = suiteGroups.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
+
+  // Reset to page 1 when filter changes; also collapse all groups
   const setTimeframeAndReset = useCallback((tf: Timeframe) => {
     setTimeframe(tf);
     setCurrentPage(1);
+    setOpenSuites(new Set());
   }, []);
 
   // ── Active filter label ───────────────────────────────────────────────────
@@ -372,6 +656,16 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
     }
     return TIMEFRAME_LABELS[timeframe];
   }, [timeframe, customRange]);
+
+  // ── Accordion toggle ─────────────────────────────────────────────────────
+  function toggleSuite(suiteKey: string) {
+    setOpenSuites((prev) => {
+      const next = new Set(prev);
+      if (next.has(suiteKey)) next.delete(suiteKey);
+      else next.add(suiteKey);
+      return next;
+    });
+  }
 
   // ── Modal open/close handlers ────────────────────────────────────────────
   function openDrawer(logId: string) {
@@ -400,9 +694,10 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
               Evidence Log · Traffic Light Matrix
             </h2>
             <p className="mt-0.5 text-xs text-zinc-400">
-              {filteredRows.length} log{filteredRows.length !== 1 ? "s" : ""} ·{" "}
+              {filteredRows.length} log{filteredRows.length !== 1 ? "s" : ""} across{" "}
+              {suiteGroups.length} test suite{suiteGroups.length !== 1 ? "s" : ""} ·{" "}
               <span className="font-medium text-zinc-500">{activeFilterLabel}</span>
-              {" · "}Page {safePage} of {totalPages}
+              {totalPages > 1 && ` · Page ${safePage} of ${totalPages}`}
             </p>
           </div>
 
@@ -495,7 +790,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
         </div>
 
         {/* Empty state */}
-        {pageRows.length === 0 ? (
+        {suiteGroups.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <CalendarDays className="mb-3 h-10 w-10 text-zinc-300" />
             <p className="text-sm font-medium text-zinc-500">No evidence logs for this period</p>
@@ -504,129 +799,27 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
             </p>
           </div>
         ) : (
-          <>
-            {/* ── MOBILE CARD LIST (hidden on md+) ───────────────────── */}
-            <div className="flex flex-col divide-y divide-zinc-100 md:hidden dark:divide-zinc-800">
-              {pageRows.map((row) => {
-                const parsedTitle = parseLogTitle(row.rawCommand || row.testSuite);
-                const isCritical = row.severity === "Critical";
-
-                return (
-                  <button
-                    key={row.logId}
-                    onClick={() => openDrawer(row.logId)}
-                    className={[
-                      "w-full text-left px-4 py-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
-                      drawerLogId === row.logId
-                        ? "bg-zinc-100 dark:bg-zinc-800"
-                        : isCritical
-                        ? "bg-red-50/60 active:bg-red-100 dark:bg-red-950/30 dark:active:bg-red-950/50"
-                        : "active:bg-zinc-50 dark:active:bg-slate-800/50",
-                    ].join(" ")}
-                  >
-                    {/* Row 1: Test Suite name */}
-                    <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100 truncate">
-                      {parsedTitle}
-                    </p>
-
-                    {/* Row 2: Badges */}
-                    <div className="mt-2 flex items-center gap-2 flex-wrap">
-                      <StatusBadge status={row.executionStatus} />
-                      <SeverityBadge severity={row.severity} />
-                    </div>
-
-                    {/* Row 3: Execution time + Log ID (secondary metadata) */}
-                    <div className="mt-2 flex items-center justify-between gap-2">
-                      <p className="text-xs text-zinc-500 truncate">{row.executionTime}</p>
-                      <code className="shrink-0 font-mono text-[10px] text-zinc-400">
-                        {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
-                      </code>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* ── DESKTOP TABLE (hidden below md) ────────────────────── */}
-            <div className="hidden md:block overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-zinc-50 hover:bg-zinc-50 dark:bg-zinc-900">
-                    {["Status", "AI Risk", "Test Suite", "Execution Time", "Log ID"].map((h) => (
-                      <TableHead
-                        key={h}
-                        className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
-                      >
-                        {h}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pageRows.map((row) => {
-                    const parsedTitle = parseLogTitle(row.rawCommand || row.testSuite);
-                    const rawTitle = row.rawCommand || row.testSuite;
-                    const isCritical = row.severity === "Critical";
-
-                    return (
-                      <TableRow
-                        key={row.logId}
-                        onClick={() => openDrawer(row.logId)}
-                        className={[
-                          "cursor-pointer transition-colors",
-                          drawerLogId === row.logId
-                            ? "bg-zinc-100 dark:bg-zinc-800"
-                            : isCritical
-                            ? "bg-red-50/60 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-950/50"
-                            : "hover:bg-zinc-50 dark:hover:bg-slate-800/50",
-                        ].join(" ")}
-                      >
-                        {/* 1. Status */}
-                        <TableCell>
-                          <StatusBadge status={row.executionStatus} />
-                        </TableCell>
-                        {/* 2. AI Risk */}
-                        <TableCell>
-                          <SeverityBadge severity={row.severity} />
-                        </TableCell>
-                        {/* 3. Test Suite */}
-                        <TableCell className="max-w-[280px]">
-                          <span
-                            title={rawTitle}
-                            className="block truncate text-sm font-medium text-zinc-800 dark:text-zinc-200 cursor-help"
-                          >
-                            {parsedTitle}
-                          </span>
-                          {parsedTitle !== rawTitle && (
-                            <span className="block truncate font-mono text-[10px] text-zinc-400 mt-0.5">
-                              {rawTitle.length > 55 ? rawTitle.slice(0, 52) + "…" : rawTitle}
-                            </span>
-                          )}
-                        </TableCell>
-                        {/* 4. Execution Time */}
-                        <TableCell className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
-                          {row.executionTime}
-                        </TableCell>
-                        {/* 5. Log ID */}
-                        <TableCell className="font-mono text-xs text-zinc-400">
-                          {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          </>
+          <div className="space-y-2 p-4 md:p-5">
+            {pageGroups.map((group) => (
+              <SuiteAccordionItem
+                key={group.suiteKey}
+                group={group}
+                isOpen={openSuites.has(group.suiteKey)}
+                onToggle={() => toggleSuite(group.suiteKey)}
+                onOpenDrawer={openDrawer}
+                activeDrawerLogId={drawerLogId}
+              />
+            ))}
+          </div>
         )}
 
         {/* Pagination footer */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 dark:border-zinc-800 md:px-6">
             <p className="text-xs text-zinc-400">
-              Showing {((safePage - 1) * PAGE_SIZE) + 1}–
-              {Math.min(safePage * PAGE_SIZE, filteredRows.length)} of{" "}
-              {filteredRows.length} logs
+              Showing suites {(safePage - 1) * PAGE_SIZE + 1}–
+              {Math.min(safePage * PAGE_SIZE, suiteGroups.length)} of{" "}
+              {suiteGroups.length}
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -638,7 +831,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
 
-              {/* Page number pills — show up to 7, with ellipsis */}
+              {/* Page number pills */}
               {Array.from({ length: totalPages }, (_, i) => i + 1)
                 .filter((p) => {
                   if (totalPages <= 7) return true;
@@ -647,7 +840,11 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                   return false;
                 })
                 .reduce<(number | "…")[]>((acc, p, idx, arr) => {
-                  if (idx > 0 && typeof arr[idx - 1] === "number" && (p as number) - (arr[idx - 1] as number) > 1) {
+                  if (
+                    idx > 0 &&
+                    typeof arr[idx - 1] === "number" &&
+                    (p as number) - (arr[idx - 1] as number) > 1
+                  ) {
                     acc.push("…");
                   }
                   acc.push(p);
@@ -655,7 +852,9 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                 }, [])
                 .map((item, idx) =>
                   item === "…" ? (
-                    <span key={`ellipsis-${idx}`} className="px-1 text-xs text-zinc-400">…</span>
+                    <span key={`ellipsis-${idx}`} className="px-1 text-xs text-zinc-400">
+                      …
+                    </span>
                   ) : (
                     <button
                       key={item}
@@ -669,7 +868,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                     >
                       {item}
                     </button>
-                  )
+                  ),
                 )}
 
               <button
