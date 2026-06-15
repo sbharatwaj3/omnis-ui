@@ -418,6 +418,7 @@ interface SuiteAccordionItemProps {
   onToggle: () => void;
   onOpenDrawer: (logId: string) => void;
   activeDrawerLogId: string | null;
+  isLast: boolean;
 }
 
 function SuiteAccordionItem({
@@ -426,54 +427,47 @@ function SuiteAccordionItem({
   onToggle,
   onOpenDrawer,
   activeDrawerLogId,
-}: SuiteAccordionItemProps) {
-  const hasCritical = group.criticalCount > 0;
-  const hasFailures = group.failedCount > 0;
-
-  // Task 1: neutral outer border — colour only on the left accent stripe
-  const leftAccentClass = hasCritical
-    ? "border-l-2 border-l-red-400 dark:border-l-red-600"
-    : hasFailures
-    ? "border-l-2 border-l-amber-400 dark:border-l-amber-500"
-    : "border-l-2 border-l-emerald-400 dark:border-l-emerald-600";
-
+  isLast,
+}: SuiteAccordionItemProps & { isLast: boolean }) {
   return (
-    // Task 1: always neutral bg/border on the outer shell
-    <div
-      className={`rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden transition-shadow ${leftAccentClass} ${isOpen ? "shadow-md" : ""}`}
-    >
-      {/* ── Accordion header ──────────────────────────────────────────── */}
-      {/* Task 1 & 2: neutral bg, tighter py-2.5 */}
+    // Task 1: no individual borders/rounding — parent wrapper manages the block.
+    // Task 2: no coloured left-accent or status borders at all.
+    // Bottom border on every row except the last (handled by parent via isLast prop).
+    <div className={`overflow-hidden bg-white dark:bg-zinc-900 ${!isLast ? "border-b border-slate-200 dark:border-zinc-700" : ""}`}>
+
+      {/* ── Accordion trigger ─────────────────────────────────────────── */}
       <button
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="w-full flex items-center gap-3 px-4 py-2.5 text-left bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 md:px-6"
+        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-400 md:px-6"
       >
-        {/* Chevron */}
+        {/* Chevron — flush left anchor */}
         <ChevronDown
-          className={`h-3.5 w-3.5 shrink-0 text-zinc-400 transition-transform duration-200 ${
+          className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 ${
             isOpen ? "rotate-180" : "rotate-0"
           }`}
         />
 
-        {/* Suite name */}
-        <span className="flex-1 min-w-0 text-sm font-semibold text-zinc-800 dark:text-zinc-100 truncate">
+        {/* Task 3: Suite name — medium weight, dark anchor colour */}
+        <span className="flex-1 min-w-0 text-sm font-medium text-slate-900 dark:text-zinc-100 truncate">
           {group.suiteLabel}
         </span>
 
-        {/* Summary pills */}
-        <div className="flex shrink-0 items-center gap-2">
+        {/* Task 3: Subordinate meta — lighter, smaller */}
+        <span className="hidden sm:block shrink-0 text-sm text-slate-500 dark:text-zinc-400 tabular-nums">
+          {group.totalCount} log{group.totalCount !== 1 ? "s" : ""}
+        </span>
+
+        {/* Task 2: Status badge only — all using consistent soft-fill pattern */}
+        <div className="shrink-0 ml-3">
           <SuiteIssuePill
             criticalCount={group.criticalCount}
             failedCount={group.failedCount}
           />
-          <span className="hidden sm:inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
-            {group.totalCount} log{group.totalCount !== 1 ? "s" : ""}
-          </span>
         </div>
       </button>
 
-      {/* ── Expandable rows ───────────────────────────────────────────── */}
+      {/* ── Expandable panel ──────────────────────────────────────────── */}
       <div
         className={[
           "overflow-hidden transition-all duration-200 ease-in-out",
@@ -481,52 +475,46 @@ function SuiteAccordionItem({
         ].join(" ")}
         aria-hidden={!isOpen}
       >
-        {/* Task 3: inner container with slate-50 bg and inner top border */}
-        <div className="border-t border-zinc-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950/60">
+        {/* Task 4: subtle tinted background separates child data from parent shell */}
+        <div className="bg-slate-50 dark:bg-zinc-950/60 border-t border-slate-200 dark:border-zinc-700">
+
           {/* Mobile card list */}
-          <div className="flex flex-col divide-y divide-zinc-100 md:hidden dark:divide-zinc-800">
-            {group.rows.map((row) => {
-              const isCritical = row.severity === "Critical";
-              return (
-                <button
-                  key={row.logId}
-                  onClick={() => onOpenDrawer(row.logId)}
-                  // Task 2: tighter py-2.5 on mobile cards too
-                  className={[
-                    "w-full text-left px-4 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
-                    activeDrawerLogId === row.logId
-                      ? "bg-zinc-100 dark:bg-zinc-800"
-                      : isCritical
-                      ? "active:bg-red-50 dark:active:bg-red-950/20"
-                      : "active:bg-zinc-100 dark:active:bg-slate-800/50",
-                  ].join(" ")}
-                >
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <StatusBadge status={row.executionStatus} />
-                    <SeverityBadge severity={row.severity} />
-                  </div>
-                  <div className="mt-1.5 flex items-center justify-between gap-2">
-                    <p className="text-xs text-zinc-500 truncate">{row.executionTime}</p>
-                    <code className="shrink-0 font-mono text-[10px] text-zinc-400">
-                      {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
-                    </code>
-                  </div>
-                </button>
-              );
-            })}
+          <div className="flex flex-col divide-y divide-slate-100 md:hidden dark:divide-zinc-800">
+            {group.rows.map((row) => (
+              <button
+                key={row.logId}
+                onClick={() => onOpenDrawer(row.logId)}
+                className={[
+                  "w-full text-left px-4 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
+                  activeDrawerLogId === row.logId
+                    ? "bg-slate-100 dark:bg-zinc-800"
+                    : "active:bg-slate-100 dark:active:bg-zinc-800/50",
+                ].join(" ")}
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <StatusBadge status={row.executionStatus} />
+                  <SeverityBadge severity={row.severity} />
+                </div>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  {/* Task 3: subordinate text — slate-500, text-xs */}
+                  <p className="text-xs text-slate-500 truncate">{row.executionTime}</p>
+                  <code className="shrink-0 font-mono text-[10px] text-slate-400">
+                    {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
+                  </code>
+                </div>
+              </button>
+            ))}
           </div>
 
-          {/* Task 3: Desktop table — inner border wraps the table */}
-          <div className="hidden md:block overflow-x-auto mx-3 my-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm">
+          {/* Desktop table — flush inside the tinted panel, no nested card shadow */}
+          <div className="hidden md:block overflow-x-auto">
             <Table>
               <TableHeader>
-                {/* Task 3: slightly darker header to anchor the columns */}
-                <TableRow className="bg-zinc-100 hover:bg-zinc-100 dark:bg-zinc-800/80 dark:hover:bg-zinc-800/80">
+                <TableRow className="bg-slate-100 hover:bg-slate-100 dark:bg-zinc-800/80 dark:hover:bg-zinc-800/80 border-b border-slate-200 dark:border-zinc-700">
                   {["Status", "AI Risk", "Execution Time", "Log ID"].map((h) => (
                     <TableHead
                       key={h}
-                      // Task 3: bolder/darker header text
-                      className="py-2 text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300"
+                      className="py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400"
                     >
                       {h}
                     </TableHead>
@@ -534,38 +522,33 @@ function SuiteAccordionItem({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {group.rows.map((row) => {
-                  const isCritical = row.severity === "Critical";
-                  return (
-                    <TableRow
-                      key={row.logId}
-                      onClick={() => onOpenDrawer(row.logId)}
-                      // Task 2: tighter py via TableCell below; Task 1: no red bg on rows
-                      className={[
-                        "cursor-pointer transition-colors",
-                        activeDrawerLogId === row.logId
-                          ? "bg-zinc-100 dark:bg-zinc-800"
-                          : isCritical
-                          ? "hover:bg-red-50/60 dark:hover:bg-red-950/20"
-                          : "hover:bg-zinc-50 dark:hover:bg-slate-800/50",
-                      ].join(" ")}
-                    >
-                      {/* Task 2: py-1.5 on all cells for tight density */}
-                      <TableCell className="py-1.5">
-                        <StatusBadge status={row.executionStatus} />
-                      </TableCell>
-                      <TableCell className="py-1.5">
-                        <SeverityBadge severity={row.severity} />
-                      </TableCell>
-                      <TableCell className="py-1.5 text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
-                        {row.executionTime}
-                      </TableCell>
-                      <TableCell className="py-1.5 font-mono text-xs text-zinc-400">
-                        {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {group.rows.map((row) => (
+                  <TableRow
+                    key={row.logId}
+                    onClick={() => onOpenDrawer(row.logId)}
+                    className={[
+                      "cursor-pointer border-b border-slate-100 dark:border-zinc-800 last:border-b-0 transition-colors",
+                      activeDrawerLogId === row.logId
+                        ? "bg-slate-100 dark:bg-zinc-800"
+                        : "hover:bg-white dark:hover:bg-zinc-900/60",
+                    ].join(" ")}
+                  >
+                    {/* Task 3: tight py-2 for high information density */}
+                    <TableCell className="py-2">
+                      <StatusBadge status={row.executionStatus} />
+                    </TableCell>
+                    <TableCell className="py-2">
+                      <SeverityBadge severity={row.severity} />
+                    </TableCell>
+                    {/* Task 3: subordinate timestamp — slate-500 */}
+                    <TableCell className="py-2 text-xs text-slate-500 dark:text-zinc-400 whitespace-nowrap">
+                      {row.executionTime}
+                    </TableCell>
+                    <TableCell className="py-2 font-mono text-xs text-slate-400">
+                      {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
@@ -790,8 +773,9 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
             </p>
           </div>
         ) : (
-          <div className="space-y-1.5 p-3 md:p-4">
-            {pageGroups.map((group) => (
+          // Task 1: single unified flush block container — rows separated only by border-b
+          <div className="border border-slate-200 dark:border-zinc-700 rounded-md overflow-hidden mx-4 my-4 md:mx-6 md:my-5">
+            {pageGroups.map((group, idx) => (
               <SuiteAccordionItem
                 key={group.suiteKey}
                 group={group}
@@ -799,6 +783,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                 onToggle={() => toggleSuite(group.suiteKey)}
                 onOpenDrawer={openDrawer}
                 activeDrawerLogId={drawerLogId}
+                isLast={idx === pageGroups.length - 1}
               />
             ))}
           </div>
