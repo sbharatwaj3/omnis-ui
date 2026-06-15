@@ -179,25 +179,28 @@ function parseLogTitle(raw: string): string {
 function getTimeframeRange(timeframe: Timeframe): { from: Date; to: Date } | null {
   const now = new Date();
   if (timeframe === "today") {
-    const from = new Date(now); from.setHours(0, 0, 0, 0);
-    const to = new Date(now); to.setHours(23, 59, 59, 999);
+    // Use UTC boundaries to match the UTC timestamps stored in the database.
+    // setHours(local) would shift the window by the browser's UTC offset —
+    // a user in UTC+8 would miss logs inserted after 16:00 UTC, and a user
+    // in UTC-5 would include logs from the previous UTC day.
+    const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+    const to   = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
     return { from, to };
   }
   if (timeframe === "week") {
-    const from = new Date(now);
-    from.setDate(now.getDate() - now.getDay());
-    from.setHours(0, 0, 0, 0);
-    const to = new Date(now); to.setHours(23, 59, 59, 999);
+    // Week boundary: Sunday 00:00:00 UTC → now (end of today UTC)
+    const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - now.getUTCDay(), 0, 0, 0, 0));
+    const to   = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
     return { from, to };
   }
   if (timeframe === "month") {
-    const from = new Date(now.getFullYear(), now.getMonth(), 1);
-    const to = new Date(now); to.setHours(23, 59, 59, 999);
+    const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
+    const to   = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
     return { from, to };
   }
   if (timeframe === "year") {
-    const from = new Date(now.getFullYear(), 0, 1);
-    const to = new Date(now); to.setHours(23, 59, 59, 999);
+    const from = new Date(Date.UTC(now.getUTCFullYear(), 0, 1, 0, 0, 0, 0));
+    const to   = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
     return { from, to };
   }
   return null;
