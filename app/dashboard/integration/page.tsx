@@ -1,0 +1,424 @@
+// omnis-ui/app/dashboard/integration/page.tsx
+// CLI Setup & Integration Guide — Step-by-step onboarding for connecting
+// an external CI/CD pipeline to the Omnis RegOps platform.
+//
+// React Server Component shell. The copy-to-clipboard terminal block is a
+// lightweight client island (TerminalBlock) to avoid making the entire page
+// a client component.
+
+import Link from "next/link";
+import {
+  ShieldCheck,
+  Activity,
+  ArrowLeft,
+  Download,
+  KeyRound,
+  Terminal,
+  Monitor,
+  Apple,
+  Server,
+} from "lucide-react";
+import { SettingsMenu } from "@/components/settings-menu";
+import { Separator } from "@/components/ui/separator";
+import { TerminalBlock } from "@/components/terminal-block";
+
+// ---------------------------------------------------------------------------
+// Download platform cards
+// ---------------------------------------------------------------------------
+
+interface Platform {
+  label: string;
+  os: string;
+  icon: React.ReactNode;
+  filename: string;
+  href: string;
+  badge?: string;
+}
+
+const PLATFORMS: Platform[] = [
+  {
+    label: "Windows",
+    os: "Windows 10 / 11 · x64",
+    icon: <Monitor className="h-5 w-5" strokeWidth={1.5} />,
+    filename: "omnis-cli-windows-amd64.exe",
+    href: "#",
+    badge: ".exe",
+  },
+  {
+    label: "macOS",
+    os: "macOS 12+ · Apple Silicon & Intel",
+    icon: <Apple className="h-5 w-5" strokeWidth={1.5} />,
+    filename: "omnis-cli-darwin-universal",
+    href: "#",
+  },
+  {
+    label: "Linux",
+    os: "Ubuntu 20.04+ / Debian · x64",
+    icon: <Server className="h-5 w-5" strokeWidth={1.5} />,
+    filename: "omnis-cli-linux-amd64",
+    href: "#",
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Step number badge
+// ---------------------------------------------------------------------------
+
+function StepBadge({ n }: { n: number }) {
+  return (
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
+      {n}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
+export default function IntegrationPage() {
+  return (
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      {/* ── Header ──────────────────────────────────────────────────────── */}
+      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="mx-auto flex max-w-7xl items-center px-4 py-4 md:px-8 md:py-5">
+          {/* Left: logo */}
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 group shrink-0"
+          >
+            <ShieldCheck
+              className="h-5 w-5 md:h-6 md:w-6 text-zinc-800 dark:text-zinc-200"
+              strokeWidth={1.75}
+            />
+            <div>
+              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+                Omnis RegOps
+              </h1>
+              <p className="hidden sm:block text-xs text-zinc-400">
+                CLI Integration
+              </p>
+            </div>
+          </Link>
+
+          {/* Centre: back to dashboard */}
+          <div className="hidden sm:flex flex-1 justify-center">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to Dashboard
+            </Link>
+          </div>
+
+          {/* Right: badge + settings */}
+          <div className="flex items-center gap-2 ml-auto sm:ml-0 shrink-0">
+            <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none dark:border-zinc-700 dark:bg-zinc-800">
+              <Activity className="h-3.5 w-3.5 text-emerald-500" />
+              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                IEC 62304 · 21 CFR Part 11
+              </span>
+            </span>
+            <SettingsMenu />
+          </div>
+        </div>
+
+        {/* Mobile sub-bar */}
+        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2 dark:border-zinc-800">
+          <Link
+            href="/dashboard"
+            className="flex-1 text-center inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Dashboard
+          </Link>
+        </div>
+      </header>
+
+      {/* ── Main ────────────────────────────────────────────────────────── */}
+      <main className="mx-auto max-w-3xl px-4 py-8 md:px-8 md:py-12">
+        {/* Page title */}
+        <div className="mb-2 flex items-center gap-3">
+          <Terminal className="h-5 w-5 text-zinc-500" strokeWidth={1.75} />
+          <div>
+            <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+              CLI Integration Setup
+            </h2>
+            <p className="mt-0.5 text-sm text-zinc-400">
+              Connect your CI/CD pipeline to Omnis in three steps.
+            </p>
+          </div>
+        </div>
+
+        {/* Progress indicator */}
+        <div className="mb-8 mt-5 flex items-center gap-2">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="flex items-center gap-2">
+              <div className="h-1.5 w-8 rounded-full bg-zinc-900 dark:bg-zinc-100" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                Step {n}
+              </span>
+              {n < 3 && (
+                <div className="h-px w-6 bg-zinc-200 dark:bg-zinc-700" />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <Separator className="mb-10 bg-zinc-200 dark:bg-zinc-800" />
+
+        {/* ── Step 1: Download ─────────────────────────────────────────── */}
+        <section aria-labelledby="step1-heading" className="mb-10">
+          <div className="mb-5 flex items-center gap-3">
+            <StepBadge n={1} />
+            <div>
+              <h3
+                id="step1-heading"
+                className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-100"
+              >
+                <Download className="h-4 w-4 text-zinc-500" strokeWidth={1.75} />
+                Download the CLI Tool
+              </h3>
+              <p className="mt-0.5 text-xs text-zinc-400">
+                Choose the binary for your operating system. No installation
+                required — place the binary in your PATH or call it directly.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {PLATFORMS.map((p) => (
+              <a
+                key={p.label}
+                href={p.href}
+                aria-label={`Download Omnis CLI for ${p.label}`}
+                className="group flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:border-zinc-300 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600"
+              >
+                {/* Icon + badge */}
+                <div className="flex items-start justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 group-hover:border-zinc-300 group-hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:group-hover:text-zinc-100">
+                    {p.icon}
+                  </div>
+                  {p.badge && (
+                    <span className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                      {p.badge}
+                    </span>
+                  )}
+                </div>
+
+                {/* Label */}
+                <div>
+                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                    {p.label}
+                  </p>
+                  <p className="text-[11px] text-zinc-400">{p.os}</p>
+                </div>
+
+                {/* Filename */}
+                <code className="mt-auto truncate rounded bg-zinc-50 px-2 py-1 font-mono text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                  {p.filename}
+                </code>
+
+                {/* CTA */}
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700 group-hover:text-zinc-900 dark:text-zinc-300 dark:group-hover:text-zinc-100">
+                  <Download className="h-3 w-3" strokeWidth={2} />
+                  Download
+                </div>
+              </a>
+            ))}
+          </div>
+
+          {/* Checksum note */}
+          <p className="mt-3 text-[11px] text-zinc-400">
+            SHA-256 checksums will be published alongside each release for
+            binary integrity verification.
+          </p>
+        </section>
+
+        <Separator className="mb-10 bg-zinc-200 dark:bg-zinc-800" />
+
+        {/* ── Step 2: Authenticate ─────────────────────────────────────── */}
+        <section aria-labelledby="step2-heading" className="mb-10">
+          <div className="mb-5 flex items-center gap-3">
+            <StepBadge n={2} />
+            <div>
+              <h3
+                id="step2-heading"
+                className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-100"
+              >
+                <KeyRound className="h-4 w-4 text-zinc-500" strokeWidth={1.75} />
+                Authenticate with Your API Key
+              </h3>
+              <p className="mt-0.5 text-xs text-zinc-400">
+                The CLI reads your Omnis API Key from an environment variable.
+                Set it once in your CI/CD provider&apos;s secret store.
+              </p>
+            </div>
+          </div>
+
+          {/* Instruction card */}
+          <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <p className="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Export your API key as an environment variable:
+            </p>
+
+            {/* env var blocks */}
+            <div className="space-y-2">
+              <div>
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                  Linux / macOS (shell)
+                </p>
+                <TerminalBlock
+                  code={`export OMNIS_API_KEY="omn_your_key_here"`}
+                  lang="shell"
+                />
+              </div>
+              <div>
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                  Windows (PowerShell)
+                </p>
+                <TerminalBlock
+                  code={`$env:OMNIS_API_KEY = "omn_your_key_here"`}
+                  lang="powershell"
+                />
+              </div>
+              <div>
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                  GitHub Actions (secrets.yml)
+                </p>
+                <TerminalBlock
+                  code={`env:\n  OMNIS_API_KEY: \${{ secrets.OMNIS_API_KEY }}`}
+                  lang="yaml"
+                />
+              </div>
+            </div>
+
+            {/* Key generation CTA */}
+            <div className="mt-4 flex items-start gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800/60">
+              <KeyRound
+                className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400"
+                strokeWidth={1.75}
+              />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Don&apos;t have an API key yet?{" "}
+                <Link
+                  href="/dashboard/settings"
+                  className="font-semibold text-zinc-800 underline underline-offset-2 hover:text-zinc-600 dark:text-zinc-200 dark:hover:text-zinc-400"
+                >
+                  Generate one in Settings →
+                </Link>
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <Separator className="mb-10 bg-zinc-200 dark:bg-zinc-800" />
+
+        {/* ── Step 3: Execute ──────────────────────────────────────────── */}
+        <section aria-labelledby="step3-heading" className="mb-10">
+          <div className="mb-5 flex items-center gap-3">
+            <StepBadge n={3} />
+            <div>
+              <h3
+                id="step3-heading"
+                className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-100"
+              >
+                <Terminal className="h-4 w-4 text-zinc-500" strokeWidth={1.75} />
+                Run the CLI &amp; Ingest Evidence
+              </h3>
+              <p className="mt-0.5 text-xs text-zinc-400">
+                After your test suite completes, pipe the JSON results file
+                to the Omnis ingest command. Omnis signs, hashes, and stores
+                the evidence log automatically.
+              </p>
+            </div>
+          </div>
+
+          {/* Primary command */}
+          <div className="mb-4">
+            <p className="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Basic usage
+            </p>
+            <TerminalBlock
+              code="omnis-cli ingest --results ./test-output.json"
+              lang="shell"
+              prominent
+            />
+          </div>
+
+          {/* Extended example */}
+          <div>
+            <p className="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Full CI/CD example (with build version and requirement tag)
+            </p>
+            <TerminalBlock
+              code={`omnis-cli ingest \\\n  --results ./test-output.json \\\n  --build-version "v2.4.1" \\\n  --req-id "FDA-820.30g"`}
+              lang="shell"
+            />
+          </div>
+
+          {/* Flag reference */}
+          <div className="mt-5 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              Flag Reference
+            </p>
+            <div className="space-y-2">
+              {[
+                {
+                  flag: "--results <path>",
+                  desc: "Path to the pytest / test runner JSON output file (required)",
+                },
+                {
+                  flag: "--build-version <str>",
+                  desc: "SemVer string for this build, e.g. v2.4.1 (optional)",
+                },
+                {
+                  flag: "--req-id <str>",
+                  desc: "Regulatory requirement ID to tag this run against, e.g. FDA-820.30g (optional)",
+                },
+                {
+                  flag: "--dry-run",
+                  desc: "Validate payload and print the signed JSON without submitting (optional)",
+                },
+              ].map(({ flag, desc }) => (
+                <div key={flag} className="flex items-start gap-3">
+                  <code className="shrink-0 rounded bg-zinc-100 px-2 py-0.5 font-mono text-[11px] text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                    {flag}
+                  </code>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Done CTA ────────────────────────────────────────────────── */}
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 dark:border-emerald-800/40 dark:bg-emerald-950/30">
+          <div className="flex items-start gap-3">
+            <ShieldCheck
+              className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400"
+              strokeWidth={1.75}
+            />
+            <div>
+              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                Integration complete
+              </p>
+              <p className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-400">
+                Once your first run arrives, it will appear in the Evidence
+                Dashboard within seconds. Each log is HMAC-signed, hashed, and
+                linked to its regulatory requirement automatically.
+              </p>
+              <Link
+                href="/dashboard"
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-600 dark:text-emerald-300 dark:hover:text-emerald-400"
+              >
+                View Evidence Dashboard →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
