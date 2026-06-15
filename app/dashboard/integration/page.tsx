@@ -139,7 +139,7 @@ export default function IntegrationPage() {
       {/* ── Main ────────────────────────────────────────────────────────── */}
       <main className="mx-auto max-w-3xl px-4 py-8 md:px-8 md:py-12">
         {/* Page title */}
-        <div className="mb-2 flex items-center gap-3">
+        <div className="mb-8 flex items-center gap-3">
           <Terminal className="h-5 w-5 text-zinc-500" strokeWidth={1.75} />
           <div>
             <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
@@ -149,21 +149,6 @@ export default function IntegrationPage() {
               Connect your CI/CD pipeline to Omnis in three steps.
             </p>
           </div>
-        </div>
-
-        {/* Progress indicator */}
-        <div className="mb-8 mt-5 flex items-center gap-2">
-          {[1, 2, 3].map((n) => (
-            <div key={n} className="flex items-center gap-2">
-              <div className="h-1.5 w-8 rounded-full bg-zinc-900 dark:bg-zinc-100" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-                Step {n}
-              </span>
-              {n < 3 && (
-                <div className="h-px w-6 bg-zinc-200 dark:bg-zinc-700" />
-              )}
-            </div>
-          ))}
         </div>
 
         <Separator className="mb-10 bg-zinc-200 dark:bg-zinc-800" />
