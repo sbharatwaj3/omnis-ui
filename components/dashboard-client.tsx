@@ -506,17 +506,17 @@ function SuiteAccordionItem({
             ))}
           </div>
 
-          {/* Desktop table — flush inside the tinted panel, no nested card shadow.
-              pl-[50px] on md+ matches: px-6 (24px) + chevron w-3.5 (14px) + gap-3 (12px) = 50px
-              so the STATUS column left-edge aligns with the suite title text. */}
-          <div className="hidden md:block overflow-x-auto pl-[42px] md:pl-[50px]">
-            <Table>
+          {/* Desktop table — full-width, edge-to-edge inside the tinted panel.
+              Cell padding px-4 md:px-6 mirrors the trigger's own horizontal padding
+              so columns feel anchored to the same grid as the header above. */}
+          <div className="hidden md:block overflow-x-auto w-full">
+            <Table className="w-full">
               <TableHeader>
                 <TableRow className="bg-slate-100 hover:bg-slate-100 dark:bg-zinc-800/80 dark:hover:bg-zinc-800/80 border-b border-slate-200 dark:border-zinc-700">
-                  {["Status", "AI Risk", "Execution Time", "Log ID"].map((h) => (
+                  {["Status", "AI Risk", "Execution Time", "Log ID"].map((h, i) => (
                     <TableHead
                       key={h}
-                      className="py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400"
+                      className={`py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400 ${i === 0 ? "pl-4 md:pl-6" : ""}`}
                     >
                       {h}
                     </TableHead>
@@ -535,14 +535,12 @@ function SuiteAccordionItem({
                         : "hover:bg-white dark:hover:bg-zinc-900/60",
                     ].join(" ")}
                   >
-                    {/* Task 3: tight py-2 for high information density */}
-                    <TableCell className="py-2">
+                    <TableCell className="py-2 pl-4 md:pl-6">
                       <StatusBadge status={row.executionStatus} />
                     </TableCell>
                     <TableCell className="py-2">
                       <SeverityBadge severity={row.severity} />
                     </TableCell>
-                    {/* Task 3: subordinate timestamp — slate-500 */}
                     <TableCell className="py-2 text-xs text-slate-500 dark:text-zinc-400 whitespace-nowrap">
                       {row.executionTime}
                     </TableCell>
