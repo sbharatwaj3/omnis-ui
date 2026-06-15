@@ -506,8 +506,10 @@ function SuiteAccordionItem({
             ))}
           </div>
 
-          {/* Desktop table — flush inside the tinted panel, no nested card shadow */}
-          <div className="hidden md:block overflow-x-auto">
+          {/* Desktop table — flush inside the tinted panel, no nested card shadow.
+              pl-[50px] on md+ matches: px-6 (24px) + chevron w-3.5 (14px) + gap-3 (12px) = 50px
+              so the STATUS column left-edge aligns with the suite title text. */}
+          <div className="hidden md:block overflow-x-auto pl-[42px] md:pl-[50px]">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-100 hover:bg-slate-100 dark:bg-zinc-800/80 dark:hover:bg-zinc-800/80 border-b border-slate-200 dark:border-zinc-700">
