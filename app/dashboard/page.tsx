@@ -59,12 +59,25 @@ function mapSeverity(aiSummary: string | null): DashboardRow["severity"] {
 async function fetchAllLogs(): Promise<DashboardRow[]> {
   const supabase = await createClient();
 
-  // Resolve the authenticated user first.
-  // Defence-in-depth: even if middleware lets a request through, we will never
-  // query without a confirmed uid. RLS enforces the same constraint at the DB
-  // layer, but explicit filtering here makes the intent unambiguous.
+  // Resolve the authenticated user and their org_id.
+  // Defence-in-depth: we never query without a confirmed uid.
+  // RLS enforces org-level isolation at the DB layer. The explicit org_id
+  // filter below makes the intent unambiguous and correctly includes logs
+  // written by the CLI ingest route (which stamps the org's first user_id,
+  // not necessarily the currently authenticated user's id).
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
+
+  // Resolve the caller's org_id so we can fetch all org-level logs,
+  // not just the subset stamped with this specific user_id.
+  const { data: profile } = await supabase
+    .from("users")
+    .select("org_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!profile?.org_id) return [];
+  const orgId: string = profile.org_id;
 
   // Fetch in pages of 1000 to stay within Supabase's default range limit
   let allLogs: EvidenceLogRow[] = [];
@@ -75,11 +88,12 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
     const { data: batch, error } = await supabase
       .from("evidence_logs")
       .select("log_id, execution_timestamp, execution_status, raw_command, event_source, req_id")
-      // Explicit user_id filter — defence-in-depth on top of RLS.
-      // RLS enforces user_id = auth.uid() at the DB layer; this clause ensures
-      // the query itself never requests another user's rows even if RLS were
-      // ever misconfigured.
-      .eq("user_id", user.id)
+      // Filter by org_id — this captures ALL logs for the org including those
+      // written by the machine-to-machine CLI ingest route, which stamps the
+      // org's first user_id rather than the currently logged-in user's id.
+      // RLS enforces that org_id must equal private.get_auth_org_id(), so a
+      // user can never read another org's data even with this broader filter.
+      .eq("org_id", orgId)
       .order("execution_timestamp", { ascending: false })
       .range(from, from + batchSize - 1);
 

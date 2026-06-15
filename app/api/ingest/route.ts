@@ -35,6 +35,7 @@ import { NextRequest, NextResponse } from "next/server";
 // node: prefix guarantees we get the real Node.js built-in, not a
 // browser polyfill that lacks createHash / timingSafeEqual.
 import { createHash, timingSafeEqual } from "node:crypto";
+import { revalidatePath } from "next/cache";
 import { adminClient } from "@/utils/supabase/admin";
 
 // ---------------------------------------------------------------------------
@@ -356,7 +357,14 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // ── Step 10: 201 Created ───────────────────────────────────────────────
+  // ── Step 10: Purge stale Next.js Router Cache for dashboard pages ────────
+  // force-dynamic on the dashboard page bypasses the Data Cache, but the
+  // Vercel Router Cache can still serve a stale prefetch. revalidatePath
+  // marks both routes as stale so the next navigation fetches fresh data.
+  revalidatePath("/dashboard");
+  revalidatePath("/readiness");
+
+  // ── Step 11: 201 Created ───────────────────────────────────────────────
   return NextResponse.json(
     {
       success: true,
