@@ -1,12 +1,23 @@
 // omnis-ui/app/dashboard/settings/page.tsx
-// Settings page — Appearance and account preferences.
+// Settings page — Appearance, account preferences, and Developer API Keys.
 //
-// React Server Component shell. Theme toggle is a client island via ThemeToggle.
+// React Server Component shell. Fetches the user's active API keys at
+// request time and passes them to the <DeveloperApiKeys> client island.
+// ThemeToggle is a separate client island.
+
+export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { ShieldCheck, Activity, ArrowLeft, Settings } from "lucide-react";
+import {
+  ShieldCheck,
+  Activity,
+  ArrowLeft,
+  Settings,
+  Code2,
+} from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SettingsMenu } from "@/components/settings-menu";
+import { DeveloperApiKeys } from "@/components/developer-api-keys";
 import {
   Card,
   CardContent,
@@ -15,8 +26,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { listApiKeys } from "@/app/dashboard/settings/actions";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  // Fetch API keys server-side — key_hash is explicitly excluded in the action.
+  const { keys } = await listApiKeys();
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       {/* ── Header ──────────────────────────────────────────────────────── */}
@@ -35,9 +50,7 @@ export default function SettingsPage() {
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
                 Omnis RegOps
               </h1>
-              <p className="hidden sm:block text-xs text-zinc-400">
-                Settings
-              </p>
+              <p className="hidden sm:block text-xs text-zinc-400">Settings</p>
             </div>
           </Link>
 
@@ -132,6 +145,30 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+        </section>
+
+        <Separator className="my-8 bg-zinc-200 dark:bg-zinc-800" />
+
+        {/* ── Developer APIs section ─────────────────────────────────── */}
+        <section aria-labelledby="developer-apis-heading" className="space-y-4">
+          <div>
+            <h3
+              id="developer-apis-heading"
+              className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-400"
+            >
+              <Code2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+              Developer APIs
+            </h3>
+            <p className="mt-1.5 text-xs text-zinc-400">
+              Manage organization API keys for authenticating external CI/CD
+              pipeline integrations. Keys are hashed with SHA-256 at rest and
+              shown only once at creation time.
+            </p>
+          </div>
+
+          {/* DeveloperApiKeys is a "use client" island that handles all
+              interactive state: modal, generation, revoke, copy. */}
+          <DeveloperApiKeys initialKeys={keys} />
         </section>
       </main>
     </div>
