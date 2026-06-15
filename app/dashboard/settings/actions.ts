@@ -189,8 +189,14 @@ export async function generateApiKey(
 // Action: revokeApiKey
 // ---------------------------------------------------------------------------
 // 1. Verify authenticated session.
-// 2. Delete the key row — RLS ensures the caller can only delete their org's keys.
-// 3. Revalidate the settings page.
+// 2. Resolve caller's org_id from the session (never trust the client).
+// 3. Delete the key row via adminClient with an explicit org_id guard.
+//    Using adminClient mirrors the generateApiKey pattern and is safe here
+//    because the org_id is resolved from the verified server-side session —
+//    the caller can only ever delete keys belonging to their own organisation.
+//    This avoids any dependency on the authenticated role's DELETE ACL or
+//    RLS policy propagation timing on the live database.
+// 4. Revalidate the settings page.
 // ---------------------------------------------------------------------------
 
 export async function revokeApiKey(keyId: string): Promise<RevokeApiKeyResult> {
@@ -205,13 +211,35 @@ export async function revokeApiKey(keyId: string): Promise<RevokeApiKeyResult> {
     return { success: false, error: "Unauthorised: valid session required." };
   }
 
-  // Step 2: Delete the key.
-  // We use the session-scoped client (not adminClient) so RLS enforces that
-  // the caller can only delete keys belonging to their own organisation.
-  const { error: deleteError } = await supabase
+  // Step 2: Resolve org_id from the verified session.
+  // We must never trust a client-supplied org_id — this is the same
+  // defensive pattern used in generateApiKey.
+  const { data: profile, error: profileError } = await supabase
+    .from("users")
+    .select("org_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (profileError || !profile?.org_id) {
+    return {
+      success: false,
+      error: "Could not resolve your organisation. Please try again.",
+    };
+  }
+
+  const orgId: string = profile.org_id;
+
+  // Step 3: Delete via adminClient with a dual-column guard:
+  //   .eq("id", keyId)     — targets the specific key
+  //   .eq("org_id", orgId) — cryptographically ensures the key belongs to
+  //                          the caller's org (org_id from verified session)
+  // If the key doesn't exist or belongs to a different org, Supabase returns
+  // 0 rows affected rather than an error, which is the correct safe behaviour.
+  const { error: deleteError } = await adminClient
     .from("organization_api_keys")
     .delete()
-    .eq("id", keyId);
+    .eq("id", keyId)
+    .eq("org_id", orgId);
 
   if (deleteError) {
     console.error("[revokeApiKey] Supabase delete error:", deleteError.message);
@@ -221,7 +249,7 @@ export async function revokeApiKey(keyId: string): Promise<RevokeApiKeyResult> {
     };
   }
 
-  // Step 3: Refresh the settings page.
+  // Step 4: Refresh the settings page.
   revalidatePath("/dashboard/settings");
 
   return { success: true };
