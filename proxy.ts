@@ -59,6 +59,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/dashboard/") ||
     pathname.startsWith("/logs") ||
     pathname.startsWith("/readiness");
+  const isSetupPage  = pathname === "/dashboard/setup";
   const isOnboarding = pathname === "/onboarding";
   const isLoginPage  = pathname === "/login";
   const isSignupPage = pathname === "/signup";
@@ -106,6 +107,32 @@ export async function proxy(request: NextRequest) {
         onboardingUrl.pathname = "/onboarding";
         onboardingUrl.search = "";
         return NextResponse.redirect(onboardingUrl);
+      }
+
+      // ── CLI Setup Gate ────────────────────────────────────────────────────
+      // If the org has zero evidence logs and the user is NOT already on
+      // /dashboard/setup, redirect them there so they can't view an empty
+      // dashboard without completing the CLI integration flow.
+      // The setup page itself, settings, and integration sub-routes are
+      // exempted so the user can generate an API key without a redirect loop.
+      const isSetupExempt =
+        isSetupPage ||
+        pathname === "/dashboard/settings" ||
+        pathname.startsWith("/dashboard/settings/") ||
+        pathname.startsWith("/dashboard/integration/");
+
+      if (!isSetupExempt) {
+        const { count: logCount } = await supabase
+          .from("evidence_logs")
+          .select("log_id", { count: "exact", head: true })
+          .eq("org_id", profile.org_id);
+
+        if ((logCount ?? 0) === 0) {
+          const setupUrl = request.nextUrl.clone();
+          setupUrl.pathname = "/dashboard/setup";
+          setupUrl.search = "";
+          return NextResponse.redirect(setupUrl);
+        }
       }
     }
 
