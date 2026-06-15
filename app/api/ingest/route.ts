@@ -264,9 +264,12 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
   if (existingBuild?.build_id) {
     buildId = existingBuild.build_id as string;
   } else {
+    // builds.build_id has no gen_random_uuid() default in the DDL — we must
+    // supply the UUID explicitly to satisfy the NOT NULL primary key constraint.
+    const newBuildId = crypto.randomUUID();
     const { data: newBuild, error: buildError } = await adminClient
       .from("builds")
-      .insert({ org_id: matchedOrgId, version_string: versionString })
+      .insert({ build_id: newBuildId, org_id: matchedOrgId, version_string: versionString })
       .select("build_id")
       .single();
 
