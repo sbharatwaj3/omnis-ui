@@ -47,12 +47,16 @@ import { getOrgLogCount } from "@/app/dashboard/setup/actions";
 /** Polling interval while waiting for the first evidence log (ms). */
 const POLL_INTERVAL_MS = 5_000;
 
-// Binaries are served directly from the Next.js public/cli/ directory.
-// Files must exist at omnis-ui/public/cli/ before deploying.
+// Binaries are hosted on GitHub Releases.
+// When a new CLI version is tagged, upload the three dist/ files to the
+// release and they will be served at these URLs automatically.
+const RELEASES_BASE =
+  "https://github.com/sbharatwaj3/omnis-cli/releases/latest/download";
+
 const BINARIES = {
-  windows: { label: "Windows (.exe)", href: "/cli/omnis-run-win.exe", icon: Monitor },
-  mac:     { label: "macOS (Apple Silicon)", href: "/cli/omnis-run-mac", icon: Apple },
-  linux:   { label: "Linux (x64)", href: "/cli/omnis-run-linux", icon: Terminal },
+  windows: { label: "Windows (.exe)", href: `${RELEASES_BASE}/omnis-run-win.exe`, icon: Monitor },
+  mac:     { label: "macOS (Apple Silicon)", href: `${RELEASES_BASE}/omnis-run-mac`, icon: Apple },
+  linux:   { label: "Linux (x64)", href: `${RELEASES_BASE}/omnis-run-linux`, icon: Terminal },
 } as const;
 
 // ---------------------------------------------------------------------------

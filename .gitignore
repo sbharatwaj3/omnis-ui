@@ -38,6 +38,9 @@ next-env.d.ts
 src/
 public/fda_template.tex
 
+# Compiled CLI binaries — hosted on GitHub Releases, never committed here
+public/cli/
+
 # bun lockfiles ARE committed (signals Vercel to use Bun)
 !bun.lockb
 !bun.lock
