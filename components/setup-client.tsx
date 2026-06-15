@@ -47,13 +47,12 @@ import { getOrgLogCount } from "@/app/dashboard/setup/actions";
 /** Polling interval while waiting for the first evidence log (ms). */
 const POLL_INTERVAL_MS = 5_000;
 
-/** GitHub Releases base URL — update to the real release tag when published. */
-const RELEASES_BASE = "https://github.com/your-org/omnis-cli/releases/latest/download";
-
+// Binaries are served directly from the Next.js public/cli/ directory.
+// Files must exist at omnis-ui/public/cli/ before deploying.
 const BINARIES = {
-  windows: { label: "Windows (.exe)", file: "omnis-run-win.exe", icon: Monitor },
-  mac:     { label: "macOS (Apple Silicon)", file: "omnis-run-mac", icon: Apple },
-  linux:   { label: "Linux (x64)", file: "omnis-run-linux", icon: Terminal },
+  windows: { label: "Windows (.exe)", href: "/cli/omnis-run-win.exe", icon: Monitor },
+  mac:     { label: "macOS (Apple Silicon)", href: "/cli/omnis-run-mac", icon: Apple },
+  linux:   { label: "Linux (x64)", href: "/cli/omnis-run-linux", icon: Terminal },
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -445,15 +444,11 @@ export function SetupClient({
           {/* Binary download buttons */}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {(Object.entries(BINARIES) as [keyof typeof BINARIES, typeof BINARIES[keyof typeof BINARIES]][]).map(
-              ([key, { label, file, icon: Icon }]) => (
+              ([key, { label, href, icon: Icon }]) => (
                 <a
                   key={key}
-                  href={`${RELEASES_BASE}/${file}`}
-                  download={file}
-                  onClick={() => {
-                    // Mark step 2 as progressed when any binary is clicked
-                    if (!step2Done && step1Done) setStep2Done(false); // will be set on "continue"
-                  }}
+                  href={href}
+                  download
                   className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-xs font-medium text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-zinc-600 dark:hover:bg-zinc-700"
                 >
                   <Icon className="h-4 w-4 text-zinc-400 shrink-0" strokeWidth={1.5} />
