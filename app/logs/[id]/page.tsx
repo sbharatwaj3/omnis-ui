@@ -374,10 +374,10 @@ async function ForensicContent({ id }: { id: string }) {
                 {log.event_source}
               </span>
               <span
-                className={`inline-flex items-center rounded-md px-2 py-0.5 font-medium ${
-                  log.execution_status?.toUpperCase() === "SUCCESS"
-                    ? "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
-                    : "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400"
+                className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${
+                  ["SUCCESS", "PASS"].includes(log.execution_status?.toUpperCase())
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400"
+                    : "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-500/20 dark:bg-orange-950/40 dark:text-orange-400"
                 }`}
               >
                 {log.execution_status}
