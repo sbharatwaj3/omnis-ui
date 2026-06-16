@@ -36,6 +36,12 @@ import { NextRequest, NextResponse } from "next/server";
 // browser polyfill that lacks createHash / timingSafeEqual.
 import { createHash, timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
+// after() keeps the serverless function alive until the registered promise
+// resolves, AFTER the response has already been sent to the client.
+// This is the ONLY correct way to do fire-and-forget work in Vercel
+// serverless functions — a bare floating fetch() gets frozen and silently
+// dropped the moment the response is returned.  Stabilised in Next.js 15.
+import { after } from "next/server";
 import { adminClient } from "@/utils/supabase/admin";
 
 // ---------------------------------------------------------------------------
@@ -357,22 +363,33 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // ── Step 10: Fire-and-forget trigger to omnis-api AI pipeline ───────────
+  // ── Step 10: Register the AI trigger with after() ──────────────────────
   //
-  // The Vercel ingest route writes the evidence log but is completely blind
-  // to the FastAPI backend. This non-blocking trigger notifies omnis-api so
-  // it can run the Bedrock AI analysis as a background task.
+  // ROOT CAUSE OF THE SILENT DROP (now fixed):
+  // A bare floating fetch() in a Vercel serverless function is frozen and
+  // silently killed the instant the response is returned at step 12. The
+  // Node.js process is suspended before the TCP handshake can complete.
+  // The .catch() never fires because the event loop never gets to run it.
+  //
+  // THE FIX — next/server after():
+  // after() registers a promise that Vercel keeps the function alive for
+  // AFTER the response has been sent. The client gets its 201 immediately;
+  // Vercel then holds the Lambda open until the registered work finishes
+  // or times out (up to the function's maxDuration). This is the canonical
+  // Next.js 15+ API for exactly this pattern.
   //
   // CONSTITUTION ALIGNMENT:
-  //   • Non-blocking: we intentionally do NOT await the fetch response body.
-  //     A .catch() handler is attached so Vercel never surfaces a rejected
-  //     promise, but we never block the 201 response on the AI call.
-  //   • Auth: we forward a service-to-service JWT (signed with
-  //     SUPABASE_JWT_SECRET) and an HMAC-SHA256 signature over the raw body
-  //     bytes so the double-lock on /ingest stays intact (Law II).
-  //   • No hardcoded URLs: OMNIS_BACKEND_URL loaded from env (Law II).
-  //   • Payload to FastAPI mirrors EvidenceLogPayload schema exactly (Law VI).
+  //   • Non-blocking for the CLI: 201 is returned before the fetch runs.
+  //   • Auth: service JWT + HMAC-SHA256 preserve the double-lock (Law II).
+  //   • No hardcoded URLs: OMNIS_BACKEND_URL from env (Law II).
+  //   • Full diagnostic logging so failures appear in Vercel Function logs.
   const backendUrl = process.env.OMNIS_BACKEND_URL;
+
+  // Log the env var state unconditionally so we can confirm it's loaded.
+  console.log(
+    `[ingest] OMNIS_BACKEND_URL = ${backendUrl ? `"${backendUrl}" (set)` : "MISSING"}`,
+  );
+
   if (backendUrl) {
     // Build the EvidenceLogPayload that FastAPI's Pydantic model expects.
     const backendPayload = {
@@ -402,13 +419,9 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
       .digest("hex");
 
     // Mint a short-lived service JWT so FastAPI's verify_jwt accepts this call.
-    // We use the same SUPABASE_JWT_SECRET the backend trusts.
     const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET;
     let serviceJwt = "";
     if (supabaseJwtSecret) {
-      // Manual HS256 JWT construction — avoids pulling in a server-side JWT
-      // library on the Vercel edge.  Header and payload are base64url-encoded;
-      // signature is HMAC-SHA256 over "<header>.<payload>".
       const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" }))
         .toString("base64url");
       const jwtPayload = Buffer.from(
@@ -416,7 +429,7 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
           sub: "omnis-vercel-service",
           role: "service_role",
           iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + 60, // 60-second TTL
+          exp: Math.floor(Date.now() / 1000) + 60,
         }),
       ).toString("base64url");
       const signingInput = `${header}.${jwtPayload}`;
@@ -425,29 +438,59 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
         .update(signingInput)
         .digest("base64url");
       serviceJwt = `${signingInput}.${jwtSig}`;
+    } else {
+      // Surface this now — the FastAPI JWT check will 401 without it.
+      console.error(
+        "[ingest] SUPABASE_JWT_SECRET is not set — service JWT cannot be minted. " +
+          "FastAPI will reject the trigger with 401.",
+      );
     }
 
     const backendIngestUrl = `${backendUrl.replace(/\/$/, "")}/api/v1/evidence/ingest`;
+    console.log(`[ingest] Registering after() trigger → ${backendIngestUrl}`);
 
-    // Fire-and-forget: attach only a .catch() — never await the body or
-    // chain a .then() that could delay returning the 201 to the CLI.
-    fetch(backendIngestUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(serviceJwt && { Authorization: `Bearer ${serviceJwt}` }),
-        "X-Omnis-Signature": hmacSignature,
-      },
-      body: backendBodyBytes,
-    }).catch((err) => {
-      // Non-fatal: the evidence row is already written to Supabase.
-      // Log the trigger failure so it appears in Vercel Function logs.
-      console.error("[ingest] Fire-and-forget trigger to omnis-api failed:", err);
+    // after() keeps the Lambda alive after the 201 is sent.
+    // The async function inside runs to completion (or throws) post-response.
+    after(async () => {
+      console.log(`[ingest:after] Firing POST ${backendIngestUrl} for log_id=${logId}`);
+      try {
+        const res = await fetch(backendIngestUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(serviceJwt && { Authorization: `Bearer ${serviceJwt}` }),
+            "X-Omnis-Signature": hmacSignature,
+          },
+          body: backendBodyBytes,
+        });
+
+        // Log the full response so failures are visible in Vercel logs.
+        // We read the body text here for diagnostics — we don't need to
+        // parse it since the real work happens inside omnis-api.
+        const responseText = await res.text();
+        if (res.ok) {
+          console.log(
+            `[ingest:after] omnis-api accepted trigger. ` +
+              `HTTP ${res.status} — ${responseText.slice(0, 200)}`,
+          );
+        } else {
+          console.error(
+            `[ingest:after] omnis-api rejected trigger. ` +
+              `HTTP ${res.status} — ${responseText.slice(0, 500)}`,
+          );
+        }
+      } catch (err) {
+        // Network-level failure (DNS, TLS, connection refused, timeout).
+        console.error(
+          `[ingest:after] Network error reaching omnis-api at ${backendIngestUrl}:`,
+          err,
+        );
+      }
     });
   } else {
     console.warn(
       "[ingest] OMNIS_BACKEND_URL is not set — AI analysis will not be triggered. " +
-        "Add OMNIS_BACKEND_URL to your Vercel environment variables.",
+        "Add OMNIS_BACKEND_URL to Vercel environment variables and redeploy.",
     );
   }
 
