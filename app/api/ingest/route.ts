@@ -357,14 +357,108 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // ── Step 10: Purge stale Next.js Router Cache for dashboard pages ────────
+  // ── Step 10: Fire-and-forget trigger to omnis-api AI pipeline ───────────
+  //
+  // The Vercel ingest route writes the evidence log but is completely blind
+  // to the FastAPI backend. This non-blocking trigger notifies omnis-api so
+  // it can run the Bedrock AI analysis as a background task.
+  //
+  // CONSTITUTION ALIGNMENT:
+  //   • Non-blocking: we intentionally do NOT await the fetch response body.
+  //     A .catch() handler is attached so Vercel never surfaces a rejected
+  //     promise, but we never block the 201 response on the AI call.
+  //   • Auth: we forward a service-to-service JWT (signed with
+  //     SUPABASE_JWT_SECRET) and an HMAC-SHA256 signature over the raw body
+  //     bytes so the double-lock on /ingest stays intact (Law II).
+  //   • No hardcoded URLs: OMNIS_BACKEND_URL loaded from env (Law II).
+  //   • Payload to FastAPI mirrors EvidenceLogPayload schema exactly (Law VI).
+  const backendUrl = process.env.OMNIS_BACKEND_URL;
+  if (backendUrl) {
+    // Build the EvidenceLogPayload that FastAPI's Pydantic model expects.
+    const backendPayload = {
+      log_id: logId,
+      org_id: matchedOrgId,
+      user_id: userId,
+      build_id: buildId,
+      req_id: reqId,
+      previous_log_hash: null,          // nullable — first log in chain
+      signature_hash: signatureHash,
+      raw_command: `omnis-cli ingest --build-version "${versionString}"`,
+      sanitized_payload: payload.results,
+      execution_status: executionStatus,
+      execution_timestamp: executionTimestamp,
+      is_deprecated: false,
+      event_source: "omnis-cli",
+    };
+
+    const backendBodyBytes = JSON.stringify(backendPayload);
+
+    // Sign the payload for the FastAPI HMAC double-lock.
+    // CONSTITUTION LAW II (RAW BYTE HMAC): We sign the exact bytes we are
+    // about to transmit — no JSON re-serialization after this point.
+    const { createHmac } = await import("node:crypto");
+    const hmacSignature = createHmac("sha256", signingSecret)
+      .update(backendBodyBytes)
+      .digest("hex");
+
+    // Mint a short-lived service JWT so FastAPI's verify_jwt accepts this call.
+    // We use the same SUPABASE_JWT_SECRET the backend trusts.
+    const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET;
+    let serviceJwt = "";
+    if (supabaseJwtSecret) {
+      // Manual HS256 JWT construction — avoids pulling in a server-side JWT
+      // library on the Vercel edge.  Header and payload are base64url-encoded;
+      // signature is HMAC-SHA256 over "<header>.<payload>".
+      const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" }))
+        .toString("base64url");
+      const jwtPayload = Buffer.from(
+        JSON.stringify({
+          sub: "omnis-vercel-service",
+          role: "service_role",
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 60, // 60-second TTL
+        }),
+      ).toString("base64url");
+      const signingInput = `${header}.${jwtPayload}`;
+      const { createHmac: _hmac } = await import("node:crypto");
+      const jwtSig = _hmac("sha256", supabaseJwtSecret)
+        .update(signingInput)
+        .digest("base64url");
+      serviceJwt = `${signingInput}.${jwtSig}`;
+    }
+
+    const backendIngestUrl = `${backendUrl.replace(/\/$/, "")}/api/v1/evidence/ingest`;
+
+    // Fire-and-forget: attach only a .catch() — never await the body or
+    // chain a .then() that could delay returning the 201 to the CLI.
+    fetch(backendIngestUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(serviceJwt && { Authorization: `Bearer ${serviceJwt}` }),
+        "X-Omnis-Signature": hmacSignature,
+      },
+      body: backendBodyBytes,
+    }).catch((err) => {
+      // Non-fatal: the evidence row is already written to Supabase.
+      // Log the trigger failure so it appears in Vercel Function logs.
+      console.error("[ingest] Fire-and-forget trigger to omnis-api failed:", err);
+    });
+  } else {
+    console.warn(
+      "[ingest] OMNIS_BACKEND_URL is not set — AI analysis will not be triggered. " +
+        "Add OMNIS_BACKEND_URL to your Vercel environment variables.",
+    );
+  }
+
+  // ── Step 11: Purge stale Next.js Router Cache for dashboard pages ────────
   // force-dynamic on the dashboard page bypasses the Data Cache, but the
   // Vercel Router Cache can still serve a stale prefetch. revalidatePath
   // marks both routes as stale so the next navigation fetches fresh data.
   revalidatePath("/dashboard");
   revalidatePath("/readiness");
 
-  // ── Step 11: 201 Created ───────────────────────────────────────────────
+  // ── Step 12: 201 Created ───────────────────────────────────────────────
   return NextResponse.json(
     {
       success: true,
