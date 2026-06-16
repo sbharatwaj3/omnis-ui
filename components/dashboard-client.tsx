@@ -288,13 +288,14 @@ function SeverityBadge({ severity }: { severity: DashboardRow["severity"] }) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const isSuccess = status?.toUpperCase() === "SUCCESS";
+  const normalized = status?.toUpperCase();
+  const isSuccess = normalized === "SUCCESS" || normalized === "PASS";
   return (
     <span
       className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
         isSuccess
-          ? "bg-zinc-100 text-zinc-600 dark:bg-slate-800 dark:text-emerald-400 dark:border dark:border-emerald-500/20"
-          : "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400"
+          ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border dark:border-emerald-500/20"
+          : "bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-950/40 dark:text-orange-400"
       }`}
     >
       {status ?? "—"}
@@ -535,7 +536,7 @@ function SuiteAccordionItem({
                       "cursor-pointer border-b border-slate-100 dark:border-zinc-800 last:border-b-0 transition-colors",
                       activeDrawerLogId === row.logId
                         ? "bg-slate-100 dark:bg-zinc-800"
-                        : "hover:bg-white dark:hover:bg-zinc-900/60",
+                        : "hover:bg-slate-100 dark:hover:bg-zinc-800/70",
                     ].join(" ")}
                   >
                     <TableCell className="py-2 pl-4 md:pl-6">
