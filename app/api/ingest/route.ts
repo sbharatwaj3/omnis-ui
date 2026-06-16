@@ -391,45 +391,73 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
   );
 
   if (backendUrl) {
-    // Build the EvidenceLogPayload that FastAPI's Pydantic model expects.
-    const backendPayload = {
-      log_id: logId,
-      org_id: matchedOrgId,
-      user_id: userId,
-      build_id: buildId,
-      req_id: reqId,
-      previous_log_hash: null,          // nullable — first log in chain
-      signature_hash: signatureHash,
-      raw_command: `omnis-cli ingest --build-version "${versionString}"`,
-      sanitized_payload: payload.results,
-      execution_status: executionStatus,
-      execution_timestamp: executionTimestamp,
-      is_deprecated: false,
-      event_source: "omnis-cli",
-    };
-
-    const backendBodyBytes = JSON.stringify(backendPayload);
-
-    // Sign the payload for the FastAPI HMAC double-lock.
-    // CONSTITUTION LAW II (RAW BYTE HMAC): We sign the exact bytes we are
-    // about to transmit — no JSON re-serialization after this point.
-    const { createHmac } = await import("node:crypto");
-    const hmacSignature = createHmac("sha256", signingSecret)
-      .update(backendBodyBytes)
-      .digest("hex");
-
-    // Mint a short-lived service JWT so FastAPI's verify_jwt accepts this call.
+    // ── Pre-flight env var check ───────────────────────────────────────────
+    // Both secrets must be present BEFORE we build the payload. If either is
+    // missing we log an actionable error and skip the trigger entirely rather
+    // than sending a request that will immediately 401.
+    //
+    // ROOT CAUSE OF THE 401 (now fixed):
+    // When SUPABASE_JWT_SECRET was absent, serviceJwt stayed as "" and the
+    // spread `...(serviceJwt && { Authorization: ... })` emitted NO header.
+    // FastAPI's HTTPBearer.make_not_authenticated_error() returns HTTP 401
+    // "Not authenticated" when the Authorization header is missing entirely.
+    // The failure was silent because the log line was inside after() — by
+    // the time it ran, the 201 had already been returned with no indication
+    // of the missing env var.
     const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET;
-    let serviceJwt = "";
-    if (supabaseJwtSecret) {
-      const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" }))
-        .toString("base64url");
+    if (!supabaseJwtSecret) {
+      console.error(
+        "[ingest] FATAL: SUPABASE_JWT_SECRET is not set on Vercel. " +
+          "The service JWT cannot be minted and the omnis-api trigger will be skipped. " +
+          "Add SUPABASE_JWT_SECRET to your Vercel environment variables and redeploy.",
+      );
+    } else {
+      // Both secrets confirmed present — safe to build the payload and register
+      // the after() trigger. All construction happens HERE (synchronously, before
+      // the response is returned) so the values are captured in the closure and
+      // the after() callback runs with fully-formed, correct data.
+
+      // Build the EvidenceLogPayload that FastAPI's Pydantic model expects.
+      const backendPayload = {
+        log_id: logId,
+        org_id: matchedOrgId,
+        user_id: userId,
+        build_id: buildId,
+        req_id: reqId,
+        previous_log_hash: null,           // nullable — first log in chain
+        signature_hash: signatureHash,
+        raw_command: `omnis-cli ingest --build-version "${versionString}"`,
+        sanitized_payload: payload.results,
+        execution_status: executionStatus,
+        execution_timestamp: executionTimestamp,
+        is_deprecated: false,
+        event_source: "omnis-cli",
+      };
+
+      // Serialise ONCE. This string is both the HTTP body and the HMAC input.
+      // CONSTITUTION LAW II (RAW BYTE HMAC): sign the exact bytes being sent —
+      // never re-serialise after this point or the hash will not match.
+      const backendBodyBytes = JSON.stringify(backendPayload);
+
+      // Sign with OMNIS_SIGNING_SECRET for the FastAPI HMAC double-lock.
+      const { createHmac } = await import("node:crypto");
+      const hmacSignature = createHmac("sha256", signingSecret)
+        .update(backendBodyBytes)
+        .digest("hex");
+
+      // Mint the service-to-service JWT.
+      // TTL is 5 minutes (300 s) to absorb any server clock skew between
+      // Vercel and Render without requiring tight time synchronisation.
+      const now = Math.floor(Date.now() / 1000);
+      const header = Buffer.from(
+        JSON.stringify({ alg: "HS256", typ: "JWT" }),
+      ).toString("base64url");
       const jwtPayload = Buffer.from(
         JSON.stringify({
           sub: "omnis-vercel-service",
           role: "service_role",
-          iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + 60,
+          iat: now,
+          exp: now + 300, // 5-minute TTL — absorbs Vercel→Render clock skew
         }),
       ).toString("base64url");
       const signingInput = `${header}.${jwtPayload}`;
@@ -437,56 +465,57 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
       const jwtSig = _hmac("sha256", supabaseJwtSecret)
         .update(signingInput)
         .digest("base64url");
-      serviceJwt = `${signingInput}.${jwtSig}`;
-    } else {
-      // Surface this now — the FastAPI JWT check will 401 without it.
-      console.error(
-        "[ingest] SUPABASE_JWT_SECRET is not set — service JWT cannot be minted. " +
-          "FastAPI will reject the trigger with 401.",
+      const serviceJwt = `${signingInput}.${jwtSig}`;
+
+      // Log that we have a valid JWT before registering the trigger.
+      console.log(
+        `[ingest] Service JWT minted (exp +300s). ` +
+          `HMAC signature: ${hmacSignature.slice(0, 16)}...`,
       );
-    }
 
-    const backendIngestUrl = `${backendUrl.replace(/\/$/, "")}/api/v1/evidence/ingest`;
-    console.log(`[ingest] Registering after() trigger → ${backendIngestUrl}`);
+      const backendIngestUrl = `${backendUrl.replace(/\/$/, "")}/api/v1/evidence/ingest`;
+      console.log(`[ingest] Registering after() trigger → ${backendIngestUrl}`);
 
-    // after() keeps the Lambda alive after the 201 is sent.
-    // The async function inside runs to completion (or throws) post-response.
-    after(async () => {
-      console.log(`[ingest:after] Firing POST ${backendIngestUrl} for log_id=${logId}`);
-      try {
-        const res = await fetch(backendIngestUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(serviceJwt && { Authorization: `Bearer ${serviceJwt}` }),
-            "X-Omnis-Signature": hmacSignature,
-          },
-          body: backendBodyBytes,
-        });
+      // after() keeps the Lambda alive after the 201 is sent to the CLI.
+      // The entire fetch runs to completion post-response. All variables
+      // (serviceJwt, hmacSignature, backendBodyBytes) are closed over from
+      // the synchronous block above — they are always fully formed here.
+      after(async () => {
+        console.log(
+          `[ingest:after] Firing POST ${backendIngestUrl} for log_id=${logId}`,
+        );
+        try {
+          const res = await fetch(backendIngestUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${serviceJwt}`,
+              "X-Omnis-Signature": hmacSignature,
+            },
+            body: backendBodyBytes,
+          });
 
-        // Log the full response so failures are visible in Vercel logs.
-        // We read the body text here for diagnostics — we don't need to
-        // parse it since the real work happens inside omnis-api.
-        const responseText = await res.text();
-        if (res.ok) {
-          console.log(
-            `[ingest:after] omnis-api accepted trigger. ` +
-              `HTTP ${res.status} — ${responseText.slice(0, 200)}`,
-          );
-        } else {
+          const responseText = await res.text();
+          if (res.ok) {
+            console.log(
+              `[ingest:after] omnis-api accepted trigger. ` +
+                `HTTP ${res.status} — ${responseText.slice(0, 200)}`,
+            );
+          } else {
+            console.error(
+              `[ingest:after] omnis-api rejected trigger. ` +
+                `HTTP ${res.status} — ${responseText.slice(0, 500)}`,
+            );
+          }
+        } catch (err) {
+          // Network-level failure (DNS, TLS, connection refused, timeout).
           console.error(
-            `[ingest:after] omnis-api rejected trigger. ` +
-              `HTTP ${res.status} — ${responseText.slice(0, 500)}`,
+            `[ingest:after] Network error reaching omnis-api at ${backendIngestUrl}:`,
+            err,
           );
         }
-      } catch (err) {
-        // Network-level failure (DNS, TLS, connection refused, timeout).
-        console.error(
-          `[ingest:after] Network error reaching omnis-api at ${backendIngestUrl}:`,
-          err,
-        );
-      }
-    });
+      });
+    }
   } else {
     console.warn(
       "[ingest] OMNIS_BACKEND_URL is not set — AI analysis will not be triggered. " +
