@@ -122,12 +122,29 @@ export async function proxy(request: NextRequest) {
         pathname.startsWith("/dashboard/integration/");
 
       if (!isSetupExempt) {
-        const { count: logCount } = await supabase
+        const { count: logCount, error: logCountError } = await supabase
           .from("evidence_logs")
           .select("log_id", { count: "exact", head: true })
           .eq("org_id", profile.org_id);
 
-        if ((logCount ?? 0) === 0) {
+        // DEBUG: Log the gate check result so we can diagnose false-zero counts.
+        console.log(
+          `[proxy] CLI setup gate — user=${user.id} org_id=${profile.org_id} ` +
+          `logCount=${logCount} error=${logCountError?.message ?? "none"} ` +
+          `pathname=${pathname}`
+        );
+
+        // CRITICAL: If the count query itself errored (e.g. RLS misconfiguration,
+        // network blip), count will be null. We must NOT treat a query error as
+        // "zero logs" — that would permanently trap users in the setup loop.
+        // Only redirect when the query succeeded AND count is genuinely 0.
+        if (logCountError) {
+          console.error(
+            `[proxy] evidence_logs count query failed for org ${profile.org_id}: ` +
+            logCountError.message +
+            " — bypassing setup gate to prevent false redirect loop."
+          );
+        } else if ((logCount ?? 0) === 0) {
           const setupUrl = request.nextUrl.clone();
           setupUrl.pathname = "/dashboard/setup";
           setupUrl.search = "";
