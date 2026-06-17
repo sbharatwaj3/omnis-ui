@@ -4,6 +4,8 @@
 //
 // State 1 — Unsigned:   Primary "Approve & Lock Log" button. Triggers the
 //                       server action and shows a loading spinner.
+//                       Only visible to qa_manager. Viewer and developer see
+//                       a locked disabled state with a clear explanation.
 // State 2 — Signed:     Disabled green badge showing approver email/ID and
 //                       the ISO timestamp of the approval.
 //
@@ -14,12 +16,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { approveLog } from "@/app/logs/[id]/actions";
 import { ShieldCheck, Loader2, Lock } from "lucide-react";
+import type { UserRole } from "@/hooks/useUserRole";
 
 interface ApproveLogButtonProps {
   logId: string;
   approvedBy: string | null;
   approvedAt: string | null;
   approverEmail: string | null;
+  userRole?: UserRole;
 }
 
 export function ApproveLogButton({
@@ -27,6 +31,7 @@ export function ApproveLogButton({
   approvedBy,
   approvedAt,
   approverEmail,
+  userRole,
 }: ApproveLogButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +70,27 @@ export function ApproveLogButton({
     );
   }
 
-  // ── State 1: Unsigned ──────────────────────────────────────────────────
+  // ── Viewer / no-role: locked state ────────────────────────────────────
+  if (userRole !== "qa_manager") {
+    return (
+      <div className="flex flex-col items-end gap-1">
+        <div
+          title="Role: Viewer or Developer — only QA Managers can approve logs"
+          className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 opacity-60 cursor-not-allowed dark:border-zinc-700 dark:bg-zinc-800"
+        >
+          <Lock className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+          <span className="text-xs font-medium text-zinc-500">
+            Approve &amp; Lock Log
+          </span>
+        </div>
+        <p className="text-right text-[10px] text-zinc-400">
+          Requires QA Manager role
+        </p>
+      </div>
+    );
+  }
+
+  // ── State 1: Unsigned (qa_manager only) ───────────────────────────────
   async function handleApprove() {
     setError(null);
     setLoading(true);

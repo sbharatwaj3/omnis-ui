@@ -11,10 +11,16 @@
 // placeholder key for the deferred-profile state. A full Ed25519 keypair
 // rotation can be added in a future migration once the key management UI
 // is built. The constraint is satisfied immediately.
+//
+// RBAC: After org assignment, a user_roles row is inserted with the selected
+// role. Org creators default to qa_manager; joiners explicitly select their role.
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
+
+// Valid RBAC roles — must match the CHECK constraint in user_roles
+export type UserRole = "qa_manager" | "developer" | "viewer";
 
 // ---------------------------------------------------------------------------
 // Shared result type
@@ -26,13 +32,38 @@ export interface OnboardingResult {
 }
 
 // ---------------------------------------------------------------------------
+// insertUserRole — shared helper
+// ---------------------------------------------------------------------------
+// Writes a row into public.user_roles after the org assignment succeeds.
+// Failure is non-fatal (the user still gets into the dashboard) but is logged.
+// ---------------------------------------------------------------------------
+
+async function insertUserRole(
+  userId: string,
+  orgId: string,
+  role: UserRole,
+): Promise<void> {
+  const { error } = await adminClient
+    .from("user_roles")
+    .upsert(
+      { user_id: userId, org_id: orgId, role },
+      { onConflict: "user_id,org_id", ignoreDuplicates: false },
+    );
+
+  if (error) {
+    console.error("insertUserRole: failed to write user_roles:", error.message);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // createOrganization
 // ---------------------------------------------------------------------------
 // 1. Verifies the authenticated session.
 // 2. Validates the company name.
 // 3. Inserts a new row into public.organizations via the admin client.
 // 4. Updates public.users with the new org_id and a generated public_key.
-// 5. Redirects to /dashboard on success.
+// 5. Inserts a user_roles row — org creators are always QA Manager.
+// 6. Redirects to /dashboard on success.
 // ---------------------------------------------------------------------------
 
 export async function createOrganization(
@@ -100,7 +131,11 @@ export async function createOrganization(
     };
   }
 
-  // Step 5: Redirect to the dashboard. redirect() throws internally in
+  // Step 5: Assign role. Org creators are always QA Manager — they own the
+  // workspace and need full approval/configure permissions from day one.
+  await insertUserRole(user.id, newOrgId, "qa_manager");
+
+  // Step 6: Redirect to the dashboard. redirect() throws internally in
   // Next.js, so it must not be called inside a try/catch block.
   redirect("/dashboard");
 }
@@ -109,10 +144,11 @@ export async function createOrganization(
 // joinOrganization
 // ---------------------------------------------------------------------------
 // 1. Verifies the authenticated session.
-// 2. Validates the enterprise code (treated as an org_id UUID).
+// 2. Validates the enterprise code (treated as an org_id UUID) and role.
 // 3. Checks the organisation exists in public.organizations.
 // 4. Updates the user's row with the existing org_id and a generated public_key.
-// 5. Redirects to /dashboard on success.
+// 5. Inserts a user_roles row with the selected role.
+// 6. Redirects to /dashboard on success.
 // ---------------------------------------------------------------------------
 
 export async function joinOrganization(
@@ -149,6 +185,13 @@ export async function joinOrganization(
     };
   }
 
+  // Validate role selection
+  const selectedRole = (formData.get("role") as string | null)?.trim() as UserRole | null;
+  const validRoles: UserRole[] = ["qa_manager", "developer", "viewer"];
+  if (!selectedRole || !validRoles.includes(selectedRole)) {
+    return { success: false, error: "Please select a valid role before joining." };
+  }
+
   // Step 3: Verify the organisation exists.
   const { data: org, error: orgError } = await adminClient
     .from("organizations")
@@ -181,6 +224,9 @@ export async function joinOrganization(
     };
   }
 
-  // Step 5: Redirect to dashboard.
+  // Step 5: Insert the user's selected role.
+  await insertUserRole(user.id, org.org_id, selectedRole);
+
+  // Step 6: Redirect to dashboard.
   redirect("/dashboard");
 }
