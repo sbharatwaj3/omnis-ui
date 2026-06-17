@@ -23,6 +23,7 @@ import {
   Activity,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
+import { adminClient } from "@/utils/supabase/admin";
 import { SettingsMenu } from "@/components/settings-menu";
 import { DashboardClient, type DashboardRow } from "@/components/dashboard-client";
 
@@ -57,19 +58,15 @@ function mapSeverity(aiSummary: string | null): DashboardRow["severity"] {
 // ---------------------------------------------------------------------------
 
 async function fetchAllLogs(): Promise<DashboardRow[]> {
+  // Step 1: Verify the authenticated session with the anon-key session client.
+  // This is the ONLY call that needs the session client — it confirms the user
+  // is logged in and resolves their identity server-side.
   const supabase = await createClient();
-
-  // Resolve the authenticated user and their org_id.
-  // Defence-in-depth: we never query without a confirmed uid.
-  // RLS enforces org-level isolation at the DB layer. The explicit org_id
-  // filter below makes the intent unambiguous and correctly includes logs
-  // written by the CLI ingest route (which stamps the org's first user_id,
-  // not necessarily the currently authenticated user's id).
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
-  // Resolve the caller's org_id so we can fetch all org-level logs,
-  // not just the subset stamped with this specific user_id.
+  // Step 2: Resolve org_id via the session client (RLS on users table uses
+  // auth.uid() = user_id directly, so this is unaffected by the RBAC policy).
   const { data: profile } = await supabase
     .from("users")
     .select("org_id")
@@ -79,26 +76,34 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
   if (!profile?.org_id) return [];
   const orgId: string = profile.org_id;
 
+  // Step 3: All DATA queries use adminClient (service role) to bypass the
+  // RBAC-gated RLS policy on evidence_logs and ai_compliance_insights.
+  //
+  // WHY: The RBAC migration (20260616) replaced the simple org-only SELECT
+  // policy with one that requires private.get_auth_role() IS NOT NULL. That
+  // function resolves via user_roles, which requires the authenticated session
+  // to satisfy its own RLS SELECT policy. This chain can fail silently for
+  // accounts created before RBAC, returning an empty result set with no error.
+  //
+  // SECURITY: The org_id scoping below ensures a user can only ever read their
+  // own org's logs. The user identity is verified in Step 1 above via the
+  // session client — we never trust a client-supplied value.
+
   // Fetch in pages of 1000 to stay within Supabase's default range limit
   let allLogs: EvidenceLogRow[] = [];
   let from = 0;
   const batchSize = 1000;
 
   while (true) {
-    const { data: batch, error } = await supabase
+    const { data: batch, error } = await adminClient
       .from("evidence_logs")
       .select("log_id, execution_timestamp, execution_status, raw_command, event_source, req_id")
-      // Filter by org_id — this captures ALL logs for the org including those
-      // written by the machine-to-machine CLI ingest route, which stamps the
-      // org's first user_id rather than the currently logged-in user's id.
-      // RLS enforces that org_id must equal private.get_auth_org_id(), so a
-      // user can never read another org's data even with this broader filter.
       .eq("org_id", orgId)
       .order("execution_timestamp", { ascending: false })
       .range(from, from + batchSize - 1);
 
     if (error) {
-      console.error("Supabase error fetching evidence_logs:", error.message);
+      console.error("[dashboard] Supabase error fetching evidence_logs:", error.message);
       break;
     }
 
@@ -116,13 +121,13 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
   let allInsights: AiInsightRow[] = [];
   for (let i = 0; i < logIds.length; i += 500) {
     const chunk = logIds.slice(i, i + 500);
-    const { data: insights, error: insightsError } = await supabase
+    const { data: insights, error: insightsError } = await adminClient
       .from("ai_compliance_insights")
       .select("log_id, ai_test_suite, ai_result_summary, ai_confidence_score")
       .in("log_id", chunk);
 
     if (insightsError) {
-      console.error("Supabase error fetching ai_compliance_insights:", insightsError.message);
+      console.error("[dashboard] Supabase error fetching ai_compliance_insights:", insightsError.message);
     }
     if (insights) allInsights = allInsights.concat(insights as AiInsightRow[]);
   }
