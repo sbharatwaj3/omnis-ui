@@ -10,7 +10,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { Settings, LogOut, Loader2, SlidersHorizontal, Terminal } from "lucide-react";
+import { Settings, LogOut, Loader2, SlidersHorizontal, Terminal, Users } from "lucide-react";
 
 export function SettingsMenu() {
   const [open, setOpen] = useState(false);
@@ -88,6 +88,17 @@ export function SettingsMenu() {
             >
               <Terminal className="h-3.5 w-3.5" strokeWidth={1.75} />
               CLI Setup
+            </button>
+            <button
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                router.push("/dashboard/team");
+              }}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+            >
+              <Users className="h-3.5 w-3.5" strokeWidth={1.75} />
+              Team
             </button>
           </div>
 
