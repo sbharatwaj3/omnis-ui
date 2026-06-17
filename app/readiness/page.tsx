@@ -71,6 +71,7 @@ import {
   Settings,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
+import { adminClient } from "@/utils/supabase/admin";
 
 // ---------------------------------------------------------------------------
 // Types — strictly match the Constitution's DDL schema
@@ -222,7 +223,7 @@ async function fetchReadinessData(): Promise<ReadinessPayload> {
   // STEP 3 — Fetch the global regulatory_rules table.
   // No tenant filter; this table is shared across all orgs.
   // -------------------------------------------------------------------------
-  const { data: ruleRows, error: rulesError } = await supabase
+  const { data: ruleRows, error: rulesError } = await adminClient
     .from("regulatory_rules")
     .select("req_id, rule_source, description, evidence_type")
     .neq("rule_source", "SEED-TEST-DEPRECATED")
@@ -269,7 +270,7 @@ async function fetchReadinessData(): Promise<ReadinessPayload> {
   let from = 0;
 
   while (true) {
-    const { data: batch, error: logsError } = await supabase
+    const { data: batch, error: logsError } = await adminClient
       .from("evidence_logs")
       .select("log_id, req_id, approved_by, org_id")
       .eq("org_id", userOrgId)

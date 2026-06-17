@@ -34,6 +34,7 @@ import {
   LayoutList,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
+import { adminClient } from "@/utils/supabase/admin";
 
 // ---------------------------------------------------------------------------
 // Types — strictly match the Constitution's DDL schema
@@ -95,7 +96,7 @@ async function fetchLogDetail(id: string): Promise<{
 } | null> {
   const supabase = await createClient();
 
-  const { data: log, error: logError } = await supabase
+  const { data: log, error: logError } = await adminClient
     .from("evidence_logs")
     .select(
       "log_id, org_id, user_id, build_id, req_id, previous_log_hash, " +
@@ -118,7 +119,7 @@ async function fetchLogDetail(id: string): Promise<{
     return null;
   }
 
-  const { data: insight, error: insightError } = await supabase
+  const { data: insight, error: insightError } = await adminClient
     .from("ai_compliance_insights")
     .select(
       "id, log_id, ai_test_suite, ai_result_summary, ai_reasoning, " +
