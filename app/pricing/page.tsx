@@ -173,17 +173,8 @@ function PricingHero() {
         </div>
         {/* Headline */}
         <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-slate-50 md:text-5xl lg:text-6xl">
-          Automate FDA Compliance.{" "}
-          <span className="text-emerald-600 dark:text-emerald-400">
-            Ship faster.
-          </span>
+          Simple, transparent pricing for MedTech teams.
         </h1>
-        {/* Sub-headline */}
-        <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-500 dark:text-slate-400">
-          Shift regulatory checks left into your CI/CD pipeline. Every commit
-          generates cryptographically-signed evidence — no manual paperwork,
-          no surprise audit gaps.
-        </p>
         {/* Compliance badges */}
         <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
           {complianceBadges.map((badge) => (
@@ -301,7 +292,7 @@ function PricingCards({ orgId }: { orgId: string | null }) {
                 />
               ) : (
                 <Link
-                  href="/signup"
+                  href={`/signup?tier=${tier.id}`}
                   className={[
                     "inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold shadow-sm transition-all",
                     tier.highlight
@@ -319,7 +310,7 @@ function PricingCards({ orgId }: { orgId: string | null }) {
 
         {/* Bottom micro-copy */}
         <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-600">
-          All plans include a 14-day money-back guarantee · Cancel anytime · No setup fees
+          30-day free trial · Cancel anytime · No setup fees
         </p>
       </div>
     </section>
@@ -405,6 +396,37 @@ function TokenComparisonTable() {
 }
 
 // ---------------------------------------------------------------------------
+// Bottom CTA — rendered between TokenComparisonTable and Footer
+// ---------------------------------------------------------------------------
+
+function BottomCTA({ orgId }: { orgId: string | null }) {
+  return (
+    <section className="border-t border-slate-200 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-900/50">
+      <div className="mx-auto max-w-3xl px-6 text-center">
+        <p className="mb-6 text-lg font-semibold text-slate-700 dark:text-slate-300">
+          Ready to shift compliance left?
+        </p>
+        {orgId ? (
+          <CheckoutButton
+            orgId={orgId}
+            label="Start 30-Day Free Trial"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-sm shadow-emerald-200 transition-all hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:shadow-emerald-900/40"
+          />
+        ) : (
+          <Link
+            href="/signup"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-sm shadow-emerald-200 transition-all hover:bg-emerald-600 dark:shadow-emerald-900/40"
+          >
+            Start 30-Day Free Trial
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </Link>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Footer — identical to landing page
 // ---------------------------------------------------------------------------
 
@@ -457,6 +479,7 @@ export default async function PricingPage() {
         <PricingHero />
         <PricingCards orgId={orgId} />
         <TokenComparisonTable />
+        <BottomCTA orgId={orgId} />
       </main>
       <Footer />
     </div>

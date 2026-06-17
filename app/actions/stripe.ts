@@ -64,6 +64,7 @@ export async function createCheckoutSession(
     // orgId is stored at the subscription level (available on every invoice
     // event) AND at the session level (available on checkout.session.completed).
     subscription_data: {
+      trial_period_days: 30,
       metadata: {
         orgId,
       },
