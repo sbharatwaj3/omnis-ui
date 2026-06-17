@@ -15,6 +15,7 @@
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -122,10 +123,43 @@ export async function proxy(request: NextRequest) {
         pathname.startsWith("/dashboard/integration/");
 
       if (!isSetupExempt) {
-        const { count: logCount, error: logCountError } = await supabase
-          .from("evidence_logs")
-          .select("log_id", { count: "exact", head: true })
-          .eq("org_id", profile.org_id);
+        // Use a service-role client for the count query so it bypasses RLS.
+        //
+        // ROOT CAUSE: The RBAC migration (20260616) replaced the original
+        // org-only RLS policy on evidence_logs with a role-aware version that
+        // requires private.get_auth_role() IS NOT NULL. Any user who exists
+        // before RBAC was deployed has no row in user_roles, so get_auth_role()
+        // returns NULL and the policy silently filters out every row — the
+        // count query succeeds (no error) but returns 0, triggering a false
+        // redirect even when logs exist.
+        //
+        // The service role bypasses RLS entirely. The org_id used to scope
+        // the query is resolved from the verified user session above, so this
+        // is safe — we're counting logs for the caller's own org only.
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+        let logCount: number | null = null;
+        let logCountError: { message: string } | null = null;
+
+        if (!serviceRoleKey || !supabaseUrl) {
+          console.error(
+            "[proxy] FATAL: SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL is not set. " +
+            "Cannot perform setup gate check — bypassing to prevent false redirect."
+          );
+        } else {
+          const adminSupabase = createSupabaseClient(supabaseUrl, serviceRoleKey, {
+            auth: { autoRefreshToken: false, persistSession: false },
+          });
+
+          const { count, error } = await adminSupabase
+            .from("evidence_logs")
+            .select("log_id", { count: "exact", head: true })
+            .eq("org_id", profile.org_id);
+
+          logCount = count;
+          logCountError = error;
+        }
 
         // DEBUG: Log the gate check result so we can diagnose false-zero counts.
         console.log(
@@ -134,10 +168,6 @@ export async function proxy(request: NextRequest) {
           `pathname=${pathname}`
         );
 
-        // CRITICAL: If the count query itself errored (e.g. RLS misconfiguration,
-        // network blip), count will be null. We must NOT treat a query error as
-        // "zero logs" — that would permanently trap users in the setup loop.
-        // Only redirect when the query succeeded AND count is genuinely 0.
         if (logCountError) {
           console.error(
             `[proxy] evidence_logs count query failed for org ${profile.org_id}: ` +
