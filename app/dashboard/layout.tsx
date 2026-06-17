@@ -29,7 +29,7 @@ import { adminClient } from "@/utils/supabase/admin";
 // deploying to production. This is a UUID (not a secret key) — safe to commit
 // once set to the real value. Until replaced, the bypass is effectively disabled
 // because no real org_id will match this literal string.
-const ADMIN_ORG_ID = "REPLACE_ME_WITH_ADMIN_ORG_ID";
+const ADMIN_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 export default async function DashboardLayout({
   children,
@@ -73,22 +73,30 @@ export default async function DashboardLayout({
   // ── Step 4: Check subscription_status ────────────────────────────────────
   // Use adminClient (service-role) to bypass the RBAC-gated RLS policy on
   // organizations. The org_id filter ensures we only read this org's record.
-  const { data: org } = await adminClient
+  // FAIL-CLOSED: any error (network, Supabase down, missing row) is treated
+  // the same as a denied subscription — redirect to /pricing immediately.
+  const { data: org, error: orgError } = await adminClient
     .from("organizations")
     .select("subscription_status")
     .eq("org_id", orgId)
     .single();
 
+  // If the DB query fails for any reason, deny access rather than grant it.
+  if (orgError) {
+    console.error("[DashboardLayout] Failed to resolve subscription_status:", orgError.message);
+    redirect("/pricing");
+  }
+
   const status = org?.subscription_status;
 
   // ── Step 5: Gate decision ─────────────────────────────────────────────────
-  // Allow: active subscription or within the free trial window.
-  // The DB DEFAULT for new orgs is 'trialing', so new sign-ups get access
-  // automatically without needing to complete a payment first.
+  // STRICT ALLOWLIST: only 'active' or 'trialing' passes.
+  // Everything else — 'past_due', 'canceled', null, undefined, any unknown
+  // value, or a DB error (handled above) — redirects to /pricing.
   if (status === "active" || status === "trialing") {
     return <>{children}</>;
   }
 
-  // Deny: past_due, canceled, null/undefined — send to pricing page.
+  // Deny: past_due, canceled, null/undefined/unknown — send to pricing page.
   redirect("/pricing");
 }
