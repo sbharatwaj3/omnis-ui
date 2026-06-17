@@ -25,11 +25,13 @@ import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
 
 // ── Admin bypass ────────────────────────────────────────────────────────────
-// Replace "REPLACE_ME_WITH_ADMIN_ORG_ID" with the actual admin org UUID before
-// deploying to production. This is a UUID (not a secret key) — safe to commit
-// once set to the real value. Until replaced, the bypass is effectively disabled
-// because no real org_id will match this literal string.
-const ADMIN_ORG_ID = "00000000-0000-0000-0000-000000000001";
+// ADMIN_ORG_ID is loaded from process.env (never hardcoded) so that the admin
+// org UUID is configurable per deployment without a code change or commit.
+// Set ADMIN_ORG_ID in .env.local (development) and in the Vercel/Render
+// environment variables panel (production). If the variable is not set, the
+// bypass is disabled — all orgs must pass the subscription check.
+// CONSTITUTION LAW II: All secrets and deployment-specific values via process.env.
+const ADMIN_ORG_ID = process.env.ADMIN_ORG_ID ?? "";
 
 export default async function DashboardLayout({
   children,

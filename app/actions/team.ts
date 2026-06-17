@@ -137,17 +137,29 @@ export async function inviteTeamMember(
   }
 
   // Step 4: Send the Supabase Auth invite.
-  // The `data` payload seeds raw_user_meta_data — the deferred-profile trigger
-  // (20260613192613) reads org_id and public_key from this to populate public.users.
+  // The `data` payload seeds raw_user_meta_data. The updated handle_new_user()
+  // trigger (migration 20260617180000) reads org_id, public_key, and role from
+  // this metadata so that the invited user's profile row is fully resolved at
+  // first login — no trip to /onboarding required for invited users.
+  //
+  // redirectTo points to /onboarding (not /dashboard) as a safety net:
+  //   - If the trigger has already resolved org_id, the middleware bounces them
+  //     directly to /dashboard (org_id is set, no pending state).
+  //   - If for any reason the trigger didn't resolve org_id (e.g. the DB
+  //     function was not yet deployed), /onboarding catches them so they can
+  //     still complete setup via "Join Existing" with the Enterprise Code.
   const { data: inviteData, error: inviteError } =
     await adminClient.auth.admin.inviteUserByEmail(email, {
       data: {
         org_id: ctx.orgId,
-        // Generate a placeholder public_key — the same UUID-v4 pattern used in
-        // onboarding actions. The profile trigger will set this on sign-up.
+        // Placeholder public_key — UUID v4 pattern consistent with onboarding actions.
         public_key: crypto.randomUUID(),
+        // Pass the role so the trigger can write user_roles immediately.
+        // The server-side pre-upsert in Step 6 also covers this; both are
+        // intentionally redundant for defence-in-depth.
+        role: selectedRole,
       },
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/dashboard`,
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/onboarding`,
     });
 
   if (inviteError) {
