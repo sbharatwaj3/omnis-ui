@@ -5,6 +5,8 @@
 // Responsibilities:
 //   1. Display the table of active API keys (name, prefix, created_at, revoke).
 //   2. "Generate New API Key" button → name prompt modal → generation → show-once modal.
+//      Only qa_manager and developer roles can generate keys.
+//      Viewers see a locked, disabled state with a clear explanation.
 //   3. "Show Once" modal: displays the raw key with a copy button and a strict
 //      security warning. The raw key is never stored in component state beyond
 //      this modal's lifetime — it is cleared when the modal is dismissed.
@@ -23,6 +25,7 @@ import {
   AlertTriangle,
   X,
   Terminal,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +38,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { generateApiKey, revokeApiKey, type ApiKeyRow } from "@/app/dashboard/settings/actions";
+import { useUserRole } from "@/hooks/useUserRole";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -51,6 +55,10 @@ interface DeveloperApiKeysProps {
 export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
   // Active key list — updated optimistically on revoke
   const [keys, setKeys] = useState<ApiKeyRow[]>(initialKeys);
+
+  // Resolve the current user's RBAC role
+  const { role } = useUserRole();
+  const canManageKeys = role === "qa_manager" || role === "developer";
 
   // ── Generate modal state ────────────────────────────────────────────────
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -188,15 +196,37 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
                 evidence to the Omnis platform. Each key is shown only once.
               </CardDescription>
             </div>
-            <Button
-              size="sm"
-              onClick={openGenerateModal}
-              className="shrink-0 bg-zinc-900 text-zinc-50 hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-            >
-              <Plus className="mr-1.5 h-3.5 w-3.5" strokeWidth={2} />
-              Generate New Key
-            </Button>
+            {canManageKeys ? (
+              <Button
+                size="sm"
+                onClick={openGenerateModal}
+                className="shrink-0 bg-zinc-900 text-zinc-50 hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              >
+                <Plus className="mr-1.5 h-3.5 w-3.5" strokeWidth={2} />
+                Generate New Key
+              </Button>
+            ) : (
+              <div
+                title="Role: Viewer — only QA Managers and Developers can generate API keys"
+                className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 opacity-60 cursor-not-allowed shrink-0 dark:border-zinc-700 dark:bg-zinc-800"
+              >
+                <Lock className="h-3.5 w-3.5 text-zinc-400" />
+                <span className="text-xs font-medium text-zinc-500">Generate New Key</span>
+              </div>
+            )}
           </div>
+
+          {/* Viewer notice */}
+          {role === "viewer" && (
+            <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 dark:border-amber-700/40 dark:bg-amber-950/30">
+              <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                <span className="font-semibold">Read-only access.</span> Your Viewer
+                role cannot generate or revoke API keys. Contact a QA Manager or
+                Developer to manage credentials.
+              </p>
+            </div>
+          )}
         </CardHeader>
 
         <CardContent className="pt-0">
@@ -260,19 +290,29 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
                         })}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => handleRevoke(key.id)}
-                          disabled={revokingId === key.id}
-                          aria-label={`Revoke key ${key.name}`}
-                          className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/40 dark:hover:text-red-300"
-                        >
-                          {revokingId === key.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3 w-3" strokeWidth={1.75} />
-                          )}
-                          Revoke
-                        </button>
+                        {canManageKeys ? (
+                          <button
+                            onClick={() => handleRevoke(key.id)}
+                            disabled={revokingId === key.id}
+                            aria-label={`Revoke key ${key.name}`}
+                            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/40 dark:hover:text-red-300"
+                          >
+                            {revokingId === key.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3 w-3" strokeWidth={1.75} />
+                            )}
+                            Revoke
+                          </button>
+                        ) : (
+                          <span
+                            title="Requires QA Manager or Developer role"
+                            className="inline-flex items-center gap-1 text-xs text-zinc-300 cursor-not-allowed dark:text-zinc-600"
+                          >
+                            <Lock className="h-3 w-3" />
+                            Revoke
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}

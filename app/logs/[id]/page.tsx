@@ -20,6 +20,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ApproveLogButton } from "@/components/approve-log-button";
 import { SettingsMenu } from "@/components/settings-menu";
+import { RoleBadge } from "@/components/role-badge";
+import type { UserRole } from "@/hooks/useUserRole";
 import {
   ShieldCheck,
   Activity,
@@ -271,6 +273,31 @@ function DetailField({
 async function ForensicContent({ id }: { id: string }) {
   const result = await fetchLogDetail(id);
 
+  // Resolve user role server-side so ApproveLogButton knows what to render
+  let userRole: UserRole = null;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("users")
+        .select("org_id")
+        .eq("user_id", user.id)
+        .single();
+      if (profile?.org_id) {
+        const { data: roleRow } = await adminClient
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("org_id", profile.org_id)
+          .single();
+        userRole = (roleRow?.role as UserRole) ?? null;
+      }
+    }
+  } catch {
+    // Non-fatal — falls back to null (will show locked state)
+  }
+
   if (!result) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-center">
@@ -393,6 +420,7 @@ async function ForensicContent({ id }: { id: string }) {
               approvedBy={log.approved_by}
               approvedAt={log.approved_at}
               approverEmail={approverEmail}
+              userRole={userRole}
             />
             <Link
               href="/readiness"
@@ -716,6 +744,7 @@ export default async function LogDetailPage({ params }: PageProps) {
                 IEC 62304 · 21 CFR Part 11
               </span>
             </div>
+            <RoleBadge />
             <SettingsMenu />
           </div>
         </div>

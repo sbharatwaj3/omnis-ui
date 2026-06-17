@@ -25,6 +25,7 @@ import {
   AlertCircle,
   CheckCircle2,
   ChevronLeft,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -191,6 +192,104 @@ function ErrorBanner({ message }: { message: string }) {
 }
 
 // ---------------------------------------------------------------------------
+// Role selector — used in both forms
+// ---------------------------------------------------------------------------
+
+const ROLE_OPTIONS = [
+  {
+    value: "qa_manager",
+    label: "QA Manager",
+    description: "Can approve logs, configure settings, and manage API keys.",
+  },
+  {
+    value: "developer",
+    label: "Developer",
+    description: "Can ingest logs via CLI and view metrics.",
+  },
+  {
+    value: "viewer",
+    label: "Viewer",
+    description: "Read-only access to the compliance dashboard.",
+  },
+] as const;
+
+function RoleSelector({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = ROLE_OPTIONS.find((r) => r.value === value);
+
+  return (
+    <div className="space-y-1.5">
+      <Label
+        htmlFor="role"
+        className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+      >
+        Your Role <span className="text-red-400">*</span>
+      </Label>
+
+      <div className="relative">
+        <button
+          type="button"
+          id="role"
+          disabled={disabled}
+          onClick={() => setOpen((o) => !o)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          className="flex h-11 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+        >
+          <span className={selected ? "text-slate-900 dark:text-slate-100" : "text-slate-400"}>
+            {selected ? selected.label : "Select a role…"}
+          </span>
+          <ChevronDown className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
+        </button>
+
+        {open && (
+          <ul
+            role="listbox"
+            aria-label="Role selection"
+            className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900"
+          >
+            {ROLE_OPTIONS.map((opt) => (
+              <li
+                key={opt.value}
+                role="option"
+                aria-selected={value === opt.value}
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
+                className={`cursor-pointer px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                  value === opt.value ? "bg-emerald-50 dark:bg-emerald-950/30" : ""
+                }`}
+              >
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {opt.label}
+                  {value === opt.value && (
+                    <span className="ml-2 text-xs font-normal text-emerald-500">✓ selected</span>
+                  )}
+                </p>
+                <p className="mt-0.5 text-xs text-slate-400">{opt.description}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {selected && (
+        <p className="text-[11px] text-slate-400">{selected.description}</p>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Create Organisation form
 // ---------------------------------------------------------------------------
 
@@ -237,6 +336,21 @@ function CreateOrgForm() {
         </p>
       </div>
 
+      {/* Role notice for org creators */}
+      <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-3 dark:border-emerald-800/60 dark:bg-emerald-950/40">
+        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+        <div>
+          <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+            You will be assigned the QA Manager role
+          </p>
+          <p className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-400">
+            As the workspace creator, you will have full access to approve logs,
+            manage settings, and control API keys. You can invite others with
+            different roles after setup.
+          </p>
+        </div>
+      </div>
+
       {error && <ErrorBanner message={error} />}
 
       <Button
@@ -266,12 +380,15 @@ function CreateOrgForm() {
 
 function JoinOrgForm() {
   const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState<string>("");
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     const formData = new FormData(e.currentTarget);
+    // Inject the controlled role value (not reliably submitted from custom dropdown)
+    formData.set("role", role);
     startTransition(async () => {
       const result = await joinOrganization(formData);
       if (!result.success && result.error) {
@@ -306,11 +423,13 @@ function JoinOrgForm() {
         </p>
       </div>
 
+      <RoleSelector value={role} onChange={setRole} disabled={isPending} />
+
       {error && <ErrorBanner message={error} />}
 
       <Button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || !role}
         className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
       >
         {isPending ? (
