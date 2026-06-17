@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { CheckoutButton } from "@/components/CheckoutButton";
+import { PricingSignOutButton } from "@/components/PricingSignOutButton";
 
 // ---------------------------------------------------------------------------
 // Static data
@@ -116,8 +117,12 @@ const complianceBadges = [
 // Header — matches the landing page header
 // ---------------------------------------------------------------------------
 
-function PricingHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
-  const signInTarget = isAuthenticated ? "/dashboard" : "/login";
+interface PricingHeaderProps {
+  /** Authenticated user's email, or null if not signed in. */
+  userEmail: string | null;
+}
+
+function PricingHeader({ userEmail }: PricingHeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-sm dark:border-slate-800/80 dark:bg-slate-950/90">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -134,13 +139,22 @@ function PricingHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
             </span>
           </div>
         </Link>
-        <Link
-          href={signInTarget}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-800"
-        >
-          {isAuthenticated ? "Dashboard" : "Sign In"}
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+
+        {/* Right-side nav: escape hatch for authenticated-but-unsubscribed users */}
+        {userEmail ? (
+          // Authenticated: show the user's email + a Sign Out button so they
+          // are never trapped on this page without a way to exit the session.
+          <PricingSignOutButton email={userEmail} />
+        ) : (
+          // Unauthenticated: standard Sign In link.
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+          >
+            Sign In
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        )}
       </div>
     </header>
   );
@@ -453,7 +467,7 @@ function Footer() {
 // ---------------------------------------------------------------------------
 
 export default async function PricingPage() {
-  // Read the Supabase session server-side to extract orgId.
+  // Read the Supabase session server-side to extract orgId and email.
   // If the user is not authenticated, CheckoutButton is replaced with a
   // sign-up link so unauthenticated visitors can still see the pricing page.
   const supabase = await createClient();
@@ -472,9 +486,13 @@ export default async function PricingPage() {
     orgId = profile?.org_id ?? null;
   }
 
+  // userEmail is passed to the header so the escape-hatch component can display
+  // "Logged in as <email>" alongside the Sign Out button.
+  const userEmail = user?.email ?? null;
+
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-slate-950">
-      <PricingHeader isAuthenticated={!!user} />
+      <PricingHeader userEmail={userEmail} />
       <main className="flex-1">
         <PricingHero />
         <PricingCards orgId={orgId} />
