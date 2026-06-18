@@ -16,6 +16,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
   Building2,
@@ -31,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createOrganization, joinOrganization } from "./actions";
+import { createClient } from "@/utils/supabase/client";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -454,6 +456,15 @@ function JoinOrgForm() {
 
 function OnboardingCard() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("create");
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const router = useRouter();
+
+  async function handleSignOut() {
+    setIsSigningOut(true);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
 
   return (
     <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[52%] xl:w-[55%] bg-white dark:bg-slate-950">
@@ -543,15 +554,24 @@ function OnboardingCard() {
         {/* Sign out link */}
         <p className="mt-6 text-center text-xs text-slate-400 dark:text-slate-600">
           Wrong account?{" "}
-          <Link
-            href="/login"
-            className="font-semibold text-slate-600 underline-offset-2 hover:underline dark:text-slate-400"
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="inline-flex items-center gap-1 font-semibold text-slate-600 underline-offset-2 hover:underline disabled:opacity-50 dark:text-slate-400"
           >
-            <span className="inline-flex items-center gap-1">
-              <ChevronLeft className="h-3 w-3" />
-              Back to sign in
-            </span>
-          </Link>
+            {isSigningOut ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Signing out…
+              </>
+            ) : (
+              <>
+                <ChevronLeft className="h-3 w-3" />
+                Back to sign in
+              </>
+            )}
+          </button>
         </p>
       </div>
     </div>
