@@ -96,6 +96,9 @@ export async function createCheckoutSession(
     success_url: `${appUrl}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/pricing?checkout=cancelled`,
 
+    // Allow promotion/coupon codes at checkout (enables 100% off testing codes).
+    allow_promotion_codes: true,
+
     // Allow Stripe's smart UI to collect billing address where required by tax law.
     automatic_tax: { enabled: false },
   });

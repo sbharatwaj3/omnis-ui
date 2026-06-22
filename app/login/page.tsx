@@ -293,11 +293,15 @@ function AuthForm() {
           </Link>
         </p>
 
-        {/* Footer note */}
+        {/* Sign up link */}
         <p className="mt-5 text-center text-xs leading-relaxed text-slate-400 dark:text-slate-600">
-          Access is restricted to authorized personnel only.
-          <br />
-          Contact your system administrator if you need access.
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/signup"
+            className="font-semibold text-slate-700 underline-offset-2 hover:underline dark:text-slate-300"
+          >
+            Sign up
+          </Link>
         </p>
 
         {/* Back to landing */}

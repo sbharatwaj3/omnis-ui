@@ -130,17 +130,21 @@ const mockActivityFeed = [
 ];
 
 // ---------------------------------------------------------------------------
-// Header — logo + Sign In only, no internal nav links
+// Header — logo + nav links + auth-aware CTA
 // ---------------------------------------------------------------------------
 
-function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
-  const signInTarget = isAuthenticated ? "/dashboard" : "/login";
-
+function Header({
+  isAuthenticated,
+  userEmail,
+}: {
+  isAuthenticated: boolean;
+  userEmail: string | null;
+}) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-sm dark:border-slate-800/80 dark:bg-slate-950/90">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5 group">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg ring-1 ring-slate-200 group-hover:ring-emerald-400 transition-all duration-200 dark:ring-slate-700">
             <ShieldCheck className="h-4 w-4 text-slate-800 dark:text-slate-200" strokeWidth={1.75} />
           </div>
@@ -154,14 +158,55 @@ function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
           </div>
         </Link>
 
-        {/* Sign In — only CTA in the nav */}
-        <Link
-          href={signInTarget}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-800"
-        >
-          {isAuthenticated ? "Dashboard" : "Sign In"}
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+        {/* Centre nav links */}
+        <nav className="hidden sm:flex items-center gap-5">
+          <Link
+            href="/#how-it-works"
+            className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+          >
+            Learn more about us
+          </Link>
+          <Link
+            href="/pricing"
+            className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+          >
+            Pricing
+          </Link>
+        </nav>
+
+        {/* Right: auth-state CTA */}
+        {isAuthenticated ? (
+          <div className="flex shrink-0 items-center gap-3">
+            {userEmail && (
+              <span className="hidden md:block text-xs font-medium text-slate-500 dark:text-slate-400 truncate max-w-[180px]">
+                {userEmail}
+              </span>
+            )}
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-600"
+            >
+              Go to Dashboard
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        ) : (
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+            >
+              Sign In
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            <Link
+              href="/signup"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+            >
+              Get Started
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   );
@@ -447,7 +492,9 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
 // ---------------------------------------------------------------------------
 
 function BottomCTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
-  const ctaTarget = isAuthenticated ? "/dashboard" : "/signup";
+  // Authenticated users → /pricing (the "Go to Dashboard" pipeline starts here).
+  // Unauthenticated users → /signup to create an account.
+  const ctaTarget = isAuthenticated ? "/pricing" : "/signup";
 
   return (
     <section className="border-t border-slate-200 bg-slate-50 py-24 dark:border-slate-800 dark:bg-slate-900/50">
@@ -474,8 +521,7 @@ function BottomCTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
           >
             {isAuthenticated ? "Go to Dashboard" : "Get Started"}
             <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+          </Link>        </div>
 
         {/* Micro trust line */}
         <p className="mt-5 text-xs text-slate-400 dark:text-slate-600">
@@ -514,18 +560,21 @@ function Footer() {
 
 export default function LandingPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
+      setUserEmail(session?.user?.email ?? null);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
+      setUserEmail(session?.user?.email ?? null);
     });
 
     return () => subscription.unsubscribe();
@@ -533,7 +582,7 @@ export default function LandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-slate-950">
-      <Header isAuthenticated={isAuthenticated} />
+      <Header isAuthenticated={isAuthenticated} userEmail={userEmail} />
       <main className="flex-1">
         <HeroSection />
         <HowItWorksSection />
