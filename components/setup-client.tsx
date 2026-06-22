@@ -145,9 +145,37 @@ function CodeBlock({ code }: { code: string }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main component
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
+// Syntax-highlighted annotation snippet block
+// Displays a multi-line code block with language label, no copy-button clutter
+// (the CodeBlock component handles single-line copy; this one is read-only
+// reference material).
+// ─────────────────────────────────────────────────────────────────────────────
+
+function AnnotationBlock({
+  language,
+  code,
+}: {
+  language: string;
+  code: string;
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
+      {/* language label bar */}
+      <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-100 px-3 py-1.5 dark:border-zinc-700 dark:bg-zinc-800">
+        <span className="font-mono text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          {language}
+        </span>
+      </div>
+      {/* code body */}
+      <pre className="overflow-x-auto bg-zinc-50 px-4 py-3 text-xs leading-relaxed dark:bg-zinc-900">
+        <code className="font-mono text-zinc-800 dark:text-zinc-200 whitespace-pre">
+          {code}
+        </code>
+      </pre>
+    </div>
+  );
+}
 
 export function SetupClient({
   initialFirstKey,
@@ -281,29 +309,39 @@ export function SetupClient({
   // otherwise the stored prefix (key never shown again after dismiss).
   const keyForSnippet = revealedKey ?? `${activeKey?.key_prefix ?? "omn_"}…`;
 
-  // OS-specific single copy/paste blocks. Both set the API key for the shell
-  // session, then run the first test proving a regulatory clause for a build.
-  //   --req-id : the FDA/IEC regulatory clause you are proving evidence for.
-  //   --build  : the version string that tracks which build produced the logs.
+  // OS-specific snippets. The CLI no longer accepts --req-id or --build flags;
+  // those values are read directly from the annotated test output JSON.
   const unixSnippet = [
     `# 1. Set your API key (once per shell session)`,
     `export OMNIS_API_KEY=${keyForSnippet}`,
     ``,
-    `# 2. Run your first test`,
-    `./omnis-run --results ./test-output.json \\`,
-    `  --req-id "21 CFR 820" \\`,
-    `  --build "v1.0.0"`,
+    `# 2. Run the CLI`,
+    `./omnis-run ./test-output.json`,
   ].join("\n");
 
   const windowsSnippet = [
-    `# 1. Set your API key (once per shell session)`,
+    `# 1. Set your API key (once per PowerShell session)`,
     `$env:OMNIS_API_KEY="${keyForSnippet}"`,
     ``,
-    `# 2. Run your first test`,
-    `.\\omnis-run-win.exe --results .\\test-output.json --req-id "21 CFR 820" --build "v1.0.0"`,
+    `# 2. Run the CLI`,
+    `.\\omnis-run-win.exe .\\test-output.json`,
   ].join("\n");
 
   const firstTestSnippet = osTab === "windows" ? windowsSnippet : unixSnippet;
+
+  // Annotation snippets shown in Step 3 sub-step A
+  const pytestAnnotationSnippet = `import pytest
+
+@pytest.mark.req("21_CFR_820_30")
+def test_database_encryption():
+    # Your test logic here
+    assert True`;
+
+  const jestAnnotationSnippet = `// @req: IEC_62304_5_1
+test('authenticates user session', () => {
+  // Your test logic here
+  expect(true).toBe(true);
+});`;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -551,79 +589,81 @@ export function SetupClient({
         </CardHeader>
 
         <CardContent className="pt-0 space-y-4">
-          {/* Plain-English explanation of the key command variables */}
-          <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3.5 py-3 text-xs leading-relaxed text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800/40 dark:text-zinc-400">
-            <p className="mb-1.5 font-semibold text-zinc-700 dark:text-zinc-300">
-              What do these flags mean?
+          {/* ── Sub-step A: Tag your code ──────────────────────────────── */}
+          <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3.5 py-3 dark:border-zinc-700 dark:bg-zinc-800/40">
+            <p className="mb-2.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              Step 3a — Tag your tests with requirement IDs
             </p>
-            <ul className="space-y-1.5">
-              <li>
-                <code className="rounded bg-zinc-200 px-1 py-0.5 font-mono text-[11px] text-zinc-800 dark:bg-zinc-700 dark:text-zinc-200">
-                  --req-id
-                </code>{" "}
-                is the specific FDA/IEC regulatory clause you are proving
-                evidence for (e.g.{" "}
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                  &quot;21 CFR 820&quot;
-                </span>
-                ).
-              </li>
-              <li>
-                <code className="rounded bg-zinc-200 px-1 py-0.5 font-mono text-[11px] text-zinc-800 dark:bg-zinc-700 dark:text-zinc-200">
-                  --build
-                </code>{" "}
-                tracks the version of your software that produced these results
-                (e.g.{" "}
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                  &quot;v1.0.0&quot;
-                </span>
-                ).
-              </li>
-            </ul>
+            <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              Before running the CLI, annotate your tests so the framework injects
+              regulatory requirement IDs directly into the output JSON. No flags
+              needed on the command line.
+            </p>
+            <div className="space-y-2.5">
+              <AnnotationBlock
+                language="Python · PyTest"
+                code={pytestAnnotationSnippet}
+              />
+              <AnnotationBlock
+                language="JavaScript · Jest"
+                code={jestAnnotationSnippet}
+              />
+            </div>
           </div>
 
-          {/* OS-specific command tabs */}
+          {/* ── Sub-step B: Run the CLI ───────────────────────────────── */}
           <div>
-            <div
-              role="tablist"
-              aria-label="Operating system"
-              className="mb-2 inline-flex rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-700 dark:bg-zinc-800"
-            >
-              <button
-                role="tab"
-                aria-selected={osTab === "unix"}
-                onClick={() => setOsTab("unix")}
-                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
-                  osTab === "unix"
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
-                    : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-                }`}
-              >
-                <Apple className="h-3.5 w-3.5" strokeWidth={1.75} />
-                Mac / Linux
-              </button>
-              <button
-                role="tab"
-                aria-selected={osTab === "windows"}
-                onClick={() => setOsTab("windows")}
-                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
-                  osTab === "windows"
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
-                    : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-                }`}
-              >
-                <Monitor className="h-3.5 w-3.5" strokeWidth={1.75} />
-                Windows (PowerShell)
-              </button>
-            </div>
+            <p className="mb-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              Step 3b — Run the CLI
+            </p>
+            <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              Point the CLI at your test output file. Requirement IDs and build
+              info are read from the JSON automatically.
+            </p>
 
-            <CodeBlock code={firstTestSnippet} />
-            {revealedKey && (
-              <p className="mt-1.5 text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3 shrink-0" />
-                Your full key is shown above — copy it now. It won&apos;t be shown again after you leave this page.
-              </p>
-            )}
+            {/* OS-specific command tabs */}
+            <div>
+              <div
+                role="tablist"
+                aria-label="Operating system"
+                className="mb-2 inline-flex rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-700 dark:bg-zinc-800"
+              >
+                <button
+                  role="tab"
+                  aria-selected={osTab === "unix"}
+                  onClick={() => setOsTab("unix")}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                    osTab === "unix"
+                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
+                      : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                  }`}
+                >
+                  <Apple className="h-3.5 w-3.5" strokeWidth={1.75} />
+                  Mac / Linux
+                </button>
+                <button
+                  role="tab"
+                  aria-selected={osTab === "windows"}
+                  onClick={() => setOsTab("windows")}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                    osTab === "windows"
+                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
+                      : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                  }`}
+                >
+                  <Monitor className="h-3.5 w-3.5" strokeWidth={1.75} />
+                  Windows (PowerShell)
+                </button>
+              </div>
+
+              <CodeBlock code={firstTestSnippet} />
+              {revealedKey && (
+                <p className="mt-1.5 text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3 shrink-0" />
+                  Your full key is shown above — copy it now. It won&apos;t be shown again after you leave this page.
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Polling status */}
