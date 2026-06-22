@@ -3,15 +3,16 @@
 // Pill-style Role Badge for the dashboard navigation bar.
 //
 // Visually distinct styling per role:
-//   qa_manager : Solid emerald fill — full access, prominent treatment.
-//   developer  : Solid blue fill   — write-access, clearly differentiated.
+//   admin      : Solid violet fill  — full team management + compliance access.
+//   qa_manager : Solid emerald fill — approval access, no team management.
+//   developer  : Solid blue fill    — write-access, clearly differentiated.
 //   viewer     : Neutral slate fill — read-only, muted to signal limited access.
 //
 // Includes a tooltip-style title attribute explaining access level.
 // Renders null while loading to prevent layout shift.
 
 import { useUserRole, type UserRole } from "@/hooks/useUserRole";
-import { ShieldCheck, Code2, Eye } from "lucide-react";
+import { ShieldCheck, Code2, Eye, Crown } from "lucide-react";
 
 const ROLE_CONFIG: Record<
   NonNullable<UserRole>,
@@ -22,9 +23,16 @@ const ROLE_CONFIG: Record<
     Icon: React.ElementType;
   }
 > = {
+  admin: {
+    label: "Admin",
+    tooltip: "Role: Admin (Full Access — manage team, approve logs, all settings)",
+    className:
+      "bg-violet-600 text-white border-violet-700 dark:bg-violet-500 dark:border-violet-600",
+    Icon: Crown,
+  },
   qa_manager: {
     label: "QA Manager",
-    tooltip: "Role: QA Manager (Full Access — approve logs, manage settings)",
+    tooltip: "Role: QA Manager (View and approve compliance logs)",
     className:
       "bg-emerald-600 text-white border-emerald-700 dark:bg-emerald-500 dark:border-emerald-600",
     Icon: ShieldCheck,

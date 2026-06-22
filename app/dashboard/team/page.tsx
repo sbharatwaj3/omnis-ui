@@ -2,12 +2,14 @@
 // Team Management page — Server Component shell.
 //
 // Fetches current team members server-side and resolves the caller's role
-// (to gate the invite panel). Renders a client island for the invite form.
+// (to gate the invite/remove panel). Renders a client island for all
+// interactive state.
 //
 // PERMISSION MODEL:
-//   - qa_manager : sees the full page including the Invite Teammate panel.
-//   - developer  : sees the members table but the invite panel is hidden.
-//   - viewer     : sees the members table but the invite panel is hidden.
+//   - admin      : full page — Invite Teammate + Remove User + Enterprise Code.
+//   - qa_manager : sees the members table only; team management panels hidden.
+//   - developer  : sees the members table only; team management panels hidden.
+//   - viewer     : sees the members table only; team management panels hidden.
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +35,7 @@ export default async function TeamPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // DashboardLayout already gates unauthenticated users — this is belt-and-suspenders.
+  // DashboardLayout already gates unauthenticated users — belt-and-suspenders.
   if (!user) return null;
 
   // Resolve org_id + role for the permission gate
@@ -44,12 +46,14 @@ export default async function TeamPage() {
     .single();
 
   let callerRole: string | null = null;
-  if (profile?.org_id) {
+  const orgId: string | null = profile?.org_id ?? null;
+
+  if (orgId) {
     const { data: roleRow } = await adminClient
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .eq("org_id", profile.org_id)
+      .eq("org_id", orgId)
       .single();
     callerRole = roleRow?.role ?? null;
   }
@@ -57,8 +61,8 @@ export default async function TeamPage() {
   // ── Fetch team members ───────────────────────────────────────────────────
   const { members, error: membersError } = await listTeamMembers();
 
-  // ── Permission gate for the invite panel ────────────────────────────────
-  const isAdmin = callerRole === "qa_manager";
+  // ── Permission gate — only admins get team management controls ──────────
+  const isAdmin = callerRole === "admin";
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -135,12 +139,14 @@ export default async function TeamPage() {
 
         <Separator className="mb-8 bg-zinc-200 dark:bg-zinc-800" />
 
-        {/* Delegate all interactive work (invite form, state, modals) to a
-            client island so the page itself stays a lean Server Component. */}
+        {/* Delegate all interactive work (invite form, remove buttons, state)
+            to a client island so this Server Component stays lean. */}
         <TeamClient
           initialMembers={members}
           membersError={membersError}
           isAdmin={isAdmin}
+          currentUserId={user.id}
+          orgId={orgId ?? ""}
         />
       </main>
     </div>

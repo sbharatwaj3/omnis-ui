@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 // omnis-ui/app/dashboard/setup/actions.ts
 // Server actions for the CLI setup/onboarding page.
 //
@@ -43,7 +43,7 @@ export async function getSetupPageData(): Promise<SetupPageData> {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { firstKey: null, logCount: 0, error: "Unauthorised." };
+    return { firstKey: null, logCount: 0, error: "Unauthorized." };
   }
 
   // Resolve org_id
@@ -57,7 +57,7 @@ export async function getSetupPageData(): Promise<SetupPageData> {
     return {
       firstKey: null,
       logCount: 0,
-      error: "Could not resolve your organisation.",
+      error: "Could not resolve your organization.",
     };
   }
 
@@ -93,7 +93,7 @@ export async function getOrgLogCount(): Promise<SetupStatusResult> {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { logCount: 0, error: "Unauthorised." };
+    return { logCount: 0, error: "Unauthorized." };
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -103,7 +103,7 @@ export async function getOrgLogCount(): Promise<SetupStatusResult> {
     .single();
 
   if (profileError || !profile?.org_id) {
-    return { logCount: 0, error: "Could not resolve your organisation." };
+    return { logCount: 0, error: "Could not resolve your organization." };
   }
 
   const { count, error: countError } = await supabase

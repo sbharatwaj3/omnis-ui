@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 // omnis-ui/app/dashboard/settings/actions.ts
 // Developer API key Server Actions — generate and revoke organization API keys.
 //
@@ -116,7 +116,7 @@ export async function generateApiKey(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { success: false, error: "Unauthorised: valid session required." };
+    return { success: false, error: "Unauthorized: valid session required." };
   }
 
   // Step 2: Resolve org_id. We must never trust a client-supplied org_id.
@@ -129,7 +129,7 @@ export async function generateApiKey(
   if (profileError || !profile?.org_id) {
     return {
       success: false,
-      error: "Could not resolve your organisation. Please complete onboarding first.",
+      error: "Could not resolve your organization. Please complete onboarding first.",
     };
   }
 
@@ -193,7 +193,7 @@ export async function generateApiKey(
 // 3. Delete the key row via adminClient with an explicit org_id guard.
 //    Using adminClient mirrors the generateApiKey pattern and is safe here
 //    because the org_id is resolved from the verified server-side session —
-//    the caller can only ever delete keys belonging to their own organisation.
+//    the caller can only ever delete keys belonging to their own organization.
 //    This avoids any dependency on the authenticated role's DELETE ACL or
 //    RLS policy propagation timing on the live database.
 // 4. Revalidate the settings page.
@@ -208,7 +208,7 @@ export async function revokeApiKey(keyId: string): Promise<RevokeApiKeyResult> {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { success: false, error: "Unauthorised: valid session required." };
+    return { success: false, error: "Unauthorized: valid session required." };
   }
 
   // Step 2: Resolve org_id from the verified session.
@@ -223,7 +223,7 @@ export async function revokeApiKey(keyId: string): Promise<RevokeApiKeyResult> {
   if (profileError || !profile?.org_id) {
     return {
       success: false,
-      error: "Could not resolve your organisation. Please try again.",
+      error: "Could not resolve your organization. Please try again.",
     };
   }
 
@@ -258,7 +258,7 @@ export async function revokeApiKey(keyId: string): Promise<RevokeApiKeyResult> {
 // ---------------------------------------------------------------------------
 // Action: listApiKeys
 // ---------------------------------------------------------------------------
-// Fetches all active API keys for the caller's organisation.
+// Fetches all active API keys for the caller's organization.
 // Returns only safe fields — key_hash is NEVER returned to the client.
 // ---------------------------------------------------------------------------
 
@@ -273,7 +273,7 @@ export async function listApiKeys(): Promise<{
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { keys: [], error: "Unauthorised." };
+    return { keys: [], error: "Unauthorized." };
   }
 
   const { data, error } = await supabase

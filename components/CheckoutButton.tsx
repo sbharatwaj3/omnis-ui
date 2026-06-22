@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 // omnis-ui/components/CheckoutButton.tsx
 // Client Component — Stripe Checkout initiator button.
 //
@@ -14,7 +14,7 @@ import { Loader2 } from "lucide-react";
 import { createCheckoutSession } from "@/app/actions/stripe";
 
 interface CheckoutButtonProps {
-  /** The Supabase org_id of the purchasing organisation. */
+  /** The Supabase org_id of the purchasing organization. */
   orgId: string;
   /** Optional Stripe Price ID override — allows multi-tier checkout buttons. */
   priceId?: string;
