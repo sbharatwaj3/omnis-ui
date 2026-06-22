@@ -24,7 +24,12 @@ import { cookies } from "next/headers";
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const origin = requestUrl.origin;
+
+  // Prefer NEXT_PUBLIC_SITE_URL so Vercel preview deployments don't inject
+  // their ephemeral preview origin into auth redirects. Falls back to the
+  // request origin only if the env var is not set.
+  const origin =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? requestUrl.origin;
 
   // If no code is present the user navigated here directly — send them to login.
   if (!code) {

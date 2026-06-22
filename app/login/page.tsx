@@ -4,13 +4,11 @@
 //
 // Client Component — auth form interactions require browser APIs.
 // Design: Split-screen clinical enterprise layout.
-//   Left panel  — brand identity, trust signals, regulatory badges.
-//   Right panel — clean centered auth card.
-// Dark mode ready via Tailwind dark: classes.
+//   Left panel  — clean centered auth card (white).
+//   Right panel — brand identity, trust signals, regulatory badges (dark).
 //
 // NOTE: AuthForm uses useSearchParams() which requires a Suspense boundary
-// when used as a Next.js page. The Suspense wrapper is at the page-export
-// level so the static shell renders correctly during SSR.
+// when used as a Next.js page.
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -30,7 +28,7 @@ import {
 import Link from "next/link";
 
 // ---------------------------------------------------------------------------
-// Trust signals displayed in the left panel
+// Trust signals displayed in the right panel
 // ---------------------------------------------------------------------------
 
 const trustPoints = [
@@ -57,13 +55,13 @@ const trustPoints = [
 ];
 
 // ---------------------------------------------------------------------------
-// Left branding panel (Server-renderable — no state)
+// Right branding panel
 // ---------------------------------------------------------------------------
 
 function BrandPanel() {
   return (
-    <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col justify-between bg-slate-900 px-12 py-12 dark:bg-slate-950">
-      {/* Logo — links back to landing page */}
+    <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col justify-between bg-slate-900 px-12 py-12">
+      {/* Logo */}
       <Link href="/" className="flex items-center gap-3 group">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-200">
           <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
@@ -120,15 +118,14 @@ function BrandPanel() {
 
       {/* Footer */}
       <p className="text-xs text-slate-600">
-        © 2026 Omnis MedTech Corp. Access restricted to
-        authorized personnel only.
+        © 2026 Omnis MedTech Corp. Access restricted to authorized personnel only.
       </p>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Auth form
+// Auth form (left panel)
 // ---------------------------------------------------------------------------
 
 function AuthForm() {
@@ -159,24 +156,20 @@ function AuthForm() {
       return;
     }
 
-    // Session established — flush Server Component cache so middleware
-    // sees the new session cookie on the next request.
     router.refresh();
     router.push(redirectTo);
   }
 
   return (
-    <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white dark:bg-slate-950">
-      {/* Mobile logo — only visible when left panel is hidden */}
+    <div className="flex w-full flex-col items-center justify-center px-6 py-16 lg:w-[48%] xl:w-[45%] bg-white">
+      {/* Mobile logo — only visible when right panel is hidden */}
       <Link href="/" className="mb-8 flex flex-col items-center gap-3 lg:hidden group">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg group-hover:ring-2 group-hover:ring-emerald-400 transition-all dark:bg-slate-800">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg group-hover:ring-2 group-hover:ring-emerald-400 transition-all">
           <ShieldCheck className="h-6 w-6 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            Omnis MedTech Corp
-          </p>
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+          <p className="text-sm font-bold text-slate-900">Omnis MedTech Corp</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
             RegOps Platform
           </p>
         </div>
@@ -186,21 +179,19 @@ function AuthForm() {
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="mb-7">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
             Sign in
           </h2>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1.5 text-sm text-slate-500">
             Secure access to your compliance environment.
           </p>
         </div>
 
         {/* Compliance pill */}
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5">
           <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" strokeWidth={2} />
-          <p className="text-xs text-slate-600 dark:text-slate-400">
-            <span className="font-semibold text-slate-800 dark:text-slate-200">
-              21 CFR Part 11 Compliant.
-            </span>{" "}
+          <p className="text-xs text-slate-600">
+            <span className="font-semibold text-slate-800">21 CFR Part 11 Compliant.</span>{" "}
             This session will be cryptographically logged.
           </p>
         </div>
@@ -210,7 +201,7 @@ function AuthForm() {
           <div className="space-y-1.5">
             <Label
               htmlFor="email"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
             >
               Email address
             </Label>
@@ -223,14 +214,14 @@ function AuthForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
-              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
+              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500"
             />
           </div>
 
           <div className="space-y-1.5">
             <Label
               htmlFor="password"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
             >
               Password
             </Label>
@@ -243,24 +234,22 @@ function AuthForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
-              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
+              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500"
             />
           </div>
 
           {/* Error banner */}
           {error && (
-            <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 dark:border-red-900/60 dark:bg-red-950/40">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500 dark:text-red-400" />
-              <p className="text-xs leading-relaxed text-red-700 dark:text-red-300">
-                {error}
-              </p>
+            <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3">
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+              <p className="text-xs leading-relaxed text-red-700">{error}</p>
             </div>
           )}
 
           <Button
             type="submit"
             disabled={loading}
-            className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+            className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
           >
             {loading ? (
               <span className="flex items-center gap-2">
@@ -273,22 +262,22 @@ function AuthForm() {
           </Button>
         </form>
 
-        {/* Forgot password link */}
-        <p className="mt-5 text-center text-sm text-slate-500 dark:text-slate-400">
+        {/* Forgot password */}
+        <p className="mt-5 text-center text-sm text-slate-500">
           <Link
             href="/forgot-password"
-            className="font-semibold text-slate-800 underline-offset-2 hover:underline dark:text-slate-200"
+            className="font-semibold text-slate-800 underline-offset-2 hover:underline"
           >
             Forgot your password?
           </Link>
         </p>
 
         {/* Sign up link */}
-        <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-3 text-center text-sm text-slate-500">
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"
-            className="font-semibold text-slate-800 underline-offset-2 hover:underline dark:text-slate-200"
+            className="font-semibold text-slate-800 underline-offset-2 hover:underline"
           >
             Sign up
           </Link>
@@ -299,9 +288,7 @@ function AuthForm() {
 }
 
 // ---------------------------------------------------------------------------
-// Page export — split-screen layout with Suspense boundary.
-// useSearchParams() inside AuthForm requires Suspense when used in a page.
-// Without it Next.js cannot statically render the shell and the route fails.
+// Page export — split-screen layout with Suspense boundary
 // ---------------------------------------------------------------------------
 
 export default function LoginPage() {
@@ -311,16 +298,16 @@ export default function LoginPage() {
       <Link
         href="/"
         aria-label="Back to home"
-        className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-bold text-slate-800 shadow-sm backdrop-blur transition-all hover:border-slate-300 hover:bg-white hover:shadow-md dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-900"
+        className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-bold text-slate-800 shadow-sm backdrop-blur transition-all hover:border-slate-300 hover:bg-white hover:shadow-md"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
         Back
       </Link>
 
-      {/* Auth form — now on the LEFT */}
+      {/* Auth form — LEFT panel */}
       <Suspense
         fallback={
-          <div className="flex w-full items-center justify-center bg-white dark:bg-slate-950 lg:w-[48%] xl:w-[45%]">
+          <div className="flex w-full items-center justify-center bg-white lg:w-[48%] xl:w-[45%]">
             <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
           </div>
         }
@@ -328,7 +315,7 @@ export default function LoginPage() {
         <AuthForm />
       </Suspense>
 
-      {/* Branding panel — moved to the RIGHT side of the screen */}
+      {/* Branding panel — RIGHT panel */}
       <BrandPanel />
     </div>
   );
