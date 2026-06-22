@@ -72,33 +72,63 @@ export default async function DashboardLayout({
     return <>{children}</>;
   }
 
-  // ── Step 4: Check subscription_status ────────────────────────────────────
+  // ── Step 4: Resolve the user's RBAC role ──────────────────────────────────
+  // Joined members (developer / qa_manager / viewer) do NOT own billing — the
+  // org's admin pays. They must bypass the pricing gate and go straight to the
+  // dashboard (State 3). Only the admin (org owner) is gated on checkout.
+  // Use adminClient to bypass the RBAC-gated RLS on user_roles; org_id scoping
+  // keeps the read confined to this user's own org.
+  const { data: roleRow } = await adminClient
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("org_id", orgId)
+    .single();
+
+  const role = roleRow?.role ?? null;
+
+  // Non-admin joined members bypass the pricing gate entirely.
+  if (role && role !== "admin") {
+    return <>{children}</>;
+  }
+
+  // ── Step 5: Admin checkout gate ──────────────────────────────────────────
   // Use adminClient (service-role) to bypass the RBAC-gated RLS policy on
   // organizations. The org_id filter ensures we only read this org's record.
   // FAIL-CLOSED: any error (network, Supabase down, missing row) is treated
   // the same as a denied subscription — redirect to /pricing immediately.
   const { data: org, error: orgError } = await adminClient
     .from("organizations")
-    .select("subscription_status")
+    .select("subscription_status, stripe_customer_id")
     .eq("org_id", orgId)
     .single();
 
   // If the DB query fails for any reason, deny access rather than grant it.
   if (orgError) {
-    console.error("[DashboardLayout] Failed to resolve subscription_status:", orgError.message);
+    console.error("[DashboardLayout] Failed to resolve subscription:", orgError.message);
     redirect("/pricing");
   }
 
   const status = org?.subscription_status;
+  // A non-null stripe_customer_id proves the org owner completed Stripe
+  // checkout at least once (set by the Stripe webhook). A freshly created org
+  // has NULL here — that admin is in State 2 and must complete checkout.
+  const hasCompletedCheckout = !!org?.stripe_customer_id;
 
-  // ── Step 5: Gate decision ─────────────────────────────────────────────────
-  // STRICT ALLOWLIST: only 'active' or 'trialing' passes.
-  // Everything else — 'past_due', 'canceled', null, undefined, any unknown
-  // value, or a DB error (handled above) — redirects to /pricing.
-  if (status === "active" || status === "trialing") {
+  // ── Step 6: Gate decision (admin only) ────────────────────────────────────
+  // State 4 — fully active/paid admin → /dashboard:
+  //   - status === 'active'                      (subscription live), OR
+  //   - status === 'trialing' AND checkout done  (in the Stripe-granted trial)
+  // State 2 — admin created org but has NOT completed checkout, or the
+  //   subscription is past_due / canceled → /pricing.
+  if (
+    status === "active" ||
+    (status === "trialing" && hasCompletedCheckout)
+  ) {
     return <>{children}</>;
   }
 
-  // Deny: past_due, canceled, null/undefined/unknown — send to pricing page.
+  // Deny: pre-checkout 'trialing' (no stripe_customer_id), past_due, canceled,
+  // null/undefined/unknown — send the admin to the pricing page to subscribe.
   redirect("/pricing");
 }

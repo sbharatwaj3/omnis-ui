@@ -165,6 +165,9 @@ export function SetupClient({
   const [logCount, setLogCount] = useState(initialLogCount);
   const logDetected = logCount > 0;
 
+  // ── OS tab for the Step 3 command block ───────────────────────────────────
+  const [osTab, setOsTab] = useState<"unix" | "windows">("unix");
+
   // ── API key state ─────────────────────────────────────────────────────────
   const [activeKey, setActiveKey] = useState<ApiKeyRow | null>(initialFirstKey);
   const [revealedKey, setRevealedKey] = useState<string | null>(null);
@@ -277,13 +280,30 @@ export function SetupClient({
   // The snippet shown in Step 3 uses the revealed key if available,
   // otherwise the stored prefix (key never shown again after dismiss).
   const keyForSnippet = revealedKey ?? `${activeKey?.key_prefix ?? "omn_"}…`;
-  const firstTestSnippet = [
-    `# Set your API key (once per shell session)`,
+
+  // OS-specific single copy/paste blocks. Both set the API key for the shell
+  // session, then run the first test proving a regulatory clause for a build.
+  //   --req-id : the FDA/IEC regulatory clause you are proving evidence for.
+  //   --build  : the version string that tracks which build produced the logs.
+  const unixSnippet = [
+    `# 1. Set your API key (once per shell session)`,
     `export OMNIS_API_KEY=${keyForSnippet}`,
     ``,
-    `# Run your first test`,
-    `./omnis-run --results ./test-output.json`,
+    `# 2. Run your first test`,
+    `./omnis-run --results ./test-output.json \\`,
+    `  --req-id "21 CFR 820" \\`,
+    `  --build "v1.0.0"`,
   ].join("\n");
+
+  const windowsSnippet = [
+    `# 1. Set your API key (once per shell session)`,
+    `$env:OMNIS_API_KEY="${keyForSnippet}"`,
+    ``,
+    `# 2. Run your first test`,
+    `.\\omnis-run-win.exe --results .\\test-output.json --req-id "21 CFR 820" --build "v1.0.0"`,
+  ].join("\n");
+
+  const firstTestSnippet = osTab === "windows" ? windowsSnippet : unixSnippet;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -531,8 +551,72 @@ export function SetupClient({
         </CardHeader>
 
         <CardContent className="pt-0 space-y-4">
-          {/* Command snippet */}
+          {/* Plain-English explanation of the key command variables */}
+          <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3.5 py-3 text-xs leading-relaxed text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800/40 dark:text-zinc-400">
+            <p className="mb-1.5 font-semibold text-zinc-700 dark:text-zinc-300">
+              What do these flags mean?
+            </p>
+            <ul className="space-y-1.5">
+              <li>
+                <code className="rounded bg-zinc-200 px-1 py-0.5 font-mono text-[11px] text-zinc-800 dark:bg-zinc-700 dark:text-zinc-200">
+                  --req-id
+                </code>{" "}
+                is the specific FDA/IEC regulatory clause you are proving
+                evidence for (e.g.{" "}
+                <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                  &quot;21 CFR 820&quot;
+                </span>
+                ).
+              </li>
+              <li>
+                <code className="rounded bg-zinc-200 px-1 py-0.5 font-mono text-[11px] text-zinc-800 dark:bg-zinc-700 dark:text-zinc-200">
+                  --build
+                </code>{" "}
+                tracks the version of your software that produced these results
+                (e.g.{" "}
+                <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                  &quot;v1.0.0&quot;
+                </span>
+                ).
+              </li>
+            </ul>
+          </div>
+
+          {/* OS-specific command tabs */}
           <div>
+            <div
+              role="tablist"
+              aria-label="Operating system"
+              className="mb-2 inline-flex rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-700 dark:bg-zinc-800"
+            >
+              <button
+                role="tab"
+                aria-selected={osTab === "unix"}
+                onClick={() => setOsTab("unix")}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                  osTab === "unix"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
+                    : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                }`}
+              >
+                <Apple className="h-3.5 w-3.5" strokeWidth={1.75} />
+                Mac / Linux
+              </button>
+              <button
+                role="tab"
+                aria-selected={osTab === "windows"}
+                onClick={() => setOsTab("windows")}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                  osTab === "windows"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
+                    : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                }`}
+              >
+                <Monitor className="h-3.5 w-3.5" strokeWidth={1.75} />
+                Windows (PowerShell)
+              </button>
+            </div>
+
             <CodeBlock code={firstTestSnippet} />
             {revealedKey && (
               <p className="mt-1.5 text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">

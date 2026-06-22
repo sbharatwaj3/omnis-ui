@@ -70,16 +70,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=session_not_established`);
   }
 
-  // Check whether the user has already completed onboarding (has an org_id).
-  const { data: profile } = await supabase
-    .from("users")
-    .select("org_id")
-    .eq("user_id", user.id)
-    .single();
-
-  // Users with no org_id are new — route them to onboarding.
-  // Users already in an org go directly to the dashboard.
-  const destination = profile?.org_id ? "/dashboard" : "/onboarding";
-
-  return NextResponse.redirect(`${origin}${destination}`);
+  // Route to the STATIC success page rather than back into the app.
+  //
+  // WHY NOT /dashboard or /onboarding:
+  //   The confirmation link is commonly opened in a different browser/tab than
+  //   the one used to sign up. Redirecting into the app from here causes
+  //   cross-tab session desync, and on Vercel preview deployments the callback
+  //   origin can differ from the user's original window — producing preview-URL
+  //   session conflicts. The /auth/success page is a self-contained dead-end
+  //   that simply tells the user their email is confirmed and to return to
+  //   their original window, where their existing session resumes correctly.
+  return NextResponse.redirect(`${origin}/auth/success`);
 }
