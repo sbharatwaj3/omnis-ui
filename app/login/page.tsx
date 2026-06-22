@@ -25,6 +25,7 @@ import {
   GitBranch,
   FileCheck2,
   Lock,
+  ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -272,19 +273,8 @@ function AuthForm() {
           </Button>
         </form>
 
-        {/* Get Started link */}
-        <p className="mt-5 text-center text-sm text-slate-500 dark:text-slate-400">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/signup"
-            className="font-semibold text-slate-800 underline-offset-2 hover:underline dark:text-slate-200"
-          >
-            Get started.
-          </Link>
-        </p>
-
         {/* Forgot password link */}
-        <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-5 text-center text-sm text-slate-500 dark:text-slate-400">
           <Link
             href="/forgot-password"
             className="font-semibold text-slate-800 underline-offset-2 hover:underline dark:text-slate-200"
@@ -294,25 +284,15 @@ function AuthForm() {
         </p>
 
         {/* Sign up link */}
-        <p className="mt-5 text-center text-xs leading-relaxed text-slate-400 dark:text-slate-600">
+        <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"
-            className="font-semibold text-slate-700 underline-offset-2 hover:underline dark:text-slate-300"
+            className="font-semibold text-slate-800 underline-offset-2 hover:underline dark:text-slate-200"
           >
             Sign up
           </Link>
         </p>
-
-        {/* Back to landing */}
-        <div className="mt-4 text-center">
-          <Link
-            href="/"
-            className="text-xs text-slate-400 underline-offset-2 transition-colors hover:text-slate-600 hover:underline dark:text-slate-600 dark:hover:text-slate-400"
-          >
-            ← Back to home
-          </Link>
-        </div>
       </div>
     </div>
   );
@@ -326,8 +306,18 @@ function AuthForm() {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
-      <BrandPanel />
+    <div className="relative flex min-h-screen flex-col lg:flex-row">
+      {/* Prominent "Back" button — top-left corner, always visible */}
+      <Link
+        href="/"
+        aria-label="Back to home"
+        className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-bold text-slate-800 shadow-sm backdrop-blur transition-all hover:border-slate-300 hover:bg-white hover:shadow-md dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-900"
+      >
+        <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
+        Back
+      </Link>
+
+      {/* Auth form — now on the LEFT */}
       <Suspense
         fallback={
           <div className="flex w-full items-center justify-center bg-white dark:bg-slate-950 lg:w-[48%] xl:w-[45%]">
@@ -337,6 +327,9 @@ export default function LoginPage() {
       >
         <AuthForm />
       </Suspense>
+
+      {/* Branding panel — moved to the RIGHT side of the screen */}
+      <BrandPanel />
     </div>
   );
 }

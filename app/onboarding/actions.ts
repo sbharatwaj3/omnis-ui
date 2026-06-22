@@ -35,14 +35,16 @@ export interface OnboardingResult {
 // insertUserRole — shared helper
 // ---------------------------------------------------------------------------
 // Writes a row into public.user_roles after the org assignment succeeds.
-// Failure is non-fatal (the user still gets into the dashboard) but is logged.
+// Returns true on success, false on failure so callers can decide whether to
+// roll back. For org creation this MUST succeed — a creator without an 'admin'
+// role row is stuck as "pending" with no Team Management rights.
 // ---------------------------------------------------------------------------
 
 async function insertUserRole(
   userId: string,
   orgId: string,
   role: UserRole,
-): Promise<void> {
+): Promise<boolean> {
   const { error } = await adminClient
     .from("user_roles")
     .upsert(
@@ -52,7 +54,9 @@ async function insertUserRole(
 
   if (error) {
     console.error("insertUserRole: failed to write user_roles:", error.message);
+    return false;
   }
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -109,17 +113,31 @@ export async function createOrganization(
     };
   }
 
-  // Step 4: Update the user's profile row with the new org_id and a
+  // Step 4: Upsert the user's profile row with the new org_id and a
   // generated public_key placeholder (UUID v4).
+  //
+  // We UPSERT (not UPDATE) because the deferred-profile-creation trigger may
+  // not have written the public.users row yet for this account. A plain
+  // .update() against a missing row silently affects 0 rows, after which the
+  // user_roles INSERT below fails its FK constraint — leaving the creator
+  // stuck as "pending" with no admin role. Upserting guarantees the profile
+  // row exists before we stamp the role.
   const publicKey = crypto.randomUUID();
 
   const { error: userError } = await adminClient
     .from("users")
-    .update({ org_id: newOrgId, public_key: publicKey })
-    .eq("user_id", user.id);
+    .upsert(
+      {
+        user_id: user.id,
+        developer_email: user.email ?? "",
+        org_id: newOrgId,
+        public_key: publicKey,
+      },
+      { onConflict: "user_id", ignoreDuplicates: false },
+    );
 
   if (userError) {
-    console.error("createOrganization: update user error:", userError.message);
+    console.error("createOrganization: upsert user error:", userError.message);
     // Roll back the organization row to avoid orphaned records.
     await adminClient
       .from("organizations")
@@ -132,12 +150,36 @@ export async function createOrganization(
   }
 
   // Step 5: Assign role. Org creators are always Admin — they own the
-  // workspace and need full team management + approval permissions from day one.
-  await insertUserRole(user.id, newOrgId, "admin");
+  // workspace and need full team management + approval permissions from day
+  // one. This write MUST succeed; if it fails the creator would land in the
+  // dashboard with no role and be treated as "pending", unable to manage their
+  // own team. We therefore treat a role-write failure as fatal and roll back.
+  const roleWritten = await insertUserRole(user.id, newOrgId, "admin");
 
-  // Step 6: Redirect to the dashboard. redirect() throws internally in
-  // Next.js, so it must not be called inside a try/catch block.
-  redirect("/dashboard");
+  if (!roleWritten) {
+    // Roll back both the profile org assignment and the organization row so
+    // the user can retry cleanly instead of being stranded in a half-created
+    // state.
+    await adminClient
+      .from("users")
+      .update({ org_id: null })
+      .eq("user_id", user.id);
+    await adminClient
+      .from("organizations")
+      .delete()
+      .eq("org_id", newOrgId);
+    return {
+      success: false,
+      error: "Failed to assign your admin role. Please try again.",
+    };
+  }
+
+  // Step 6: Redirect the new admin to /pricing to complete Stripe checkout.
+  // A freshly created org has not yet completed checkout (no stripe_customer_id),
+  // so the org owner must select a plan before entering the dashboard.
+  // redirect() throws internally in Next.js, so it must not be called inside a
+  // try/catch block.
+  redirect("/pricing");
 }
 
 // ---------------------------------------------------------------------------

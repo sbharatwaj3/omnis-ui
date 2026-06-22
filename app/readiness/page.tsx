@@ -384,16 +384,10 @@ function TenantBanner({
             {tenant.orgName ?? "(no organization assigned)"}
           </span>
         </span>
-        {tenant.orgId && (
-          <span className="font-mono text-[10px] text-zinc-400">
-            org · {tenant.orgId}
-          </span>
-        )}
-        {tenant.userEmail && (
-          <span className="text-zinc-400">
-            user · {tenant.userEmail}
-          </span>
-        )}
+        {/* SECURITY: the raw org_id UUID is intentionally NOT rendered here.
+            It is the enterprise join code — exposing it in the header would
+            leak it to unauthorized internal roles. Only the Company Name is
+            shown for tenant context. */}
         <span className="text-zinc-400">
           {totalLogsForOrg} evidence log{totalLogsForOrg !== 1 ? "s" : ""} for this org
         </span>
