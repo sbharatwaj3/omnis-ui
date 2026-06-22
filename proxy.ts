@@ -111,9 +111,13 @@ export async function proxy(request: NextRequest) {
       }
 
       // ── CLI Setup Gate ────────────────────────────────────────────────────
-      // If the org has zero evidence logs and the user is NOT already on
-      // /dashboard/setup, redirect them there so they can't view an empty
-      // dashboard without completing the CLI integration flow.
+      // ROLE-BASED GATE: Only users with the 'developer' role are required to
+      // complete the CLI download / first-log flow before accessing the main
+      // dashboard. Admin, QA Manager, and Viewer roles bypass this gate and
+      // go directly to the compliance dashboard — they do not use the CLI.
+      //
+      // If the org has zero evidence logs AND the user is a developer AND they
+      // are NOT already on /dashboard/setup, redirect to the setup page.
       // The setup page itself, settings, and integration sub-routes are
       // exempted so the user can generate an API key without a redirect loop.
       const isSetupExempt =
@@ -123,24 +127,10 @@ export async function proxy(request: NextRequest) {
         pathname.startsWith("/dashboard/integration/");
 
       if (!isSetupExempt) {
-        // Use a service-role client for the count query so it bypasses RLS.
-        //
-        // ROOT CAUSE: The RBAC migration (20260616) replaced the original
-        // org-only RLS policy on evidence_logs with a role-aware version that
-        // requires private.get_auth_role() IS NOT NULL. Any user who exists
-        // before RBAC was deployed has no row in user_roles, so get_auth_role()
-        // returns NULL and the policy silently filters out every row — the
-        // count query succeeds (no error) but returns 0, triggering a false
-        // redirect even when logs exist.
-        //
-        // The service role bypasses RLS entirely. The org_id used to scope
-        // the query is resolved from the verified user session above, so this
-        // is safe — we're counting logs for the caller's own org only.
+        // Resolve role and log count using the service-role client to bypass
+        // RBAC-gated RLS. The org_id scope ensures we only read this user's org.
         const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-        let logCount: number | null = null;
-        let logCountError: { message: string } | null = null;
 
         if (!serviceRoleKey || !supabaseUrl) {
           console.error(
@@ -152,33 +142,47 @@ export async function proxy(request: NextRequest) {
             auth: { autoRefreshToken: false, persistSession: false },
           });
 
-          const { count, error } = await adminSupabase
-            .from("evidence_logs")
-            .select("log_id", { count: "exact", head: true })
-            .eq("org_id", profile.org_id);
+          // Step 1: Fetch the user's role in their org.
+          const { data: roleRow } = await adminSupabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
+            .eq("org_id", profile.org_id)
+            .single();
 
-          logCount = count;
-          logCountError = error;
-        }
+          const userRole = roleRow?.role as string | undefined;
 
-        // DEBUG: Log the gate check result so we can diagnose false-zero counts.
-        console.log(
-          `[proxy] CLI setup gate — user=${user.id} org_id=${profile.org_id} ` +
-          `logCount=${logCount} error=${logCountError?.message ?? "none"} ` +
-          `pathname=${pathname}`
-        );
+          // Non-developer roles bypass the CLI gate entirely — they have no
+          // need to install the CLI or ingest their first log.
+          if (userRole !== "developer") {
+            console.log(
+              `[proxy] CLI setup gate — user=${user.id} role=${userRole ?? "none"} — bypassing (non-developer).`
+            );
+          } else {
+            // Developer role: gate on zero evidence logs.
+            const { count, error: countError } = await adminSupabase
+              .from("evidence_logs")
+              .select("log_id", { count: "exact", head: true })
+              .eq("org_id", profile.org_id);
 
-        if (logCountError) {
-          console.error(
-            `[proxy] evidence_logs count query failed for org ${profile.org_id}: ` +
-            logCountError.message +
-            " — bypassing setup gate to prevent false redirect loop."
-          );
-        } else if ((logCount ?? 0) === 0) {
-          const setupUrl = request.nextUrl.clone();
-          setupUrl.pathname = "/dashboard/setup";
-          setupUrl.search = "";
-          return NextResponse.redirect(setupUrl);
+            console.log(
+              `[proxy] CLI setup gate — user=${user.id} org_id=${profile.org_id} role=developer ` +
+              `logCount=${count} error=${countError?.message ?? "none"} pathname=${pathname}`
+            );
+
+            if (countError) {
+              console.error(
+                `[proxy] evidence_logs count query failed for org ${profile.org_id}: ` +
+                countError.message +
+                " — bypassing setup gate to prevent false redirect loop."
+              );
+            } else if ((count ?? 0) === 0) {
+              const setupUrl = request.nextUrl.clone();
+              setupUrl.pathname = "/dashboard/setup";
+              setupUrl.search = "";
+              return NextResponse.redirect(setupUrl);
+            }
+          }
         }
       }
     }

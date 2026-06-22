@@ -165,8 +165,9 @@ function SignUpForm() {
       email: email.trim(),
       password,
       options: {
-        // Redirect back to dashboard after email confirmation (if enabled)
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        // After email confirmation, land on the auth callback which routes
+        // the user to /onboarding (new user) or /dashboard (returning user).
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
