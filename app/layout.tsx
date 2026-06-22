@@ -30,11 +30,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      // suppressHydrationWarning is required by next-themes — it sets the
-      // `class` attribute on <html> after hydration to apply the saved theme,
-      // which would otherwise trigger a React hydration mismatch warning.
+      className={cn("light h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
+      style={{ colorScheme: "light" }}
       suppressHydrationWarning
-      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <ThemeProvider

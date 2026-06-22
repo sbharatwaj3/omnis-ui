@@ -2,26 +2,13 @@
 // omnis-ui/app/signup/page.tsx
 // Omnis RegOps — Account Creation Gateway
 //
-// Client Component — auth form interactions require browser APIs.
-// Design: Split-screen layout IDENTICAL to /login for visual consistency.
-//   Left panel  — clean centered signup card (white).
-//   Right panel — brand identity, trust signals, regulatory badges (dark).
-//
-// Auth flow:
-//   1. supabase.auth.signUp() — create account
-//   2. If session active → /dashboard
-//   3. If email confirmation required → success state
-//   4. On error → display inline error banner
-//
-// NOTE: SignUpForm uses browser APIs (window.location.origin) which requires
-// the "use client" directive. Suspense boundary at page level for SSR safety.
+// Design: Split-screen layout IDENTICAL to /login.
+//   Left panel  — clean white signup card.
+//   Right panel — dark brand / trust-signal panel.
 
 import { Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import {
   ShieldCheck,
   AlertCircle,
@@ -35,7 +22,7 @@ import {
 import Link from "next/link";
 
 // ---------------------------------------------------------------------------
-// Trust signals — right panel
+// Trust signals
 // ---------------------------------------------------------------------------
 
 const trustPoints = [
@@ -68,28 +55,22 @@ const trustPoints = [
 function BrandPanel() {
   return (
     <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col justify-between bg-slate-900 px-12 py-12">
-      {/* Logo */}
       <Link href="/" className="flex items-center gap-3 group">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-200">
           <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="leading-none">
-          <span className="block text-sm font-bold text-slate-100">
-            Omnis MedTech Corp
-          </span>
+          <span className="block text-sm font-bold text-slate-100">Omnis MedTech Corp</span>
           <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
             RegOps Platform
           </span>
         </div>
       </Link>
 
-      {/* Hero copy */}
       <div className="max-w-md">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-800 bg-emerald-950/60 px-3 py-1">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs font-semibold text-emerald-300">
-            Compliance Vault — Onboarding
-          </span>
+          <span className="text-xs font-semibold text-emerald-300">Compliance Vault — Onboarding</span>
         </div>
         <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white xl:text-4xl">
           Automate Your
@@ -97,11 +78,9 @@ function BrandPanel() {
           <span className="text-emerald-400">Regulatory Pipeline.</span>
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-slate-400">
-          Create your workspace and connect your CI/CD pipeline. Evidence logs
-          start flowing the moment you push your first commit.
+          Create your workspace and connect your CI/CD pipeline. Evidence logs start
+          flowing the moment you push your first commit.
         </p>
-
-        {/* Trust points */}
         <div className="mt-8 space-y-4">
           {trustPoints.map((point) => {
             const Icon = point.icon;
@@ -112,9 +91,7 @@ function BrandPanel() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-200">{point.title}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
-                    {point.body}
-                  </p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{point.body}</p>
                 </div>
               </div>
             );
@@ -122,7 +99,6 @@ function BrandPanel() {
         </div>
       </div>
 
-      {/* Footer */}
       <p className="text-xs text-slate-600">
         © 2026 Omnis MedTech Corp. Access restricted to authorized personnel only.
       </p>
@@ -131,7 +107,7 @@ function BrandPanel() {
 }
 
 // ---------------------------------------------------------------------------
-// Signup form (left panel)
+// Signup form
 // ---------------------------------------------------------------------------
 
 function SignUpForm() {
@@ -152,7 +128,6 @@ function SignUpForm() {
       setError("Passwords do not match. Please re-enter.");
       return;
     }
-
     if (password.length < 8) {
       setError("Password must be at least 8 characters.");
       return;
@@ -161,11 +136,7 @@ function SignUpForm() {
     setLoading(true);
 
     const supabase = createClient();
-
-    // Use NEXT_PUBLIC_SITE_URL if set so Vercel preview deployments don't
-    // inject their own origin into the confirmation redirect URL.
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
 
     const { data, error: authError } = await supabase.auth.signUp({
       email: email.trim(),
@@ -184,9 +155,7 @@ function SignUpForm() {
         msg.includes("email address is already") ||
         msg.includes("email already in use")
       ) {
-        setError(
-          "This email is already in use. Please log in or reset your password.",
-        );
+        setError("This email is already in use. Please log in or reset your password.");
       } else {
         setError(authError.message);
       }
@@ -204,29 +173,23 @@ function SignUpForm() {
     setLoading(false);
   }
 
-  // ── Success / confirmation-pending state ─────────────────────────────────
+  // ── Confirmation-pending state ────────────────────────────────────────────
   if (success) {
     return (
-      <div className="flex w-full flex-col items-center justify-center px-6 py-16 lg:w-[48%] xl:w-[45%] bg-white">
-        <div className="w-full max-w-sm text-center">
+      <div className="flex w-full flex-col items-center justify-center bg-white px-8 py-16 lg:w-[48%] xl:w-[45%]">
+        <div className="w-full max-w-md mx-auto text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200">
             <CheckCircle2 className="h-7 w-7 text-emerald-500" strokeWidth={1.75} />
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900">
-            Check your email
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-500">
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Check your email</h1>
+          <p className="text-sm text-gray-500 mt-2 leading-relaxed">
             We sent a confirmation link to{" "}
-            <span className="font-semibold text-slate-700">{email}</span>.
-            Click it to activate your account and access your compliance
-            dashboard.
+            <span className="font-semibold text-gray-700">{email}</span>.
+            Click it to activate your account.
           </p>
-          <p className="mt-6 text-xs text-slate-400">
+          <p className="mt-6 text-xs text-gray-400">
             Already confirmed?{" "}
-            <Link
-              href="/login"
-              className="font-semibold text-slate-700 underline-offset-2 hover:underline"
-            >
+            <Link href="/login" className="font-semibold text-gray-700 underline-offset-2 hover:underline">
               Sign in
             </Link>
           </p>
@@ -237,51 +200,44 @@ function SignUpForm() {
 
   // ── Main form ─────────────────────────────────────────────────────────────
   return (
-    <div className="flex w-full flex-col items-center justify-center px-6 py-16 lg:w-[48%] xl:w-[45%] bg-white">
-      {/* Mobile logo — only visible when right panel is hidden */}
+    <div className="flex w-full flex-col items-center justify-center bg-white px-8 py-16 lg:w-[48%] xl:w-[45%]">
+      {/* Mobile logo */}
       <Link href="/" className="mb-8 flex flex-col items-center gap-3 lg:hidden group">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg group-hover:ring-2 group-hover:ring-emerald-400 transition-all">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg">
           <ShieldCheck className="h-6 w-6 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-slate-900">Omnis MedTech Corp</p>
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
-            RegOps Platform
-          </p>
+          <p className="text-sm font-bold text-gray-900">Omnis MedTech Corp</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">RegOps Platform</p>
         </div>
       </Link>
 
-      {/* Card */}
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-md mx-auto">
         {/* Header */}
         <div className="mb-7">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-            Create account
-          </h2>
-          <p className="mt-1.5 text-sm text-slate-500">
-            Set up your RegOps compliance workspace.
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Create account</h1>
+          <p className="text-sm text-gray-500 mt-2">Set up your RegOps compliance workspace.</p>
         </div>
 
         {/* Compliance pill */}
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5">
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5">
           <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" strokeWidth={2} />
-          <p className="text-xs text-slate-600">
-            <span className="font-semibold text-slate-800">21 CFR Part 11 Compliant.</span>{" "}
+          <p className="text-xs text-gray-600">
+            <span className="font-semibold text-gray-800">21 CFR Part 11 Compliant.</span>{" "}
             Account creation is cryptographically logged.
           </p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-1.5">
-            <Label
+          <div>
+            <label
               htmlFor="email"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1"
             >
               Email address
-            </Label>
-            <Input
+            </label>
+            <input
               id="email"
               type="email"
               autoComplete="email"
@@ -290,18 +246,18 @@ function SignUpForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
-              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500"
+              className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 rounded-md shadow-sm px-4 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label
+          <div>
+            <label
               htmlFor="password"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1"
             >
               Password
-            </Label>
-            <Input
+            </label>
+            <input
               id="password"
               type="password"
               autoComplete="new-password"
@@ -310,18 +266,18 @@ function SignUpForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
-              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500"
+              className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 rounded-md shadow-sm px-4 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label
+          <div>
+            <label
               htmlFor="confirm-password"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1"
             >
               Confirm password
-            </Label>
-            <Input
+            </label>
+            <input
               id="confirm-password"
               type="password"
               autoComplete="new-password"
@@ -330,11 +286,10 @@ function SignUpForm() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={loading}
-              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500"
+              className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 rounded-md shadow-sm px-4 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
-          {/* Inline error banner */}
           {error && (
             <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3">
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
@@ -342,29 +297,25 @@ function SignUpForm() {
             </div>
           )}
 
-          <Button
+          <button
             type="submit"
             disabled={loading}
-            className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded-md transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
-              <span className="flex items-center gap-2">
+              <>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Creating account…
-              </span>
+              </>
             ) : (
               "Create Account"
             )}
-          </Button>
+          </button>
         </form>
 
-        {/* Sign in link */}
-        <p className="mt-6 text-center text-sm text-slate-500">
+        <p className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{" "}
-          <Link
-            href="/login"
-            className="font-semibold text-slate-800 underline-offset-2 hover:underline"
-          >
+          <Link href="/login" className="font-semibold text-gray-800 underline-offset-2 hover:underline">
             Sign in
           </Link>
         </p>
@@ -374,34 +325,34 @@ function SignUpForm() {
 }
 
 // ---------------------------------------------------------------------------
-// Page export — split-screen layout with Suspense boundary
+// Page export
 // ---------------------------------------------------------------------------
 
 export default function SignUpPage() {
   return (
     <div className="relative flex min-h-screen flex-col lg:flex-row">
-      {/* Prominent "Back" button — top-left corner, always visible */}
+      {/* Back button */}
       <Link
         href="/"
         aria-label="Back to home"
-        className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-4 py-2.5 text-sm font-bold text-slate-800 shadow-sm backdrop-blur transition-all hover:border-slate-300 hover:bg-white hover:shadow-md"
+        className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2.5 text-sm font-semibold shadow-sm transition-all"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
         Back
       </Link>
 
-      {/* Signup form — LEFT panel */}
+      {/* Signup form — LEFT */}
       <Suspense
         fallback={
           <div className="flex w-full items-center justify-center bg-white lg:w-[48%] xl:w-[45%]">
-            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
           </div>
         }
       >
         <SignUpForm />
       </Suspense>
 
-      {/* Branding panel — RIGHT panel */}
+      {/* Brand panel — RIGHT */}
       <BrandPanel />
     </div>
   );
