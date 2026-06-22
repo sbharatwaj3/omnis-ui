@@ -53,8 +53,9 @@ const trustPoints = [
 
 function BrandPanel() {
   return (
-    <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col justify-between bg-slate-900 px-12 py-12">
-      <Link href="/" className="flex items-center gap-3 group">
+    <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col items-center justify-center bg-slate-900 px-12 py-12">
+      {/* Logo — top of panel */}
+      <Link href="/" className="mb-auto flex items-center gap-3 group self-start">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-200">
           <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
         </div>
@@ -66,21 +67,22 @@ function BrandPanel() {
         </div>
       </Link>
 
-      <div className="max-w-md">
+      {/* Centered hero content */}
+      <div className="flex flex-col items-center text-center max-w-sm py-16">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-800 bg-emerald-950/60 px-3 py-1">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-xs font-semibold text-emerald-300">Compliance Vault — Active</span>
         </div>
-        <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white xl:text-4xl">
+        <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white xl:text-4xl">
           Your Regulatory
           <br />
           <span className="text-emerald-400">Evidence — Secured.</span>
-        </h1>
+        </h2>
         <p className="mt-4 text-sm leading-relaxed text-slate-400">
           Secure access to your compliance environment. All sessions are authenticated,
           time-stamped, and recorded under 21 CFR Part 11 electronic records requirements.
         </p>
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 w-full space-y-3 text-left">
           {trustPoints.map((point) => {
             const Icon = point.icon;
             return (
@@ -98,7 +100,8 @@ function BrandPanel() {
         </div>
       </div>
 
-      <p className="text-xs text-slate-600">
+      {/* Footer */}
+      <p className="mt-auto text-xs text-slate-600">
         © 2026 Omnis MedTech Corp. Access restricted to authorized personnel only.
       </p>
     </div>
