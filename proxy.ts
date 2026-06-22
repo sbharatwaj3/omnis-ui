@@ -1,4 +1,4 @@
-// omnis-ui/proxy.ts
+﻿// omnis-ui/proxy.ts
 // The Gatekeeper — Next.js middleware (file is named proxy.ts per project convention).
 // Public routes:  /  (landing), /login, /signup
 // Protected routes: /dashboard, /logs/*, /readiness, /onboarding
@@ -10,7 +10,7 @@
 // ONBOARDING GATE:
 //   After login, if public.users.org_id IS NULL the user is in a "pending"
 //   state. They are forced onto /onboarding and blocked from /dashboard,
-//   /logs/*, and /readiness until they create or join an organisation.
+//   /logs/*, and /readiness until they create or join an organization.
 //   Once org_id is set, /onboarding redirects to /dashboard automatically.
 
 import { createServerClient } from "@supabase/ssr";

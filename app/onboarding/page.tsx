@@ -1,15 +1,15 @@
-"use client";
+﻿"use client";
 // omnis-ui/app/onboarding/page.tsx
-// Omnis RegOps — Organisation Onboarding
+// Omnis RegOps — Organization Onboarding
 //
 // Presented to every user whose public.users.org_id is NULL (pending state).
 // The middleware gate in proxy.ts enforces this route — no authenticated user
 // with a resolved org_id can land here (they are redirected to /dashboard).
 //
 // Two flows:
-//   1. Create New Organisation — input a company name → creates an org row
+//   1. Create New Organization — input a company name → creates an org row
 //      and assigns it to the current user.
-//   2. Join Existing Organisation — input an Enterprise Code (org_id UUID)
+//   2. Join Existing Organization — input an Enterprise Code (org_id UUID)
 //      → verifies the org exists and assigns it to the current user.
 //
 // On success both flows server-redirect to /dashboard.
@@ -65,7 +65,7 @@ function BrandPanel() {
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-800 bg-emerald-950/60 px-3 py-1">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-xs font-semibold text-emerald-300">
-            Organisation Setup — Step 1 of 1
+            Organization Setup — Step 1 of 1
           </span>
         </div>
 
@@ -77,7 +77,7 @@ function BrandPanel() {
 
         <p className="mt-4 text-sm leading-relaxed text-slate-400">
           Every evidence log, build record, and regulatory artefact is isolated
-          to your organisation. Set up your workspace to start capturing
+          to your organization. Set up your workspace to start capturing
           cryptographically signed compliance data.
         </p>
 
@@ -85,12 +85,12 @@ function BrandPanel() {
           <FeaturePoint
             icon={Building2}
             title="Multi-Tenant Isolation"
-            body="Your data is partitioned at the database layer via Row Level Security. No other organisation can ever access your records."
+            body="Your data is partitioned at the database layer via Row Level Security. No other organization can ever access your records."
           />
           <FeaturePoint
             icon={ShieldCheck}
             title="21 CFR Part 11 Audit Trail"
-            body="Organisation creation is itself a signed event appended to the immutable evidence ledger."
+            body="Organization creation is itself a signed event appended to the immutable evidence ledger."
           />
           <FeaturePoint
             icon={Users}
@@ -101,7 +101,7 @@ function BrandPanel() {
       </div>
 
       <p className="text-xs text-slate-600">
-        © 2026 Omnis MedTech Corp. Access restricted to authorised personnel only.
+        © 2026 Omnis MedTech Corp. Access restricted to authorized personnel only.
       </p>
     </div>
   );
@@ -201,7 +201,7 @@ const ROLE_OPTIONS = [
   {
     value: "qa_manager",
     label: "QA Manager",
-    description: "Can approve logs, configure settings, and manage API keys.",
+    description: "Can view and approve compliance logs on the dashboard.",
   },
   {
     value: "developer",
@@ -292,7 +292,7 @@ function RoleSelector({
 }
 
 // ---------------------------------------------------------------------------
-// Create Organisation form
+// Create Organization form
 // ---------------------------------------------------------------------------
 
 function CreateOrgForm() {
@@ -339,16 +339,15 @@ function CreateOrgForm() {
       </div>
 
       {/* Role notice for org creators */}
-      <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-3 dark:border-emerald-800/60 dark:bg-emerald-950/40">
-        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+      <div className="flex items-start gap-2.5 rounded-lg border border-violet-200 bg-violet-50 px-3.5 py-3 dark:border-violet-800/60 dark:bg-violet-950/40">
+        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" />
         <div>
-          <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-            You will be assigned the QA Manager role
+          <p className="text-xs font-semibold text-violet-800 dark:text-violet-300">
+            You will be assigned the Admin role
           </p>
-          <p className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-400">
-            As the workspace creator, you will have full access to approve logs,
-            manage settings, and control API keys. You can invite others with
-            different roles after setup.
+          <p className="mt-0.5 text-xs text-violet-700 dark:text-violet-400">
+            As the workspace creator, you will have full Admin access — manage
+            team members, approve compliance logs, and control all settings.
           </p>
         </div>
       </div>
@@ -367,7 +366,7 @@ function CreateOrgForm() {
           </span>
         ) : (
           <span className="flex items-center gap-2">
-            Create Organisation
+            Create Organization
             <ArrowRight className="h-4 w-4" />
           </span>
         )}
@@ -377,7 +376,7 @@ function CreateOrgForm() {
 }
 
 // ---------------------------------------------------------------------------
-// Join Organisation form
+// Join Organization form
 // ---------------------------------------------------------------------------
 
 function JoinOrgForm() {
@@ -420,7 +419,7 @@ function JoinOrgForm() {
           className="h-11 font-mono text-sm border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
         />
         <p className="text-[11px] text-slate-400">
-          Ask your organisation administrator for the Enterprise Code. It is a
+          Ask your organization administrator for the Enterprise Code. It is a
           UUID in the format shown above.
         </p>
       </div>
@@ -441,7 +440,7 @@ function JoinOrgForm() {
           </span>
         ) : (
           <span className="flex items-center gap-2">
-            Join Organisation
+            Join Organization
             <ArrowRight className="h-4 w-4" />
           </span>
         )}
@@ -511,7 +510,7 @@ function OnboardingCard() {
             Set up your workspace
           </h2>
           <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-            Create a new organisation or join an existing one to activate your
+            Create a new organization or join an existing one to activate your
             compliance dashboard.
           </p>
         </div>
@@ -526,7 +525,7 @@ function OnboardingCard() {
             <span className="font-semibold text-slate-800 dark:text-slate-200">
               Multi-tenant isolation active.
             </span>{" "}
-            Your data is partitioned by organisation at the database layer.
+            Your data is partitioned by organization at the database layer.
           </p>
         </div>
 

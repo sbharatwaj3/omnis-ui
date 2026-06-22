@@ -18,7 +18,7 @@ export async function approveLog(logId: string): Promise<ApproveLogResult> {
   // Step 1: Verify the authenticated session server-side.
   // A forged or missing session terminates the action here — we never reach
   // the database write. This satisfies 21 CFR Part 11 §11.10(d) (system
-  // access limited to authorised individuals).
+  // access limited to authorized individuals).
   const supabase = await createClient();
 
   const {
@@ -29,7 +29,7 @@ export async function approveLog(logId: string): Promise<ApproveLogResult> {
   if (authError || !user) {
     return {
       success: false,
-      error: "Unauthorised: valid session required to approve a log.",
+      error: "Unauthorized: valid session required to approve a log.",
     };
   }
 

@@ -1,11 +1,11 @@
-// omnis-ui/app/actions/stripe.ts
+﻿// omnis-ui/app/actions/stripe.ts
 // Server Action -- Stripe Checkout Session Creator
 //
 // Responsibilities:
 //   1. Initialise a Stripe client using the server-only STRIPE_SECRET_KEY.
 //   2. Create a subscription-mode checkout session for the given orgId.
 //   3. Embed orgId in BOTH subscription_data.metadata AND session-level metadata
-//      so the future /api/stripe/webhook can identify the organisation on
+//      so the future /api/stripe/webhook can identify the organization on
 //      both invoice.payment_succeeded and checkout.session.completed events.
 //   4. Return the Stripe-hosted checkout URL for client-side redirect.
 //
@@ -28,7 +28,7 @@ import Stripe from "stripe";
 /**
  * Creates a Stripe Checkout Session for a subscription purchase.
  *
- * @param orgId   - The Supabase org_id UUID of the purchasing organisation.
+ * @param orgId   - The Supabase org_id UUID of the purchasing organization.
  *                  Embedded in metadata so the webhook can map the subscription
  *                  back to the correct `organizations` row.
  * @param priceId - Optional override for the Stripe Price ID. Defaults to

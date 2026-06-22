@@ -9,7 +9,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
-export type UserRole = "qa_manager" | "developer" | "viewer" | null;
+export type UserRole = "admin" | "qa_manager" | "developer" | "viewer" | null;
 
 export interface UseUserRoleResult {
   role: UserRole;

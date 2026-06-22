@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 // omnis-ui/app/signup/page.tsx
 // Omnis RegOps — Account Creation Gateway
 //
@@ -122,7 +122,7 @@ function BrandPanel() {
 
       {/* Footer */}
       <p className="text-xs text-slate-600">
-        © 2026 Omnis MedTech Corp. Access restricted to authorised personnel only.
+        © 2026 Omnis MedTech Corp. Access restricted to authorized personnel only.
       </p>
     </div>
   );
@@ -171,7 +171,22 @@ function SignUpForm() {
     });
 
     if (authError) {
-      setError(authError.message);
+      // Gracefully handle the "user already exists" case so users are not
+      // confused by a raw Supabase error message.
+      const msg = authError.message.toLowerCase();
+      if (
+        msg.includes("already registered") ||
+        msg.includes("already been registered") ||
+        msg.includes("user already exists") ||
+        msg.includes("email address is already") ||
+        msg.includes("email already in use")
+      ) {
+        setError(
+          "This email is already in use. Please log in or reset your password.",
+        );
+      } else {
+        setError(authError.message);
+      }
       setLoading(false);
       return;
     }
@@ -278,7 +293,7 @@ function SignUpForm() {
               type="email"
               autoComplete="email"
               required
-              placeholder="you@organisation.com"
+              placeholder="you@organization.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}

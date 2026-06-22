@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 // omnis-ui/app/login/page.tsx
 // Omnis RegOps — Authentication Gateway
 //
@@ -120,7 +120,7 @@ function BrandPanel() {
       {/* Footer */}
       <p className="text-xs text-slate-600">
         © 2026 Omnis MedTech Corp. Access restricted to
-        authorised personnel only.
+        authorized personnel only.
       </p>
     </div>
   );
@@ -218,7 +218,7 @@ function AuthForm() {
               type="email"
               autoComplete="email"
               required
-              placeholder="you@organisation.com"
+              placeholder="you@organization.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
@@ -283,9 +283,19 @@ function AuthForm() {
           </Link>
         </p>
 
+        {/* Forgot password link */}
+        <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
+          <Link
+            href="/forgot-password"
+            className="font-semibold text-slate-800 underline-offset-2 hover:underline dark:text-slate-200"
+          >
+            Forgot your password?
+          </Link>
+        </p>
+
         {/* Footer note */}
         <p className="mt-5 text-center text-xs leading-relaxed text-slate-400 dark:text-slate-600">
-          Access is restricted to authorised personnel only.
+          Access is restricted to authorized personnel only.
           <br />
           Contact your system administrator if you need access.
         </p>

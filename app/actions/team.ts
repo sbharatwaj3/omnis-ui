@@ -1,6 +1,6 @@
 "use server";
 // omnis-ui/app/actions/team.ts
-// Team Management Server Actions — invite teammates and list org members.
+// Team Management Server Actions — invite teammates, remove users, list org members.
 //
 // CONSTITUTION LAW II:
 //   - Session verified server-side on every invocation. No auth bypass.
@@ -8,8 +8,8 @@
 //   - All secrets loaded via process.env; nothing is hardcoded.
 //
 // SECURITY MODEL:
-//   - Only qa_managers may invite new users (enforced server-side).
-//     Sending the form from the client as a different role returns an error.
+//   - Only admins may invite or remove users (enforced server-side).
+//     qa_managers can view and approve compliance logs but cannot manage team.
 //   - The Supabase Auth Admin API sends the invite email and creates the
 //     auth.users row. The deferred-profile trigger (migration
 //     20260613192613) will create the public.users row on first sign-in.
@@ -20,13 +20,20 @@
 //
 // INVITE FLOW:
 //   1. Verify caller session and resolve their org_id + role.
-//   2. Reject if caller is not qa_manager.
+//   2. Reject if caller is not admin.
 //   3. Validate email and role input.
 //   4. Call auth.admin.inviteUserByEmail — Supabase sends the magic-link email.
 //      The `data.options.data` payload seeds the raw_user_meta_data which the
 //      deferred-profile trigger reads to assign org_id on sign-up.
 //   5. Pre-insert a user_roles row so the role is applied at first login.
 //   6. Upsert public.users with org_id in case the user already exists in auth.
+//
+// REMOVE FLOW:
+//   1. Verify caller session and resolve their org_id + role.
+//   2. Reject if caller is not admin.
+//   3. Prevent self-removal.
+//   4. Delete the user_roles row (removes org access) and clear org_id from
+//      public.users — keeps the auth account intact but boots them from the org.
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
@@ -36,7 +43,7 @@ import { adminClient } from "@/utils/supabase/admin";
 // Types
 // ---------------------------------------------------------------------------
 
-export type InviteRole = "qa_manager" | "developer" | "viewer";
+export type InviteRole = "admin" | "qa_manager" | "developer" | "viewer";
 
 export interface TeamMember {
   user_id: string;
@@ -46,6 +53,11 @@ export interface TeamMember {
 }
 
 export interface InviteResult {
+  success: boolean;
+  error?: string;
+}
+
+export interface RemoveResult {
   success: boolean;
   error?: string;
 }
@@ -103,7 +115,7 @@ async function resolveCallerContext(): Promise<{
 // ---------------------------------------------------------------------------
 // Sends a Supabase Auth invite email and pre-assigns the org + role so the
 // invitee lands in the correct workspace on first sign-in.
-// PERMISSION GATE: qa_manager only.
+// PERMISSION GATE: admin only.
 // ---------------------------------------------------------------------------
 
 export async function inviteTeamMember(
@@ -112,14 +124,14 @@ export async function inviteTeamMember(
   // Step 1: Resolve caller context (session + org + role).
   const ctx = await resolveCallerContext();
   if (!ctx) {
-    return { success: false, error: "Unauthorised: valid session required." };
+    return { success: false, error: "Unauthorized: valid session required." };
   }
 
-  // Step 2: Enforce RBAC — only QA Managers may send invites.
-  if (ctx.role !== "qa_manager") {
+  // Step 2: Enforce RBAC — only Admins may send invites.
+  if (ctx.role !== "admin") {
     return {
       success: false,
-      error: "Permission denied: only QA Managers can invite team members.",
+      error: "Permission denied: only Admins can invite team members.",
     };
   }
 
@@ -131,7 +143,7 @@ export async function inviteTeamMember(
     return { success: false, error: "A valid email address is required." };
   }
 
-  const validRoles: InviteRole[] = ["qa_manager", "developer", "viewer"];
+  const validRoles: InviteRole[] = ["admin", "qa_manager", "developer", "viewer"];
   if (!selectedRole || !validRoles.includes(selectedRole)) {
     return { success: false, error: "Please select a valid role." };
   }
@@ -145,9 +157,9 @@ export async function inviteTeamMember(
   // redirectTo points to /onboarding (not /dashboard) as a safety net:
   //   - If the trigger has already resolved org_id, the middleware bounces them
   //     directly to /dashboard (org_id is set, no pending state).
-  //   - If for any reason the trigger didn't resolve org_id (e.g. the DB
-  //     function was not yet deployed), /onboarding catches them so they can
-  //     still complete setup via "Join Existing" with the Enterprise Code.
+  //   - If for any reason the trigger didn't resolve org_id, /onboarding catches
+  //     them so they can still complete setup via "Join Existing" with the
+  //     Enterprise Code.
   const { data: inviteData, error: inviteError } =
     await adminClient.auth.admin.inviteUserByEmail(email, {
       data: {
@@ -183,7 +195,6 @@ export async function inviteTeamMember(
 
   const inviteeId = inviteData.user?.id;
   if (!inviteeId) {
-    // This shouldn't happen if inviteError is null, but be defensive.
     return {
       success: false,
       error: "Invite sent but could not resolve user ID. Role will be assigned on sign-in.",
@@ -191,9 +202,7 @@ export async function inviteTeamMember(
   }
 
   // Step 5: Upsert public.users with org_id.
-  // This handles the edge case where the invitee already existed in auth.users
-  // (e.g. they were previously in Supabase from another project). The
-  // deferred-profile trigger handles new users; this covers existing ones.
+  // Handles the edge case where the invitee already existed in auth.users.
   await adminClient
     .from("users")
     .upsert(
@@ -207,8 +216,6 @@ export async function inviteTeamMember(
     );
 
   // Step 6: Pre-insert the user_roles row.
-  // Use upsert so if they already have a role in this org, we update it to
-  // match what the Admin selected.
   const { error: roleError } = await adminClient
     .from("user_roles")
     .upsert(
@@ -221,11 +228,101 @@ export async function inviteTeamMember(
     );
 
   if (roleError) {
-    // Non-fatal: the invite was sent. Log for investigation.
     console.error("[inviteTeamMember] Role upsert error:", roleError.message);
   }
 
   // Step 7: Revalidate the team page so the member list refreshes.
+  revalidatePath("/dashboard/team");
+
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Action: removeTeamMember
+// ---------------------------------------------------------------------------
+// Removes a user from the organization by:
+//   - Deleting their user_roles row (strips dashboard access via RLS).
+//   - Clearing org_id on their public.users row (routes them to /onboarding
+//     if they attempt to log in again).
+//
+// The auth.users account is intentionally preserved so the user's email can
+// be re-invited later without creating a duplicate account.
+//
+// PERMISSION GATE: admin only. Self-removal is blocked.
+// ---------------------------------------------------------------------------
+
+export async function removeTeamMember(
+  targetUserId: string,
+): Promise<RemoveResult> {
+  // Step 1: Resolve caller context.
+  const ctx = await resolveCallerContext();
+  if (!ctx) {
+    return { success: false, error: "Unauthorized: valid session required." };
+  }
+
+  // Step 2: Enforce RBAC — only Admins may remove users.
+  if (ctx.role !== "admin") {
+    return {
+      success: false,
+      error: "Permission denied: only Admins can remove team members.",
+    };
+  }
+
+  // Step 3: Prevent self-removal — an admin cannot remove themselves to avoid
+  // locking an org without any admin.
+  if (targetUserId === ctx.userId) {
+    return {
+      success: false,
+      error: "You cannot remove yourself from the organization.",
+    };
+  }
+
+  // Step 4: Verify the target user actually belongs to the caller's org.
+  // This prevents an admin from removing users from other orgs by guessing
+  // user IDs (cross-tenant protection).
+  const { data: targetProfile } = await adminClient
+    .from("users")
+    .select("user_id, org_id")
+    .eq("user_id", targetUserId)
+    .eq("org_id", ctx.orgId)
+    .single();
+
+  if (!targetProfile) {
+    return {
+      success: false,
+      error: "User not found in your organization.",
+    };
+  }
+
+  // Step 5: Delete the user_roles row — this immediately revokes dashboard
+  // access via the RLS policy that requires get_auth_role() IS NOT NULL.
+  const { error: roleDeleteError } = await adminClient
+    .from("user_roles")
+    .delete()
+    .eq("user_id", targetUserId)
+    .eq("org_id", ctx.orgId);
+
+  if (roleDeleteError) {
+    console.error("[removeTeamMember] Role delete error:", roleDeleteError.message);
+    return {
+      success: false,
+      error: "Failed to remove user from the organization. Please try again.",
+    };
+  }
+
+  // Step 6: Clear org_id on the user's profile row so they are routed to
+  // /onboarding (pending state) if they attempt to sign in again.
+  const { error: profileUpdateError } = await adminClient
+    .from("users")
+    .update({ org_id: null })
+    .eq("user_id", targetUserId);
+
+  if (profileUpdateError) {
+    // Non-fatal: role row is deleted, RLS blocks access. Log for investigation.
+    console.error("[removeTeamMember] Profile org_id clear error:", profileUpdateError.message);
+  }
+
+  // Step 7: Revalidate the team page.
   revalidatePath("/dashboard/team");
 
   return { success: true };
@@ -241,7 +338,7 @@ export async function inviteTeamMember(
 export async function listTeamMembers(): Promise<ListMembersResult> {
   const ctx = await resolveCallerContext();
   if (!ctx) {
-    return { members: [], error: "Unauthorised." };
+    return { members: [], error: "Unauthorized." };
   }
 
   // Fetch all users in the org

@@ -1,5 +1,5 @@
-// omnis-ui/app/dashboard/setup/page.tsx
-// CLI Integration Setup — step-by-step onboarding flow for new organisations.
+﻿// omnis-ui/app/dashboard/setup/page.tsx
+// CLI Integration Setup — step-by-step onboarding flow for new organizations.
 //
 // React Server Component shell. Fetches initial API key and log count at
 // request time, then delegates interactive polling and UI state to the

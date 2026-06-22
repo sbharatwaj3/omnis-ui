@@ -1,4 +1,4 @@
-// omnis-ui/app/readiness/page.tsx
+﻿// omnis-ui/app/readiness/page.tsx
 // FDA Submission Readiness — Traceability Matrix & Gap Analysis
 //
 // =============================================================================
@@ -381,7 +381,7 @@ function TenantBanner({
         <span className="flex items-center gap-1.5">
           <Building2 className="h-3.5 w-3.5 text-zinc-400" />
           <span className="font-semibold text-zinc-700 dark:text-zinc-200">
-            {tenant.orgName ?? "(no organisation assigned)"}
+            {tenant.orgName ?? "(no organization assigned)"}
           </span>
         </span>
         {tenant.orgId && (
