@@ -40,7 +40,7 @@ const PLATFORMS: Platform[] = [
     label: "Windows",
     os: "Windows 10 / 11 · x64",
     icon: <Monitor className="h-5 w-5" strokeWidth={1.5} />,
-    filename: "omnis-cli-windows-amd64.exe",
+    filename: "omnis-run-windows-amd64.exe",
     href: "#",
     badge: ".exe",
   },
@@ -48,14 +48,14 @@ const PLATFORMS: Platform[] = [
     label: "macOS",
     os: "macOS 12+ · Apple Silicon & Intel",
     icon: <Apple className="h-5 w-5" strokeWidth={1.5} />,
-    filename: "omnis-cli-darwin-universal",
+    filename: "omnis-run-darwin-universal",
     href: "#",
   },
   {
     label: "Linux",
     os: "Ubuntu 20.04+ / Debian · x64",
     icon: <Server className="h-5 w-5" strokeWidth={1.5} />,
-    filename: "omnis-cli-linux-amd64",
+    filename: "omnis-run-linux-amd64",
     href: "#",
   },
 ];
@@ -313,9 +313,9 @@ export default function IntegrationPage() {
                 Run the CLI &amp; Ingest Evidence
               </h3>
               <p className="mt-0.5 text-xs text-zinc-400">
-                After your test suite completes, pipe the JSON results file
-                to the Omnis ingest command. Omnis signs, hashes, and stores
-                the evidence log automatically.
+                After your test suite completes, pass the JSON results file
+                to <code className="font-mono">omnis-run</code>. It signs, hashes, and
+                ships the evidence log to Omnis automatically — no flags required.
               </p>
             </div>
           </div>
@@ -323,58 +323,24 @@ export default function IntegrationPage() {
           {/* Primary command */}
           <div className="mb-4">
             <p className="mb-2 text-xs font-medium text-zinc-500">
-              Basic usage
+              Basic usage (Linux / macOS)
             </p>
             <TerminalBlock
-              code="omnis-cli ingest --results ./test-output.json"
+              code="omnis-run ./test-output.json"
               lang="shell"
               prominent
             />
           </div>
 
-          {/* Extended example */}
+          {/* Windows variant */}
           <div>
             <p className="mb-2 text-xs font-medium text-zinc-500">
-              Full CI/CD example (with build version and requirement tag)
+              Windows (PowerShell / CMD)
             </p>
             <TerminalBlock
-              code={`omnis-cli ingest \\\n  --results ./test-output.json \\\n  --build-version "v2.4.1" \\\n  --req-id "FDA-820.30g"`}
-              lang="shell"
+              code="omnis-run.exe .\test-output.json"
+              lang="powershell"
             />
-          </div>
-
-          {/* Flag reference */}
-          <div className="mt-5 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              Flag Reference
-            </p>
-            <div className="space-y-2">
-              {[
-                {
-                  flag: "--results <path>",
-                  desc: "Path to the pytest / test runner JSON output file (required)",
-                },
-                {
-                  flag: "--build-version <str>",
-                  desc: "SemVer string for this build, e.g. v2.4.1 (optional)",
-                },
-                {
-                  flag: "--req-id <str>",
-                  desc: "Regulatory requirement ID to tag this run against, e.g. FDA-820.30g (optional)",
-                },
-                {
-                  flag: "--dry-run",
-                  desc: "Validate payload and print the signed JSON without submitting (optional)",
-                },
-              ].map(({ flag, desc }) => (
-                <div key={flag} className="flex items-start gap-3">
-                  <code className="shrink-0 rounded bg-zinc-100 px-2 py-0.5 font-mono text-[11px] text-zinc-700">
-                    {flag}
-                  </code>
-                  <p className="text-xs text-zinc-500">{desc}</p>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
 
