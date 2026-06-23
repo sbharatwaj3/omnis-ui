@@ -92,13 +92,13 @@ function StepBadge({
   }
   if (step === current) {
     return (
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white text-xs font-bold dark:bg-zinc-100 dark:text-zinc-900">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white text-xs font-bold">
         {step}
       </div>
     );
   }
   return (
-    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-zinc-200 text-zinc-400 text-xs font-bold dark:border-zinc-700">
+    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-zinc-200 text-zinc-400 text-xs font-bold">
       {step}
     </div>
   );
@@ -122,7 +122,7 @@ function CopyButton({ value, label }: { value: string; label?: string }) {
     <button
       onClick={handleCopy}
       aria-label={copied ? "Copied" : (label ?? "Copy to clipboard")}
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600"
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800"
     >
       {copied ? (
         <Check className="h-3.5 w-3.5 text-emerald-500" strokeWidth={2.5} />
@@ -136,8 +136,8 @@ function CopyButton({ value, label }: { value: string; label?: string }) {
 /** Inline code block with a copy button. */
 function CodeBlock({ code }: { code: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 dark:border-zinc-700 dark:bg-zinc-800/60">
-      <code className="flex-1 overflow-x-auto whitespace-pre font-mono text-sm text-zinc-800 dark:text-zinc-200 select-all">
+    <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5">
+      <code className="flex-1 overflow-x-auto whitespace-pre font-mono text-sm text-zinc-800 select-all">
         {code}
       </code>
       <CopyButton value={code} />
@@ -160,16 +160,16 @@ function AnnotationBlock({
   code: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
+    <div className="overflow-hidden rounded-lg border border-zinc-200">
       {/* language label bar */}
-      <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-100 px-3 py-1.5 dark:border-zinc-700 dark:bg-zinc-800">
-        <span className="font-mono text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-100 px-3 py-1.5">
+        <span className="font-mono text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
           {language}
         </span>
       </div>
       {/* code body */}
-      <pre className="overflow-x-auto bg-zinc-50 px-4 py-3 text-xs leading-relaxed dark:bg-zinc-900">
-        <code className="font-mono text-zinc-800 dark:text-zinc-200 whitespace-pre">
+      <pre className="overflow-x-auto bg-zinc-50 px-4 py-3 text-xs leading-relaxed">
+        <code className="font-mono text-zinc-800 whitespace-pre">
           {code}
         </code>
       </pre>
@@ -348,7 +348,7 @@ test('authenticates user session', () => {
     <>
       {/* ── Page header ─────────────────────────────────────────────────── */}
       <div className="mb-8 text-center">
-        <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+        <h2 className="text-2xl font-bold tracking-tight text-zinc-900">
           Connect the CLI
         </h2>
         <p className="mt-2 text-sm text-zinc-400">
@@ -357,7 +357,7 @@ test('authenticates user session', () => {
       </div>
 
       {initError && (
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           {initError}
         </div>
@@ -368,13 +368,13 @@ test('authenticates user session', () => {
         <StepBadge step={1} current={activeStep} done={step1Done} />
         <div
           className={`h-px flex-1 transition-colors duration-500 ${
-            step1Done ? "bg-emerald-400" : "bg-zinc-200 dark:bg-zinc-700"
+            step1Done ? "bg-emerald-400" : "bg-zinc-200"
           }`}
         />
         <StepBadge step={2} current={activeStep} done={step2Done} />
         <div
           className={`h-px flex-1 transition-colors duration-500 ${
-            step2Done ? "bg-emerald-400" : "bg-zinc-200 dark:bg-zinc-700"
+            step2Done ? "bg-emerald-400" : "bg-zinc-200"
           }`}
         />
         <StepBadge step={3} current={activeStep} done={logDetected} />
@@ -384,30 +384,30 @@ test('authenticates user session', () => {
       <Card
         className={`mb-4 border transition-colors ${
           activeStep === 1
-            ? "border-zinc-900 shadow-md dark:border-zinc-100"
-            : "border-zinc-200 dark:border-zinc-800"
-        } dark:bg-zinc-900`}
+            ? "border-zinc-900 shadow-md"
+            : "border-zinc-200"
+        }`}
       >
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
             <div
               className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
                 step1Done
-                  ? "bg-emerald-100 dark:bg-emerald-950/60"
-                  : "bg-zinc-100 dark:bg-zinc-800"
+                  ? "bg-emerald-100"
+                  : "bg-zinc-100"
               }`}
             >
               <Key
                 className={`h-4 w-4 ${
                   step1Done
-                    ? "text-emerald-600 dark:text-emerald-400"
+                    ? "text-emerald-600"
                     : "text-zinc-500"
                 }`}
                 strokeWidth={1.75}
               />
             </div>
             <div>
-              <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+              <CardTitle className="text-sm font-semibold text-zinc-800">
                 Step 1 — Generate an API Key
               </CardTitle>
               <CardDescription className="text-xs text-zinc-400">
@@ -419,11 +419,11 @@ test('authenticates user session', () => {
 
         <CardContent className="pt-0">
           {step1Done && activeKey ? (
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2.5 dark:border-emerald-800/50 dark:bg-emerald-950/30">
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2.5">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" strokeWidth={2} />
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" strokeWidth={2} />
                 <div>
-                  <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                  <p className="text-sm font-medium text-zinc-800">
                     {activeKey.name}
                   </p>
                   <code className="text-xs font-mono text-zinc-500">
@@ -441,12 +441,12 @@ test('authenticates user session', () => {
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs text-zinc-500">
                 You don&apos;t have an active API key yet. Generate one to get started.
                 You can also manage keys from{" "}
                 <Link
                   href="/dashboard/settings"
-                  className="font-medium text-zinc-700 underline-offset-2 hover:underline dark:text-zinc-300"
+                  className="font-medium text-zinc-700 underline-offset-2 hover:underline"
                 >
                   Settings
                 </Link>
@@ -455,7 +455,7 @@ test('authenticates user session', () => {
               <Button
                 size="sm"
                 onClick={openGenerateModal}
-                className="bg-zinc-900 text-zinc-50 hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                className="bg-zinc-900 text-zinc-50 hover:bg-zinc-700"
               >
                 <Plus className="mr-1.5 h-3.5 w-3.5" strokeWidth={2} />
                 Generate API Key
@@ -469,30 +469,30 @@ test('authenticates user session', () => {
       <Card
         className={`mb-4 border transition-colors ${
           activeStep === 2
-            ? "border-zinc-900 shadow-md dark:border-zinc-100"
-            : "border-zinc-200 dark:border-zinc-800"
-        } dark:bg-zinc-900`}
+            ? "border-zinc-900 shadow-md"
+            : "border-zinc-200"
+        }`}
       >
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
             <div
               className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
                 step2Done
-                  ? "bg-emerald-100 dark:bg-emerald-950/60"
-                  : "bg-zinc-100 dark:bg-zinc-800"
+                  ? "bg-emerald-100"
+                  : "bg-zinc-100"
               }`}
             >
               <Download
                 className={`h-4 w-4 ${
                   step2Done
-                    ? "text-emerald-600 dark:text-emerald-400"
+                    ? "text-emerald-600"
                     : "text-zinc-500"
                 }`}
                 strokeWidth={1.75}
               />
             </div>
             <div>
-              <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+              <CardTitle className="text-sm font-semibold text-zinc-800">
                 Step 2 — Install the CLI
               </CardTitle>
               <CardDescription className="text-xs text-zinc-400">
@@ -511,7 +511,7 @@ test('authenticates user session', () => {
                   key={key}
                   href={href}
                   download
-                  className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-xs font-medium text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-zinc-600 dark:hover:bg-zinc-700"
+                  className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-xs font-medium text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50"
                 >
                   <Icon className="h-4 w-4 text-zinc-400 shrink-0" strokeWidth={1.5} />
                   <span className="flex-1 leading-tight">{label}</span>
@@ -522,8 +522,8 @@ test('authenticates user session', () => {
           </div>
 
           {/* macOS chmod reminder */}
-          <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2.5 dark:border-amber-800/40 dark:bg-amber-950/20">
-            <p className="text-xs text-amber-800 dark:text-amber-300">
+          <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2.5">
+            <p className="text-xs text-amber-800">
               <span className="font-semibold">macOS / Linux:</span> make the
               binary executable after download:
             </p>
@@ -534,7 +534,7 @@ test('authenticates user session', () => {
             <Button
               size="sm"
               onClick={handleStep2Continue}
-              className="w-full sm:w-auto bg-zinc-900 text-zinc-50 hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              className="w-full sm:w-auto bg-zinc-900 text-zinc-50 hover:bg-zinc-700"
             >
               I&apos;ve downloaded it
               <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
@@ -542,7 +542,7 @@ test('authenticates user session', () => {
           )}
 
           {step2Done && (
-            <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
+            <div className="flex items-center gap-2 text-xs text-emerald-600">
               <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2} />
               Binary downloaded — ready to run your first test.
             </div>
@@ -554,30 +554,30 @@ test('authenticates user session', () => {
       <Card
         className={`mb-8 border transition-colors ${
           activeStep === 3
-            ? "border-zinc-900 shadow-md dark:border-zinc-100"
-            : "border-zinc-200 dark:border-zinc-800"
-        } dark:bg-zinc-900`}
+            ? "border-zinc-900 shadow-md"
+            : "border-zinc-200"
+        }`}
       >
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
             <div
               className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
                 logDetected
-                  ? "bg-emerald-100 dark:bg-emerald-950/60"
-                  : "bg-zinc-100 dark:bg-zinc-800"
+                  ? "bg-emerald-100"
+                  : "bg-zinc-100"
               }`}
             >
               <Terminal
                 className={`h-4 w-4 ${
                   logDetected
-                    ? "text-emerald-600 dark:text-emerald-400"
+                    ? "text-emerald-600"
                     : "text-zinc-500"
                 }`}
                 strokeWidth={1.75}
               />
             </div>
             <div>
-              <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+              <CardTitle className="text-sm font-semibold text-zinc-800">
                 Step 3 — Run Your First Test
               </CardTitle>
               <CardDescription className="text-xs text-zinc-400">
@@ -590,11 +590,11 @@ test('authenticates user session', () => {
 
         <CardContent className="pt-0 space-y-4">
           {/* ── Sub-step A: Tag your code ──────────────────────────────── */}
-          <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3.5 py-3 dark:border-zinc-700 dark:bg-zinc-800/40">
-            <p className="mb-2.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+          <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3.5 py-3">
+            <p className="mb-2.5 text-xs font-semibold text-zinc-700">
               Step 3a — Tag your tests with requirement IDs
             </p>
-            <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            <p className="mb-3 text-xs text-zinc-500 leading-relaxed">
               Before running the CLI, annotate your tests so the framework injects
               regulatory requirement IDs directly into the output JSON. No flags
               needed on the command line.
@@ -613,10 +613,10 @@ test('authenticates user session', () => {
 
           {/* ── Sub-step B: Run the CLI ───────────────────────────────── */}
           <div>
-            <p className="mb-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <p className="mb-2 text-xs font-semibold text-zinc-700">
               Step 3b — Run the CLI
             </p>
-            <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            <p className="mb-3 text-xs text-zinc-500 leading-relaxed">
               Point the CLI at your test output file. Requirement IDs and build
               info are read from the JSON automatically.
             </p>
@@ -626,7 +626,7 @@ test('authenticates user session', () => {
               <div
                 role="tablist"
                 aria-label="Operating system"
-                className="mb-2 inline-flex rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-700 dark:bg-zinc-800"
+                className="mb-2 inline-flex rounded-lg border border-zinc-200 bg-zinc-50 p-0.5"
               >
                 <button
                   role="tab"
@@ -634,8 +634,8 @@ test('authenticates user session', () => {
                   onClick={() => setOsTab("unix")}
                   className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                     osTab === "unix"
-                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
-                      : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                      ? "bg-white text-zinc-900 shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-700"
                   }`}
                 >
                   <Apple className="h-3.5 w-3.5" strokeWidth={1.75} />
@@ -647,8 +647,8 @@ test('authenticates user session', () => {
                   onClick={() => setOsTab("windows")}
                   className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                     osTab === "windows"
-                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
-                      : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                      ? "bg-white text-zinc-900 shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-700"
                   }`}
                 >
                   <Monitor className="h-3.5 w-3.5" strokeWidth={1.75} />
@@ -658,7 +658,7 @@ test('authenticates user session', () => {
 
               <CodeBlock code={firstTestSnippet} />
               {revealedKey && (
-                <p className="mt-1.5 text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <p className="mt-1.5 text-[11px] text-amber-600 flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3 shrink-0" />
                   Your full key is shown above — copy it now. It won&apos;t be shown again after you leave this page.
                 </p>
@@ -668,18 +668,18 @@ test('authenticates user session', () => {
 
           {/* Polling status */}
           {!logDetected ? (
-            <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 dark:border-zinc-700 dark:bg-zinc-800/40">
+            <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5">
               {isPolling ? (
                 <>
                   <Loader2 className="h-4 w-4 shrink-0 animate-spin text-zinc-400" />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="text-xs text-zinc-500">
                     Waiting for your first evidence log… polling every 5 s
                   </p>
                 </>
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4 shrink-0 text-zinc-400" />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="text-xs text-zinc-500">
                     Complete steps 1 &amp; 2, then run the snippet above.
                     Polling will start automatically.
                   </p>
@@ -688,12 +688,12 @@ test('authenticates user session', () => {
             </div>
           ) : (
             /* ── Success state ─────────────────────────────────────────── */
-            <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-4 text-center dark:border-emerald-700/50 dark:bg-emerald-950/40">
+            <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-4 text-center">
               <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-emerald-500" strokeWidth={1.75} />
-              <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+              <p className="text-sm font-bold text-emerald-800">
                 First evidence log received!
               </p>
-              <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-400">
+              <p className="mt-1 text-xs text-emerald-700">
                 {logCount} log{logCount !== 1 ? "s" : ""} in your compliance ledger.
                 Your integration is live.
               </p>
@@ -718,7 +718,7 @@ test('authenticates user session', () => {
           Already have evidence logs?{" "}
           <Link
             href="/dashboard"
-            className="font-medium text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400"
+            className="font-medium text-zinc-600 underline-offset-2 hover:underline"
           >
             Go to Dashboard →
           </Link>
@@ -734,19 +734,19 @@ test('authenticates user session', () => {
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
         >
           <div
-            className="absolute inset-0 bg-black/40 dark:bg-black/60"
+            className="absolute inset-0 bg-black/40"
             onClick={closeGenerateModal}
             aria-hidden="true"
           />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl">
             <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800">
-                <Key className="h-4 w-4 text-zinc-600 dark:text-zinc-300" strokeWidth={1.75} />
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50">
+                <Key className="h-4 w-4 text-zinc-600" strokeWidth={1.75} />
               </div>
               <div>
                 <h2
                   id="setup-generate-key-title"
-                  className="text-base font-semibold text-zinc-900 dark:text-zinc-100"
+                  className="text-base font-semibold text-zinc-900"
                 >
                   New API Key
                 </h2>
@@ -759,7 +759,7 @@ test('authenticates user session', () => {
             <div className="space-y-1.5">
               <Label
                 htmlFor="setup-api-key-name"
-                className="text-xs font-medium text-zinc-700 dark:text-zinc-300"
+                className="text-xs font-medium text-zinc-700"
               >
                 Key Name
               </Label>
@@ -778,7 +778,7 @@ test('authenticates user session', () => {
                 }}
                 placeholder="e.g. Local Dev · MacBook Pro"
                 maxLength={120}
-                className="h-9 text-sm dark:border-zinc-600 dark:bg-zinc-800"
+                className="h-9 text-sm"
                 aria-describedby={keyNameError ? "setup-key-name-error" : undefined}
                 aria-invalid={!!keyNameError}
               />
@@ -794,7 +794,7 @@ test('authenticates user session', () => {
             </div>
 
             {generateError && (
-              <div className="mt-3 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
+              <div className="mt-3 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 {generateError}
               </div>
@@ -806,7 +806,7 @@ test('authenticates user session', () => {
                 size="sm"
                 onClick={closeGenerateModal}
                 disabled={isGenerating}
-                className="text-zinc-600 dark:border-zinc-600 dark:text-zinc-300"
+                className="text-zinc-600"
               >
                 Cancel
               </Button>
@@ -814,7 +814,7 @@ test('authenticates user session', () => {
                 size="sm"
                 onClick={handleGenerate}
                 disabled={isGenerating}
-                className="bg-zinc-900 text-zinc-50 hover:bg-zinc-700 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                className="bg-zinc-900 text-zinc-50 hover:bg-zinc-700 disabled:opacity-60"
               >
                 {isGenerating ? (
                   <>
@@ -838,15 +838,15 @@ test('authenticates user session', () => {
           aria-labelledby="setup-reveal-key-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
         >
-          <div className="absolute inset-0 bg-black/50 dark:bg-black/70" aria-hidden="true" />
-          <div className="relative z-10 w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
-            <div className="mb-5 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-600/40 dark:bg-amber-950/40">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" strokeWidth={2} />
+          <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
+          <div className="relative z-10 w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" strokeWidth={2} />
               <div>
-                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                <p className="text-sm font-semibold text-amber-800">
                   Copy this key now — it will never be shown again
                 </p>
-                <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+                <p className="mt-0.5 text-xs text-amber-700">
                   The full key is not stored anywhere in Omnis. Once you close
                   this dialog you cannot retrieve it. If you lose it, revoke it
                   and generate a new one.
@@ -856,13 +856,13 @@ test('authenticates user session', () => {
 
             <h2
               id="setup-reveal-key-title"
-              className="mb-3 text-base font-semibold text-zinc-900 dark:text-zinc-100"
+              className="mb-3 text-base font-semibold text-zinc-900"
             >
               Your New API Key
             </h2>
 
-            <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
-              <code className="flex-1 select-all overflow-x-auto whitespace-nowrap font-mono text-sm text-zinc-800 dark:text-zinc-200">
+            <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+              <code className="flex-1 select-all overflow-x-auto whitespace-nowrap font-mono text-sm text-zinc-800">
                 {revealedKey}
               </code>
               <CopyButton value={revealedKey} label="Copy API key" />
@@ -872,7 +872,7 @@ test('authenticates user session', () => {
               <Button
                 size="sm"
                 onClick={dismissRevealModal}
-                className="bg-zinc-900 text-zinc-50 hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                className="bg-zinc-900 text-zinc-50 hover:bg-zinc-700"
               >
                 I have copied my key — close
               </Button>

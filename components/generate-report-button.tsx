@@ -224,15 +224,15 @@ export function GenerateReportButton({
 
       {/* ── Draft warning modal ── */}
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <AlertDialogContent className="border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        <AlertDialogContent className="border-zinc-200 bg-white">
           <AlertDialogHeader>
             <div className="mb-2 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              <AlertDialogTitle className="text-zinc-900 dark:text-zinc-100">
+              <AlertDialogTitle className="text-zinc-900">
                 Incomplete Compliance Matrix
               </AlertDialogTitle>
             </div>
-            <AlertDialogDescription className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <AlertDialogDescription className="text-sm leading-relaxed text-zinc-600">
               Your compliance matrix is{" "}
               <span className="font-semibold text-amber-600">
                 {completionPercent.toFixed(1)}% ready
@@ -252,7 +252,7 @@ export function GenerateReportButton({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300">
+            <AlertDialogCancel className="border-zinc-200 text-zinc-700 hover:bg-zinc-50">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

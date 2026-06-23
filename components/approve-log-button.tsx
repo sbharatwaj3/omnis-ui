@@ -76,7 +76,7 @@ export function ApproveLogButton({
       <div className="flex flex-col items-end gap-1">
         <div
           title="Role: Viewer or Developer — only QA Managers can approve logs"
-          className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 opacity-60 cursor-not-allowed dark:border-zinc-700 dark:bg-zinc-800"
+          className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 opacity-60 cursor-not-allowed"
         >
           <Lock className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
           <span className="text-xs font-medium text-zinc-500">

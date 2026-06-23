@@ -27,28 +27,28 @@ const ROLE_CONFIG: Record<
     label: "Admin",
     tooltip: "Role: Admin (Full Access — manage team, approve logs, all settings)",
     className:
-      "bg-violet-600 text-white border-violet-700 dark:bg-violet-500 dark:border-violet-600",
+      "bg-violet-600 text-white border-violet-700",
     Icon: Crown,
   },
   qa_manager: {
     label: "QA Manager",
     tooltip: "Role: QA Manager (View and approve compliance logs)",
     className:
-      "bg-emerald-600 text-white border-emerald-700 dark:bg-emerald-500 dark:border-emerald-600",
+      "bg-emerald-600 text-white border-emerald-700",
     Icon: ShieldCheck,
   },
   developer: {
     label: "Developer",
     tooltip: "Role: Developer (Ingest logs, view metrics)",
     className:
-      "bg-blue-600 text-white border-blue-700 dark:bg-blue-500 dark:border-blue-600",
+      "bg-blue-600 text-white border-blue-700",
     Icon: Code2,
   },
   viewer: {
     label: "Viewer",
     tooltip: "Role: Viewer (Read-Only access to dashboard)",
     className:
-      "bg-slate-500 text-white border-slate-600 dark:bg-slate-600 dark:border-slate-700",
+      "bg-slate-500 text-white border-slate-600",
     Icon: Eye,
   },
 };

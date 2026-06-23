@@ -124,17 +124,17 @@ interface PricingHeaderProps {
 
 function PricingHeader({ userEmail }: PricingHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-sm dark:border-slate-800/80 dark:bg-slate-950/90">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg ring-1 ring-slate-200 group-hover:ring-emerald-400 transition-all duration-200 dark:ring-slate-700">
-            <ShieldCheck className="h-4 w-4 text-slate-800 dark:text-slate-200" strokeWidth={1.75} />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg ring-1 ring-slate-200 group-hover:ring-emerald-400 transition-all duration-200">
+            <ShieldCheck className="h-4 w-4 text-slate-800" strokeWidth={1.75} />
           </div>
           <div className="leading-none">
-            <span className="block text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <span className="block text-sm font-bold tracking-tight text-slate-900">
               Omnis MedTech Corp
             </span>
-            <span className="block text-[10px] font-medium tracking-widest text-emerald-600 uppercase dark:text-emerald-400">
+            <span className="block text-[10px] font-medium tracking-widest text-emerald-600 uppercase">
               RegOps Platform
             </span>
           </div>
@@ -149,7 +149,7 @@ function PricingHeader({ userEmail }: PricingHeaderProps) {
           // Unauthenticated: standard Sign In link.
           <Link
             href="/login"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50"
           >
             Sign In
             <ArrowRight className="h-3.5 w-3.5" />
@@ -166,27 +166,27 @@ function PricingHeader({ userEmail }: PricingHeaderProps) {
 
 function PricingHero() {
   return (
-    <section className="relative overflow-hidden bg-white dark:bg-slate-950">
+    <section className="relative overflow-hidden bg-white">
       {/* Subtle grid background */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-60 dark:bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] dark:opacity-30"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-60"
       />
       {/* Emerald glow */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-72 w-[700px] rounded-full bg-emerald-400/10 blur-3xl dark:bg-emerald-600/10"
+        className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-72 w-[700px] rounded-full bg-emerald-400/10 blur-3xl"
       />
       <div className="relative mx-auto max-w-4xl px-6 py-20 text-center md:py-28">
         {/* Eyebrow */}
-        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 dark:border-emerald-800 dark:bg-emerald-950">
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5">
           <Zap className="h-3.5 w-3.5 text-emerald-500" />
-          <span className="text-xs font-semibold tracking-wide text-emerald-700 dark:text-emerald-300">
+          <span className="text-xs font-semibold tracking-wide text-emerald-700">
             Simple, usage-based pricing
           </span>
         </div>
         {/* Headline */}
-        <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-slate-50 md:text-5xl lg:text-6xl">
+        <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl lg:text-6xl">
           Simple, transparent pricing for MedTech teams.
         </h1>
         {/* Compliance badges */}
@@ -194,7 +194,7 @@ function PricingHero() {
           {complianceBadges.map((badge) => (
             <span
               key={badge}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600"
             >
               <CheckCircle2 className="h-3 w-3 text-emerald-500" />
               {badge}
@@ -212,13 +212,13 @@ function PricingHero() {
 
 function PricingCards({ orgId }: { orgId: string | null }) {
   return (
-    <section className="border-t border-slate-200 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-900/50 md:py-24">
+    <section className="border-t border-slate-200 bg-slate-50 py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-6">
 
         {/* Token-unit explanation callout */}
-        <div className="mx-auto mb-12 max-w-2xl rounded-xl border border-slate-200 bg-white px-5 py-4 text-center dark:border-slate-700 dark:bg-slate-800/50">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            <span className="font-semibold text-slate-800 dark:text-slate-200">What&apos;s a token-unit?</span>
+        <div className="mx-auto mb-12 max-w-2xl rounded-xl border border-slate-200 bg-white px-5 py-4 text-center">
+          <p className="text-sm text-slate-600">
+            <span className="font-semibold text-slate-800">What&apos;s a token-unit?</span>
             {" "}One unit equals one AWS Bedrock inference call through the Omnis pipeline —
             an AI document analysis, a semantic regulatory match, or a compliance summary.
             Unused units don&apos;t roll over; overage is billed at the next tier&apos;s rate.
@@ -231,16 +231,16 @@ function PricingCards({ orgId }: { orgId: string | null }) {
             <div
               key={tier.id}
               className={[
-                "relative flex flex-col rounded-2xl border bg-white p-7 shadow-sm transition-shadow dark:bg-slate-800",
+                "relative flex flex-col rounded-2xl border bg-white p-7 shadow-sm transition-shadow",
                 tier.highlight
-                  ? "border-emerald-400 shadow-emerald-100 ring-2 ring-emerald-400 dark:border-emerald-500 dark:shadow-none dark:ring-emerald-500"
-                  : "border-slate-200 hover:shadow-md dark:border-slate-700",
+                  ? "border-emerald-400 shadow-emerald-100 ring-2 ring-emerald-400"
+                  : "border-slate-200 hover:shadow-md",
               ].join(" ")}
             >
               {/* Popular badge */}
               {tier.badge && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-500 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm dark:border-emerald-600">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-500 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm">
                     <Zap className="h-3 w-3" aria-hidden="true" />
                     {tier.badge}
                   </span>
@@ -249,33 +249,33 @@ function PricingCards({ orgId }: { orgId: string | null }) {
 
               {/* Tier header */}
               <div className="mb-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                   {tier.name}
                 </p>
                 <div className="mt-2 flex items-end gap-1.5">
-                  <span className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
+                  <span className="text-4xl font-extrabold tracking-tight text-slate-900">
                     {tier.priceLabel}
                   </span>
-                  <span className="mb-1.5 text-sm font-medium text-slate-400 dark:text-slate-500">
+                  <span className="mb-1.5 text-sm font-medium text-slate-400">
                     / month
                   </span>
                 </div>
                 {/* Token allocation */}
-                <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 dark:border-slate-600 dark:bg-slate-700">
+                <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5">
                   <Brain className="h-3 w-3 text-emerald-500" aria-hidden="true" />
-                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                  <span className="text-[11px] font-semibold text-slate-600">
                     {tier.tokenUnits}
                   </span>
                 </div>
               </div>
 
               {/* Tagline */}
-              <p className="mb-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+              <p className="mb-1 text-sm leading-relaxed text-slate-500">
                 {tier.tagline}
               </p>
 
               {/* Value note */}
-              <p className="mb-5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <p className="mb-5 text-[11px] font-medium text-emerald-600">
                 {tier.valueNote}
               </p>
 
@@ -287,7 +287,7 @@ function PricingCards({ orgId }: { orgId: string | null }) {
                       className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
                       aria-hidden="true"
                     />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">{text}</span>
+                    <span className="text-sm text-slate-700">{text}</span>
                   </li>
                 ))}
               </ul>
@@ -300,8 +300,8 @@ function PricingCards({ orgId }: { orgId: string | null }) {
                   className={[
                     "inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
                     tier.highlight
-                      ? "bg-emerald-500 text-white shadow-emerald-200 hover:bg-emerald-600 focus-visible:ring-emerald-500 dark:shadow-emerald-900/40"
-                      : "bg-slate-900 text-white shadow-slate-200/60 hover:bg-slate-800 focus-visible:ring-slate-900 dark:bg-slate-700 dark:shadow-none dark:hover:bg-slate-600",
+                      ? "bg-emerald-500 text-white shadow-emerald-200 hover:bg-emerald-600 focus-visible:ring-emerald-500"
+                      : "bg-slate-900 text-white shadow-slate-200/60 hover:bg-slate-800 focus-visible:ring-slate-900",
                   ].join(" ")}
                 />
               ) : (
@@ -310,8 +310,8 @@ function PricingCards({ orgId }: { orgId: string | null }) {
                   className={[
                     "inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold shadow-sm transition-all",
                     tier.highlight
-                      ? "bg-emerald-500 text-white hover:bg-emerald-600 dark:shadow-emerald-900/40"
-                      : "bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600",
+                      ? "bg-emerald-500 text-white hover:bg-emerald-600"
+                      : "bg-slate-900 text-white hover:bg-slate-800",
                   ].join(" ")}
                 >
                   {tier.ctaLabel}
@@ -323,7 +323,7 @@ function PricingCards({ orgId }: { orgId: string | null }) {
         </div>
 
         {/* Bottom micro-copy */}
-        <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-600">
+        <p className="mt-8 text-center text-xs text-slate-400">
           30-day free trial · Cancel anytime · No setup fees
         </p>
       </div>
@@ -348,22 +348,22 @@ function TokenComparisonTable() {
   ];
 
   return (
-    <section className="bg-white py-16 dark:bg-slate-950 md:py-20">
+    <section className="bg-white py-16 md:py-20">
       <div className="mx-auto max-w-5xl px-6">
         <div className="mb-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">
             Compare Plans
           </p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
+          <h2 className="mt-2 text-2xl font-bold text-slate-900">
             Understand what you&apos;re getting
           </h2>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+        <div className="overflow-x-auto rounded-xl border border-slate-200">
           <table className="w-full text-sm" aria-label="Plan feature comparison">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
-                <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <tr className="border-b border-slate-200 bg-slate-50">
+                <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Feature
                 </th>
                 {["Starter", "Growth", "Scale"].map((name) => (
@@ -372,8 +372,8 @@ function TokenComparisonTable() {
                     className={[
                       "px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider",
                       name === "Growth"
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-slate-500 dark:text-slate-400",
+                        ? "text-emerald-600"
+                        : "text-slate-500",
                     ].join(" ")}
                   >
                     {name}
@@ -381,22 +381,22 @@ function TokenComparisonTable() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100">
               {rows.map((row) => (
                 <tr
                   key={row.label}
-                  className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/50"
+                  className="transition-colors hover:bg-slate-50"
                 >
-                  <td className="px-5 py-3 font-medium text-slate-700 dark:text-slate-300">
+                  <td className="px-5 py-3 font-medium text-slate-700">
                     {row.label}
                   </td>
-                  <td className="px-5 py-3 text-center text-slate-600 dark:text-slate-400">
+                  <td className="px-5 py-3 text-center text-slate-600">
                     {row.starter}
                   </td>
-                  <td className="px-5 py-3 text-center font-semibold text-emerald-700 dark:text-emerald-400">
+                  <td className="px-5 py-3 text-center font-semibold text-emerald-700">
                     {row.growth}
                   </td>
-                  <td className="px-5 py-3 text-center text-slate-600 dark:text-slate-400">
+                  <td className="px-5 py-3 text-center text-slate-600">
                     {row.scale}
                   </td>
                 </tr>
@@ -415,21 +415,21 @@ function TokenComparisonTable() {
 
 function BottomCTA({ orgId }: { orgId: string | null }) {
   return (
-    <section className="border-t border-slate-200 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-900/50">
+    <section className="border-t border-slate-200 bg-slate-50 py-16">
       <div className="mx-auto max-w-3xl px-6 text-center">
-        <p className="mb-6 text-lg font-semibold text-slate-700 dark:text-slate-300">
+        <p className="mb-6 text-lg font-semibold text-slate-700">
           Ready to shift compliance left?
         </p>
         {orgId ? (
           <CheckoutButton
             orgId={orgId}
             label="Start 30-Day Free Trial"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-sm shadow-emerald-200 transition-all hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:shadow-emerald-900/40"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-sm shadow-emerald-200 transition-all hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           />
         ) : (
           <Link
             href="/signup"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-sm shadow-emerald-200 transition-all hover:bg-emerald-600 dark:shadow-emerald-900/40"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-sm shadow-emerald-200 transition-all hover:bg-emerald-600"
           >
             Start 30-Day Free Trial
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -446,15 +446,15 @@ function BottomCTA({ orgId }: { orgId: string | null }) {
 
 function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-white py-8 dark:border-slate-800 dark:bg-slate-950">
+    <footer className="border-t border-slate-200 bg-white py-8">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 sm:flex-row">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-500">
+          <span className="text-xs font-medium text-slate-500">
             © 2026 Omnis MedTech Corp. All rights reserved.
           </span>
         </div>
-        <p className="text-xs text-slate-400 dark:text-slate-600">
+        <p className="text-xs text-slate-400">
           IEC 62304 · 21 CFR Part 11 · FDA eSTAR Compliant Pipeline
         </p>
       </div>
@@ -491,7 +491,7 @@ export default async function PricingPage() {
   const userEmail = user?.email ?? null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-white dark:bg-slate-950">
+    <div className="flex min-h-screen flex-col bg-white">
       <PricingHeader userEmail={userEmail} />
       <main className="flex-1">
         <PricingHero />

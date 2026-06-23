@@ -46,7 +46,7 @@ type ActiveTab = "create" | "join";
 
 function BrandPanel() {
   return (
-    <div className="hidden lg:flex lg:w-[48%] xl:w-[45%] flex-col justify-between bg-slate-900 px-12 py-12 dark:bg-slate-950">
+    <div className="hidden lg:flex lg:w-[48%] xl:w-[45%] flex-col justify-between bg-slate-900 px-12 py-12">
       <Link href="/" className="flex items-center gap-3 group">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-200">
           <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
@@ -155,8 +155,8 @@ function TabButton({
         transition-all duration-150
         ${
           active
-            ? "border-slate-900 bg-slate-900 text-white shadow-sm dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
-            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+            ? "border-slate-900 bg-slate-900 text-white shadow-sm"
+            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
         }
       `}
     >
@@ -169,7 +169,7 @@ function TabButton({
       </div>
       <p
         className={`text-xs leading-relaxed ${
-          active ? "text-slate-300 dark:text-slate-600" : "text-slate-400"
+          active ? "text-slate-300" : "text-slate-400"
         }`}
       >
         {description}
@@ -184,9 +184,9 @@ function TabButton({
 
 function ErrorBanner({ message }: { message: string }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 dark:border-red-900/60 dark:bg-red-950/40">
-      <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500 dark:text-red-400" />
-      <p className="text-xs leading-relaxed text-red-700 dark:text-red-300">
+    <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3">
+      <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+      <p className="text-xs leading-relaxed text-red-700">
         {message}
       </p>
     </div>
@@ -231,7 +231,7 @@ function RoleSelector({
     <div className="space-y-1.5">
       <Label
         htmlFor="role"
-        className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
       >
         Your Role <span className="text-red-400">*</span>
       </Label>
@@ -244,9 +244,9 @@ function RoleSelector({
           onClick={() => setOpen((o) => !o)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="flex h-11 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+          className="flex h-11 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <span className={selected ? "text-slate-900 dark:text-slate-100" : "text-slate-400"}>
+          <span className={selected ? "text-slate-900" : "text-slate-400"}>
             {selected ? selected.label : "Select a role…"}
           </span>
           <ChevronDown className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
@@ -256,7 +256,7 @@ function RoleSelector({
           <ul
             role="listbox"
             aria-label="Role selection"
-            className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900"
+            className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
           >
             {ROLE_OPTIONS.map((opt) => (
               <li
@@ -267,11 +267,11 @@ function RoleSelector({
                   onChange(opt.value);
                   setOpen(false);
                 }}
-                className={`cursor-pointer px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                  value === opt.value ? "bg-emerald-50 dark:bg-emerald-950/30" : ""
+                className={`cursor-pointer px-4 py-3 transition-colors hover:bg-slate-50 ${
+                  value === opt.value ? "bg-emerald-50" : ""
                 }`}
               >
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <p className="text-sm font-semibold text-slate-900">
                   {opt.label}
                   {value === opt.value && (
                     <span className="ml-2 text-xs font-normal text-emerald-500">✓ selected</span>
@@ -318,7 +318,7 @@ function CreateOrgForm() {
       <div className="space-y-1.5">
         <Label
           htmlFor="company_name"
-          className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+          className="text-xs font-semibold uppercase tracking-wide text-slate-500"
         >
           Company Name
         </Label>
@@ -330,7 +330,7 @@ function CreateOrgForm() {
           required
           placeholder="e.g. Acme MedTech Inc."
           disabled={isPending}
-          className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
+          className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500"
         />
         <p className="text-[11px] text-slate-400">
           This name appears on all generated compliance reports and eSTAR
@@ -339,13 +339,13 @@ function CreateOrgForm() {
       </div>
 
       {/* Role notice for org creators */}
-      <div className="flex items-start gap-2.5 rounded-lg border border-violet-200 bg-violet-50 px-3.5 py-3 dark:border-violet-800/60 dark:bg-violet-950/40">
-        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" />
+      <div className="flex items-start gap-2.5 rounded-lg border border-violet-200 bg-violet-50 px-3.5 py-3">
+        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-600" />
         <div>
-          <p className="text-xs font-semibold text-violet-800 dark:text-violet-300">
+          <p className="text-xs font-semibold text-violet-800">
             You will be assigned the Admin role
           </p>
-          <p className="mt-0.5 text-xs text-violet-700 dark:text-violet-400">
+          <p className="mt-0.5 text-xs text-violet-700">
             As the workspace creator, you will have full Admin access — manage
             team members, approve compliance logs, and control all settings.
           </p>
@@ -357,7 +357,7 @@ function CreateOrgForm() {
       <Button
         type="submit"
         disabled={isPending}
-        className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+        className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
       >
         {isPending ? (
           <span className="flex items-center gap-2">
@@ -403,7 +403,7 @@ function JoinOrgForm() {
       <div className="space-y-1.5">
         <Label
           htmlFor="enterprise_code"
-          className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+          className="text-xs font-semibold uppercase tracking-wide text-slate-500"
         >
           Enterprise Code
         </Label>
@@ -416,7 +416,7 @@ function JoinOrgForm() {
           required
           placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
           disabled={isPending}
-          className="h-11 font-mono text-sm border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
+          className="h-11 font-mono text-sm border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500"
         />
         <p className="text-[11px] text-slate-400">
           Ask your organization administrator for the Enterprise Code. It is a
@@ -431,7 +431,7 @@ function JoinOrgForm() {
       <Button
         type="submit"
         disabled={isPending || !role}
-        className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+        className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
       >
         {isPending ? (
           <span className="flex items-center gap-2">
@@ -466,23 +466,23 @@ function OnboardingCard() {
   }
 
   return (
-    <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[52%] xl:w-[55%] bg-white dark:bg-slate-950">
+    <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[52%] xl:w-[55%] bg-white">
       {/* Mobile logo */}
       <Link
         href="/"
         className="mb-8 flex flex-col items-center gap-3 lg:hidden group"
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg group-hover:ring-2 group-hover:ring-emerald-400 transition-all dark:bg-slate-800">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg group-hover:ring-2 group-hover:ring-emerald-400 transition-all">
           <ShieldCheck
             className="h-6 w-6 text-emerald-400"
             strokeWidth={1.75}
           />
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+          <p className="text-sm font-bold text-slate-900">
             Omnis MedTech Corp
           </p>
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
             RegOps Platform
           </p>
         </div>
@@ -494,35 +494,35 @@ function OnboardingCard() {
           <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500">
             <CheckCircle2 className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
           </div>
-          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-white text-xs font-bold dark:bg-slate-100 dark:text-slate-900">
+          <div className="h-px flex-1 bg-slate-200" />
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-white text-xs font-bold">
             2
           </div>
-          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-          <div className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 text-slate-400 text-xs font-bold dark:border-slate-700">
+          <div className="h-px flex-1 bg-slate-200" />
+          <div className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 text-slate-400 text-xs font-bold">
             3
           </div>
         </div>
 
         {/* Header */}
         <div className="mb-7">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
             Set up your workspace
           </h2>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1.5 text-sm text-slate-500">
             Create a new organization or join an existing one to activate your
             compliance dashboard.
           </p>
         </div>
 
         {/* Compliance pill */}
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5">
           <ShieldCheck
             className="h-3.5 w-3.5 shrink-0 text-emerald-500"
             strokeWidth={2}
           />
-          <p className="text-xs text-slate-600 dark:text-slate-400">
-            <span className="font-semibold text-slate-800 dark:text-slate-200">
+          <p className="text-xs text-slate-600">
+            <span className="font-semibold text-slate-800">
               Multi-tenant isolation active.
             </span>{" "}
             Your data is partitioned by organization at the database layer.
@@ -551,13 +551,13 @@ function OnboardingCard() {
         {activeTab === "create" ? <CreateOrgForm /> : <JoinOrgForm />}
 
         {/* Sign out link */}
-        <p className="mt-6 text-center text-xs text-slate-400 dark:text-slate-600">
+        <p className="mt-6 text-center text-xs text-slate-400">
           Wrong account?{" "}
           <button
             type="button"
             onClick={handleSignOut}
             disabled={isSigningOut}
-            className="inline-flex items-center gap-1 font-semibold text-slate-600 underline-offset-2 hover:underline disabled:opacity-50 dark:text-slate-400"
+            className="inline-flex items-center gap-1 font-semibold text-slate-600 underline-offset-2 hover:underline disabled:opacity-50"
           >
             {isSigningOut ? (
               <>

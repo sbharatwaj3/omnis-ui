@@ -270,18 +270,18 @@ function groupBySuite(rows: DashboardRow[]): SuiteGroup[] {
 function SeverityBadge({ severity }: { severity: DashboardRow["severity"] }) {
   if (severity === "Critical")
     return (
-      <Badge className="border border-red-200 bg-red-100 text-red-700 hover:bg-red-100 font-semibold dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/40">
+      <Badge className="border border-red-200 bg-red-100 text-red-700 hover:bg-red-100 font-semibold">
         ● Critical
       </Badge>
     );
   if (severity === "Clear")
     return (
-      <Badge className="border border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 font-medium dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-950/40">
+      <Badge className="border border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 font-medium">
         ● Clear
       </Badge>
     );
   return (
-    <Badge className="border border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-100 font-medium dark:border-amber-500/20 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-950/40">
+    <Badge className="border border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-100 font-medium">
       ● Pending
     </Badge>
   );
@@ -294,8 +294,8 @@ function StatusBadge({ status }: { status: string }) {
     <span
       className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
         isSuccess
-          ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border dark:border-emerald-500/20"
-          : "bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-950/40 dark:text-orange-400"
+          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+          : "bg-orange-50 text-orange-700 border border-orange-200"
       }`}
     >
       {status ?? "—"}
@@ -310,7 +310,7 @@ function StatusBadge({ status }: { status: string }) {
 function SuiteIssuePill({ criticalCount, failedCount }: { criticalCount: number; failedCount: number }) {
   if (criticalCount > 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400">
+      <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
         <AlertTriangle className="h-2.5 w-2.5" />
         {criticalCount} critical
       </span>
@@ -318,13 +318,13 @@ function SuiteIssuePill({ criticalCount, failedCount }: { criticalCount: number;
   }
   if (failedCount > 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-400">
+      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
         {failedCount} failed
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:border-emerald-700/60 dark:bg-emerald-950/40 dark:text-emerald-400">
+    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
       <CheckCircle2 className="h-2.5 w-2.5" />
       all clear
     </span>
@@ -342,7 +342,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
 
   return (
     <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-      <Card className="border-zinc-200 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <Card className="border-zinc-200 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
             Total Executions
@@ -350,7 +350,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
           <BarChart3 className="h-4 w-4 text-zinc-400" />
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold tabular-nums text-zinc-800 dark:text-zinc-100">
+          <p className="text-3xl font-bold tabular-nums text-zinc-800">
             {total}
           </p>
           <p className="mt-1 text-xs text-zinc-400">Evidence logs in current view</p>
@@ -358,7 +358,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
       </Card>
 
       <Card
-        className={`border-zinc-200 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 ${
+        className={`border-zinc-200 shadow-sm ${
           criticalCount > 0 ? "border-red-200 bg-red-50/40" : ""
         }`}
       >
@@ -373,7 +373,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
         <CardContent>
           <p
             className={`text-3xl font-bold tabular-nums ${
-              criticalCount > 0 ? "text-red-600" : "text-zinc-800 dark:text-zinc-100"
+              criticalCount > 0 ? "text-red-600" : "text-zinc-800"
             }`}
           >
             {criticalCount}
@@ -383,7 +383,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
       </Card>
 
       <Card
-        className={`border-zinc-200 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 ${
+        className={`border-zinc-200 shadow-sm ${
           parseFloat(failureRate) > 0 ? "border-orange-200 bg-orange-50/30" : ""
         }`}
       >
@@ -437,13 +437,13 @@ function SuiteAccordionItem({
     // Task 1: no individual borders/rounding — parent wrapper manages the block.
     // Task 2: no coloured left-accent or status borders at all.
     // Bottom border on every row except the last (handled by parent via isLast prop).
-    <div className={`overflow-hidden bg-white dark:bg-zinc-900 ${!isLast ? "border-b border-slate-200 dark:border-zinc-700" : ""}`}>
+    <div className={`overflow-hidden bg-white ${!isLast ? "border-b border-slate-200" : ""}`}>
 
       {/* ── Accordion trigger ─────────────────────────────────────────── */}
       <button
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-400 md:px-6"
+        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-400 md:px-6"
       >
         {/* Chevron — flush left anchor */}
         <ChevronDown
@@ -453,12 +453,12 @@ function SuiteAccordionItem({
         />
 
         {/* Task 3: Suite name — medium weight, dark anchor colour */}
-        <span className="flex-1 min-w-0 text-sm font-medium text-slate-900 dark:text-zinc-100 truncate">
+        <span className="flex-1 min-w-0 text-sm font-medium text-slate-900 truncate">
           {group.suiteLabel}
         </span>
 
         {/* Task 3: Subordinate meta — lighter, smaller */}
-        <span className="hidden sm:block shrink-0 text-sm text-slate-500 dark:text-zinc-400 tabular-nums">
+        <span className="hidden sm:block shrink-0 text-sm text-slate-500 tabular-nums">
           {group.totalCount} log{group.totalCount !== 1 ? "s" : ""}
         </span>
 
@@ -480,10 +480,10 @@ function SuiteAccordionItem({
         aria-hidden={!isOpen}
       >
         {/* Task 4: subtle tinted background separates child data from parent shell */}
-        <div className="bg-slate-50 dark:bg-zinc-950/60 border-t border-slate-200 dark:border-zinc-700">
+        <div className="bg-slate-50 border-t border-slate-200">
 
           {/* Mobile card list */}
-          <div className="flex flex-col divide-y divide-slate-100 md:hidden dark:divide-zinc-800">
+          <div className="flex flex-col divide-y divide-slate-100 md:hidden">
             {group.rows.map((row) => (
               <button
                 key={row.logId}
@@ -491,8 +491,8 @@ function SuiteAccordionItem({
                 className={[
                   "w-full text-left px-4 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
                   activeDrawerLogId === row.logId
-                    ? "bg-slate-100 dark:bg-zinc-800"
-                    : "active:bg-slate-100 dark:active:bg-zinc-800/50",
+                    ? "bg-slate-100"
+                    : "active:bg-slate-100",
                 ].join(" ")}
               >
                 <div className="flex items-center gap-2 flex-wrap">
@@ -516,11 +516,11 @@ function SuiteAccordionItem({
           <div className="hidden md:block overflow-x-auto w-full">
             <Table className="w-full">
               <TableHeader>
-                <TableRow className="bg-slate-100 hover:bg-slate-100 dark:bg-zinc-800/80 dark:hover:bg-zinc-800/80 border-b border-slate-200 dark:border-zinc-700">
+                <TableRow className="bg-slate-100 hover:bg-slate-100 border-b border-slate-200">
                   {["Status", "AI Risk", "Execution Time", "Log ID"].map((h, i) => (
                     <TableHead
                       key={h}
-                      className={`py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400 ${i === 0 ? "pl-4 md:pl-6" : ""}`}
+                      className={`py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 ${i === 0 ? "pl-4 md:pl-6" : ""}`}
                     >
                       {h}
                     </TableHead>
@@ -533,10 +533,10 @@ function SuiteAccordionItem({
                     key={row.logId}
                     onClick={() => onOpenDrawer(row.logId)}
                     className={[
-                      "cursor-pointer border-b border-slate-100 dark:border-zinc-800 last:border-b-0 transition-colors",
+                      "cursor-pointer border-b border-slate-100 last:border-b-0 transition-colors",
                       activeDrawerLogId === row.logId
-                        ? "bg-slate-100 dark:bg-zinc-800"
-                        : "hover:bg-slate-100 dark:hover:bg-zinc-800/70",
+                        ? "bg-slate-100"
+                        : "hover:bg-slate-100",
                     ].join(" ")}
                   >
                     <TableCell className="py-2 pl-4 md:pl-6">
@@ -545,7 +545,7 @@ function SuiteAccordionItem({
                     <TableCell className="py-2">
                       <SeverityBadge severity={row.severity} />
                     </TableCell>
-                    <TableCell className="py-2 text-xs text-slate-500 dark:text-zinc-400 whitespace-nowrap">
+                    <TableCell className="py-2 text-xs text-slate-500 whitespace-nowrap">
                       {row.executionTime}
                     </TableCell>
                     <TableCell className="py-2 font-mono text-xs text-slate-400">
@@ -664,11 +664,11 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
     <>
       <TelemetryCards rows={filteredRows} />
 
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
         {/* Table header with filter controls */}
-        <div className="flex flex-col gap-3 border-b border-zinc-100 px-4 py-4 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <div className="flex flex-col gap-3 border-b border-zinc-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
           <div>
-            <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+            <h2 className="text-sm font-semibold text-zinc-800">
               Evidence Log · Traffic Light Matrix
             </h2>
             <p className="mt-0.5 text-xs text-zinc-400">
@@ -682,7 +682,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
           {/* Filter controls */}
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             {/* Timeframe quick-select — scrollable on mobile */}
-            <div className="flex items-center overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-700 dark:bg-zinc-800 max-w-full">
+            <div className="flex items-center overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 max-w-full">
               {(["today", "week", "month", "year", "all"] as Timeframe[]).map((tf) => (
                 <button
                   key={tf}
@@ -690,8 +690,8 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                   className={[
                     "shrink-0 rounded-md px-2.5 py-1 text-xs font-medium transition-all",
                     timeframe === tf && timeframe !== "custom"
-                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
-                      : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300",
+                      ? "bg-white text-zinc-900 shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-700",
                   ].join(" ")}
                 >
                   {TIMEFRAME_LABELS[tf]}
@@ -707,8 +707,8 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                     className={[
                       "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all",
                       timeframe === "custom"
-                        ? "border-zinc-800 bg-zinc-900 text-white dark:border-zinc-300 dark:bg-zinc-700 dark:text-white"
-                        : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
+                        ? "border-zinc-800 bg-zinc-900 text-white"
+                        : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50",
                     ].join(" ")}
                   >
                     <CalendarDays className="h-3.5 w-3.5" />
@@ -778,7 +778,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
           </div>
         ) : (
           // Task 1: single unified flush block container — rows separated only by border-b
-          <div className="border border-slate-200 dark:border-zinc-700 rounded-md overflow-hidden mx-4 my-4 md:mx-6 md:my-5">
+          <div className="border border-slate-200 rounded-md overflow-hidden mx-4 my-4 md:mx-6 md:my-5">
             {pageGroups.map((group, idx) => (
               <SuiteAccordionItem
                 key={group.suiteKey}
@@ -795,7 +795,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
 
         {/* Pagination footer */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 dark:border-zinc-800 md:px-6">
+          <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 md:px-6">
             <p className="text-xs text-zinc-400">
               Showing suites {(safePage - 1) * PAGE_SIZE + 1}–
               {Math.min(safePage * PAGE_SIZE, suiteGroups.length)} of{" "}
@@ -805,7 +805,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={safePage === 1}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-700 dark:bg-zinc-800"
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Previous page"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
@@ -842,8 +842,8 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                       className={[
                         "flex h-7 min-w-[28px] items-center justify-center rounded-md px-1.5 text-xs font-medium transition-colors",
                         safePage === item
-                          ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                          : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
+                          ? "bg-zinc-900 text-white"
+                          : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50",
                       ].join(" ")}
                     >
                       {item}
@@ -854,7 +854,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={safePage === totalPages}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-700 dark:bg-zinc-800"
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Next page"
               >
                 <ChevronRight className="h-3.5 w-3.5" />

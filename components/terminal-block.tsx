@@ -46,7 +46,7 @@ export function TerminalBlock({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-xl border border-zinc-700/60 bg-zinc-900 dark:border-zinc-700",
+        "group relative overflow-hidden rounded-xl border border-zinc-700/60 bg-zinc-900",
         prominent ? "shadow-lg" : "shadow-sm",
       )}
     >

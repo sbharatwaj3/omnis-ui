@@ -65,9 +65,9 @@ export default async function TeamPage() {
   const isAdmin = callerRole === "admin";
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-zinc-50">
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center px-4 py-4 md:px-8 md:py-5">
           {/* Left: logo */}
           <Link
@@ -75,11 +75,11 @@ export default async function TeamPage() {
             className="flex items-center gap-2 group shrink-0"
           >
             <ShieldCheck
-              className="h-5 w-5 md:h-6 md:w-6 text-zinc-800 dark:text-zinc-200"
+              className="h-5 w-5 md:h-6 md:w-6 text-zinc-800"
               strokeWidth={1.75}
             />
             <div>
-              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
                 Omnis RegOps
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">Team</p>
@@ -90,7 +90,7 @@ export default async function TeamPage() {
           <div className="hidden sm:flex flex-1 justify-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               Back to Dashboard
@@ -99,9 +99,9 @@ export default async function TeamPage() {
 
           {/* Right: IEC badge + role badge + settings menu */}
           <div className="flex items-center gap-2 ml-auto sm:ml-0 shrink-0">
-            <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none dark:border-zinc-700 dark:bg-zinc-800">
+            <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none">
               <Activity className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+              <span className="text-xs font-medium text-zinc-600">
                 IEC 62304 · 21 CFR Part 11
               </span>
             </span>
@@ -111,10 +111,10 @@ export default async function TeamPage() {
         </div>
 
         {/* Mobile-only sub-bar */}
-        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2 dark:border-zinc-800">
+        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2">
           <Link
             href="/dashboard"
-            className="flex-1 text-center inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+            className="flex-1 text-center inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Back to Dashboard
@@ -128,7 +128,7 @@ export default async function TeamPage() {
         <div className="mb-8 flex items-center gap-3">
           <Users className="h-5 w-5 text-zinc-500" strokeWidth={1.75} />
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-xl font-bold tracking-tight text-zinc-900">
               Team Management
             </h2>
             <p className="mt-0.5 text-sm text-zinc-400">
@@ -137,7 +137,7 @@ export default async function TeamPage() {
           </div>
         </div>
 
-        <Separator className="mb-8 bg-zinc-200 dark:bg-zinc-800" />
+        <Separator className="mb-8 bg-zinc-200" />
 
         {/* Delegate all interactive work (invite form, remove buttons, state)
             to a client island so this Server Component stays lean. */}

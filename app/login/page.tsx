@@ -2,9 +2,13 @@
 // omnis-ui/app/login/page.tsx
 // Omnis RegOps — Authentication Gateway
 //
-// Design: Split-screen enterprise layout.
+// Design: Split-screen enterprise layout, fully light-mode locked.
 //   Left panel  — clean white auth card.
-//   Right panel — dark brand / trust-signal panel.
+//   Right panel — soft slate-50 brand / trust-signal panel.
+//
+// LIGHT-MODE LOCK: No `dark:` variants, no theme switching. The right-side
+// branding panel is hardcoded to bg-slate-50 / text-slate-900 to match the
+// rest of the enterprise palette.
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -53,15 +57,15 @@ const trustPoints = [
 
 function BrandPanel() {
   return (
-    <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col items-center justify-center bg-slate-900 px-12 py-12">
+    <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col items-center justify-center bg-slate-50 text-slate-900 px-12 py-12 border-l border-slate-200">
       {/* Logo — top of panel */}
       <Link href="/" className="mb-auto flex items-center gap-3 group self-start">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-200">
-          <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-200 group-hover:ring-emerald-400 transition-all duration-200">
+          <ShieldCheck className="h-5 w-5 text-emerald-600" strokeWidth={1.75} />
         </div>
         <div className="leading-none">
-          <span className="block text-sm font-bold text-slate-100">Omnis MedTech Corp</span>
-          <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
+          <span className="block text-sm font-bold text-slate-900">Omnis MedTech Corp</span>
+          <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-600">
             RegOps Platform
           </span>
         </div>
@@ -69,16 +73,16 @@ function BrandPanel() {
 
       {/* Centered hero content */}
       <div className="flex flex-col items-center text-center max-w-sm py-16">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-800 bg-emerald-950/60 px-3 py-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs font-semibold text-emerald-300">Compliance Vault — Active</span>
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs font-semibold text-emerald-700">Compliance Vault — Active</span>
         </div>
-        <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white xl:text-4xl">
+        <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 xl:text-4xl">
           Your Regulatory
           <br />
-          <span className="text-emerald-400">Evidence — Secured.</span>
+          <span className="text-emerald-600">Evidence — Secured.</span>
         </h2>
-        <p className="mt-4 text-sm leading-relaxed text-slate-400">
+        <p className="mt-4 text-sm leading-relaxed text-slate-600">
           Secure access to your compliance environment. All sessions are authenticated,
           time-stamped, and recorded under 21 CFR Part 11 electronic records requirements.
         </p>
@@ -87,11 +91,11 @@ function BrandPanel() {
             const Icon = point.icon;
             return (
               <div key={point.title} className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 ring-1 ring-slate-700">
-                  <Icon className="h-3.5 w-3.5 text-emerald-400" strokeWidth={1.75} />
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white ring-1 ring-slate-200 shadow-sm">
+                  <Icon className="h-3.5 w-3.5 text-emerald-600" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-200">{point.title}</p>
+                  <p className="text-xs font-bold text-slate-800">{point.title}</p>
                   <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{point.body}</p>
                 </div>
               </div>
@@ -101,7 +105,7 @@ function BrandPanel() {
       </div>
 
       {/* Footer */}
-      <p className="mt-auto text-xs text-slate-600">
+      <p className="mt-auto text-xs text-slate-500">
         © 2026 Omnis MedTech Corp. Access restricted to authorized personnel only.
       </p>
     </div>
@@ -147,8 +151,8 @@ function AuthForm() {
     <div className="flex w-full flex-col items-center justify-center bg-white px-8 py-16 lg:w-[48%] xl:w-[45%]">
       {/* Mobile logo */}
       <Link href="/" className="mb-8 flex flex-col items-center gap-3 lg:hidden group">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg">
-          <ShieldCheck className="h-6 w-6 text-emerald-400" strokeWidth={1.75} />
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200 shadow-sm">
+          <ShieldCheck className="h-6 w-6 text-emerald-600" strokeWidth={1.75} />
         </div>
         <div className="text-center">
           <p className="text-sm font-bold text-gray-900">Omnis MedTech Corp</p>
