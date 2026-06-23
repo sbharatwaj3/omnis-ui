@@ -36,7 +36,7 @@ export function PricingSignOutButton({ email }: PricingSignOutButtonProps) {
   return (
     <div className="flex items-center gap-3">
       {/* Authenticated-user badge */}
-      <span className="hidden sm:inline-block max-w-[200px] truncate rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+      <span className="hidden sm:inline-block max-w-[200px] truncate rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
         {email}
       </span>
 
@@ -44,7 +44,7 @@ export function PricingSignOutButton({ email }: PricingSignOutButtonProps) {
       <button
         onClick={handleSignOut}
         disabled={signingOut}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 shadow-sm transition-all hover:border-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-800/60 dark:bg-slate-900 dark:text-red-400 dark:hover:border-red-700 dark:hover:bg-red-950/30"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 shadow-sm transition-all hover:border-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
         aria-label="Sign out of your account"
       >
         {signingOut ? (

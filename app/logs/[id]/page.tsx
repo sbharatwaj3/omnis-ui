@@ -185,20 +185,20 @@ function formatTerminalText(raw: string): string {
 function SeverityBadge({ severity }: { severity: Severity }) {
   if (severity === "Critical") {
     return (
-      <Badge className="bg-red-100 text-red-700 border border-red-200 hover:bg-red-100 font-semibold px-3 py-1 text-sm dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/40">
+      <Badge className="bg-red-100 text-red-700 border border-red-200 hover:bg-red-100 font-semibold px-3 py-1 text-sm">
         ● Critical Anomaly
       </Badge>
     );
   }
   if (severity === "Clear") {
     return (
-      <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 font-medium px-3 py-1 text-sm dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-950/40">
+      <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 font-medium px-3 py-1 text-sm">
         ● Clear
       </Badge>
     );
   }
   return (
-    <Badge className="bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-100 font-medium px-3 py-1 text-sm dark:border-amber-500/20 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-950/40">
+    <Badge className="bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-100 font-medium px-3 py-1 text-sm">
       ● Pending Analysis
     </Badge>
   );
@@ -261,7 +261,7 @@ function DetailField({
       <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
         {label}
       </span>
-      <span className="text-sm text-zinc-800 dark:text-zinc-200 break-all">{value}</span>
+      <span className="text-sm text-zinc-800 break-all">{value}</span>
     </div>
   );
 }
@@ -374,14 +374,14 @@ async function ForensicContent({ id }: { id: string }) {
         <nav className="mb-4 flex items-center gap-1.5 text-xs text-zinc-400">
           <Link
             href="/dashboard"
-            className="transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+            className="transition-colors hover:text-zinc-700"
           >
             Dashboard
           </Link>
           <ChevronRight className="h-3 w-3" />
-          <span className="text-zinc-600 dark:text-zinc-400">Evidence Log</span>
+          <span className="text-zinc-600">Evidence Log</span>
           <ChevronRight className="h-3 w-3" />
-          <span className="font-mono text-zinc-600 dark:text-zinc-400">
+          <span className="font-mono text-zinc-600">
             {log.log_id.slice(0, 8)}…{log.log_id.slice(-4)}
           </span>
         </nav>
@@ -389,7 +389,7 @@ async function ForensicContent({ id }: { id: string }) {
         {/* Title row */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-xl font-bold tracking-tight text-zinc-900">
               {testSuite}
             </h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-zinc-400">
@@ -404,8 +404,8 @@ async function ForensicContent({ id }: { id: string }) {
               <span
                 className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${
                   ["SUCCESS", "PASS"].includes(log.execution_status?.toUpperCase())
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400"
-                    : "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-500/20 dark:bg-orange-950/40 dark:text-orange-400"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-orange-200 bg-orange-50 text-orange-700"
                 }`}
               >
                 {log.execution_status}
@@ -424,7 +424,7 @@ async function ForensicContent({ id }: { id: string }) {
             />
             <Link
               href="/readiness"
-              className="hidden sm:inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 shadow-sm transition-colors hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-800 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-zinc-600 dark:hover:bg-zinc-700"
+              className="hidden sm:inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 shadow-sm transition-colors hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-800"
             >
               <LayoutList className="h-3.5 w-3.5" />
               View Traceability Matrix
@@ -441,8 +441,8 @@ async function ForensicContent({ id }: { id: string }) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* AI COMPLIANCE PANEL — spans 2 columns */}
         <Card
-          className={`lg:col-span-2 border-zinc-200 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 ${
-            severity === "Critical" ? "border-red-200 bg-red-50/20 dark:border-red-900/60 dark:bg-red-950/10" : ""
+          className={`lg:col-span-2 border-zinc-200 shadow-sm ${
+            severity === "Critical" ? "border-red-200 bg-red-50/20" : ""
           }`}
         >
           <CardHeader className="pb-3">
@@ -456,7 +456,7 @@ async function ForensicContent({ id }: { id: string }) {
                       : "text-amber-500"
                 }`}
               />
-              <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+              <CardTitle className="text-sm font-semibold text-zinc-800">
                 AI Compliance Analysis
               </CardTitle>
             </div>
@@ -489,7 +489,7 @@ async function ForensicContent({ id }: { id: string }) {
               <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-400">
                 Result Summary
               </p>
-              <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+              <p className="text-sm leading-relaxed text-zinc-700">
                 {insight?.ai_result_summary ?? (
                   <span className="italic text-zinc-400">
                     No AI analysis available for this log yet.
@@ -504,7 +504,7 @@ async function ForensicContent({ id }: { id: string }) {
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-400">
                   AI Reasoning
                 </p>
-                <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
+                <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-wrap">
                   {insight.ai_reasoning}
                 </p>
               </div>
@@ -513,9 +513,9 @@ async function ForensicContent({ id }: { id: string }) {
         </Card>
 
         {/* LOG METADATA — spans 1 column */}
-        <Card className="border-zinc-200 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <Card className="border-zinc-200 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+            <CardTitle className="text-sm font-semibold text-zinc-800">
               Log Metadata
             </CardTitle>
             <CardDescription className="text-xs text-zinc-400">
@@ -599,11 +599,11 @@ async function ForensicContent({ id }: { id: string }) {
       {/* ------------------------------------------------------------------ */}
       {/* RAW PAYLOADS ENGINE — Tabs                                           */}
       {/* ------------------------------------------------------------------ */}
-      <Card className="border-zinc-200 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+      <Card className="border-zinc-200 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Terminal className="h-4 w-4 text-zinc-500" />
-            <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+            <CardTitle className="text-sm font-semibold text-zinc-800">
               Raw Payloads Engine
             </CardTitle>
           </div>
@@ -613,18 +613,18 @@ async function ForensicContent({ id }: { id: string }) {
         </CardHeader>
         <CardContent className="p-0">
           <Tabs defaultValue="clinical" className="w-full">
-            <div className="border-b border-zinc-100 dark:border-zinc-800 px-6">
+            <div className="border-b border-zinc-100 px-6">
               <TabsList className="h-10 bg-transparent p-0 gap-0">
                 <TabsTrigger
                   value="clinical"
-                  className="flex items-center gap-1.5 rounded-none border-b-2 border-transparent px-4 py-2.5 text-xs font-medium text-zinc-500 data-[state=active]:border-zinc-800 data-[state=active]:text-zinc-900 data-[state=active]:shadow-none data-[state=active]:bg-transparent dark:data-[state=active]:border-zinc-300 dark:data-[state=active]:text-zinc-100"
+                  className="flex items-center gap-1.5 rounded-none border-b-2 border-transparent px-4 py-2.5 text-xs font-medium text-zinc-500 data-[state=active]:border-zinc-800 data-[state=active]:text-zinc-900 data-[state=active]:shadow-none data-[state=active]:bg-transparent"
                 >
                   <FileJson className="h-3.5 w-3.5" />
                   Clinical Payload
                 </TabsTrigger>
                 <TabsTrigger
                   value="console"
-                  className="flex items-center gap-1.5 rounded-none border-b-2 border-transparent px-4 py-2.5 text-xs font-medium text-zinc-500 data-[state=active]:border-zinc-800 data-[state=active]:text-zinc-900 data-[state=active]:shadow-none data-[state=active]:bg-transparent dark:data-[state=active]:border-zinc-300 dark:data-[state=active]:text-zinc-100"
+                  className="flex items-center gap-1.5 rounded-none border-b-2 border-transparent px-4 py-2.5 text-xs font-medium text-zinc-500 data-[state=active]:border-zinc-800 data-[state=active]:text-zinc-900 data-[state=active]:shadow-none data-[state=active]:bg-transparent"
                 >
                   <Terminal className="h-3.5 w-3.5" />
                   System Console
@@ -667,40 +667,40 @@ async function ForensicContent({ id }: { id: string }) {
 function ForensicSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="h-3 w-48 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+      <div className="h-3 w-48 animate-pulse rounded bg-zinc-200" />
       <div className="space-y-2">
-        <div className="h-6 w-72 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-        <div className="h-3 w-96 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+        <div className="h-6 w-72 animate-pulse rounded bg-zinc-200" />
+        <div className="h-3 w-96 animate-pulse rounded bg-zinc-100" />
       </div>
-      <Separator className="bg-zinc-200 dark:bg-zinc-800" />
+      <Separator className="bg-zinc-200" />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 border-zinc-200 dark:border-zinc-700 dark:bg-zinc-900">
+        <Card className="lg:col-span-2 border-zinc-200">
           <CardHeader>
-            <div className="h-4 w-40 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+            <div className="h-4 w-40 animate-pulse rounded bg-zinc-200" />
           </CardHeader>
           <CardContent className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-4 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+              <div key={i} className="h-4 animate-pulse rounded bg-zinc-100" />
             ))}
           </CardContent>
         </Card>
-        <Card className="border-zinc-200 dark:border-zinc-700 dark:bg-zinc-900">
+        <Card className="border-zinc-200">
           <CardHeader>
-            <div className="h-4 w-32 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+            <div className="h-4 w-32 animate-pulse rounded bg-zinc-200" />
           </CardHeader>
           <CardContent className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-3 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+              <div key={i} className="h-3 animate-pulse rounded bg-zinc-100" />
             ))}
           </CardContent>
         </Card>
       </div>
-      <Card className="border-zinc-200 dark:border-zinc-700 dark:bg-zinc-900">
+      <Card className="border-zinc-200">
         <CardHeader>
-          <div className="h-4 w-40 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+          <div className="h-4 w-40 animate-pulse rounded bg-zinc-200" />
         </CardHeader>
         <CardContent>
-          <div className="h-64 animate-pulse rounded-lg bg-zinc-100 dark:bg-zinc-800" />
+          <div className="h-64 animate-pulse rounded-lg bg-zinc-100" />
         </CardContent>
       </Card>
     </div>
@@ -719,17 +719,17 @@ export default async function LogDetailPage({ params }: PageProps) {
   const { id } = await params;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-zinc-50">
       {/* Header */}
-      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 px-4 py-4 md:px-8 md:py-5">
+      <header className="border-b border-zinc-200 bg-white px-4 py-4 md:px-8 md:py-5">
         <div className="mx-auto flex max-w-7xl items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-3 group">
             <ShieldCheck
-              className="h-5 w-5 md:h-6 md:w-6 text-zinc-800 dark:text-zinc-200 transition-colors group-hover:text-zinc-600 dark:group-hover:text-zinc-400"
+              className="h-5 w-5 md:h-6 md:w-6 text-zinc-800 transition-colors group-hover:text-zinc-600"
               strokeWidth={1.75}
             />
             <div>
-              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
                 Omnis RegOps
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">
@@ -738,9 +738,9 @@ export default async function LogDetailPage({ params }: PageProps) {
             </div>
           </Link>
           <div className="ml-auto flex items-center gap-2">
-            <div className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-zinc-700 dark:bg-zinc-800">
+            <div className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5">
               <Activity className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+              <span className="text-xs font-medium text-zinc-600">
                 IEC 62304 · 21 CFR Part 11
               </span>
             </div>

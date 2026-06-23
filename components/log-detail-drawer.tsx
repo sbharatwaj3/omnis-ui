@@ -62,18 +62,18 @@ function mapSeverity(summary: string | null | undefined): Severity {
 function SeverityBadge({ severity }: { severity: Severity }) {
   if (severity === "Critical")
     return (
-      <Badge className="border border-red-200 bg-red-100 text-red-700 hover:bg-red-100 font-semibold dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/40">
+      <Badge className="border border-red-200 bg-red-100 text-red-700 hover:bg-red-100 font-semibold">
         ● Critical
       </Badge>
     );
   if (severity === "Clear")
     return (
-      <Badge className="border border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 font-medium dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-950/40">
+      <Badge className="border border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 font-medium">
         ● Clear
       </Badge>
     );
   return (
-    <Badge className="border border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-100 font-medium dark:border-amber-500/20 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-950/40">
+    <Badge className="border border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-100 font-medium">
       ● Pending
     </Badge>
   );
@@ -93,10 +93,10 @@ function ConfidenceMeter({ score }: { score: number | null }) {
     score >= 80 ? "bg-emerald-500" : score >= 50 ? "bg-amber-500" : "bg-red-500";
   return (
     <div className="flex items-center gap-2">
-      <div className="h-1.5 w-28 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-700">
+      <div className="h-1.5 w-28 overflow-hidden rounded-full bg-zinc-100">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${score}%` }} />
       </div>
-      <span className="text-xs font-semibold tabular-nums text-zinc-700 dark:text-zinc-200">{score}%</span>
+      <span className="text-xs font-semibold tabular-nums text-zinc-700">{score}%</span>
     </div>
   );
 }
@@ -116,7 +116,7 @@ function MetaField({
   return (
     <div
       className={[
-        "flex flex-col gap-1 rounded-lg border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-800/60",
+        "flex flex-col gap-1 rounded-lg border border-zinc-100 bg-zinc-50 p-4",
         fixedHeight ? "h-[108px] overflow-hidden" : "",
       ].join(" ")}
     >
@@ -126,7 +126,7 @@ function MetaField({
           {label}
         </span>
       </div>
-      <div className="flex-1 overflow-hidden text-sm text-zinc-700 dark:text-zinc-300 break-all">{value}</div>
+      <div className="flex-1 overflow-hidden text-sm text-zinc-700 break-all">{value}</div>
     </div>
   );
 }
@@ -239,13 +239,13 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
           onClick={(e) => e.stopPropagation()}
           className={[
             "relative w-full max-w-lg rounded-2xl border border-zinc-200 bg-white shadow-2xl mx-2",
-            "dark:border-zinc-700 dark:bg-zinc-900",
+            "",
             "transition-all duration-200",
             isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95",
           ].join(" ")}
         >
           {/* ── Modal header ─────────────────────────────────────────────── */}
-          <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800 sm:px-8 sm:py-5">
+          <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 sm:px-8 sm:py-5">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-zinc-500" strokeWidth={1.75} />
               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
@@ -255,7 +255,7 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
             <button
               onClick={onClose}
               aria-label="Close quick view"
-              className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
             >
               <X className="h-4 w-4" />
             </button>
@@ -295,8 +295,8 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
                     <span
                       className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
                         log.execution_status?.toUpperCase() === "SUCCESS"
-                          ? "bg-zinc-100 text-zinc-600 dark:bg-slate-800 dark:text-emerald-400 dark:border dark:border-emerald-500/20"
-                          : "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400"
+                          ? "bg-zinc-100 text-zinc-600"
+                          : "bg-orange-50 text-orange-700"
                       }`}
                     >
                       {log.execution_status ?? "—"}
@@ -350,7 +350,7 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
                 {/* AI confidence — only shown when available */}
                 {insight?.ai_confidence_score !== null &&
                   insight?.ai_confidence_score !== undefined && (
-                  <div className="flex items-center gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-800/60">
+                  <div className="flex items-center gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
                     <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 shrink-0">
                       AI Confidence
                     </span>
@@ -363,7 +363,7 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
 
           {/* ── Modal footer ─────────────────────────────────────────────── */}
           {!loading && log && (
-            <div className="flex items-center justify-between border-t border-zinc-100 px-5 py-4 dark:border-zinc-800 sm:px-8 sm:py-5">
+            <div className="flex items-center justify-between border-t border-zinc-100 px-5 py-4 sm:px-8 sm:py-5">
               <button
                 onClick={onClose}
                 className="text-xs font-medium text-zinc-400 transition-colors hover:text-zinc-600"
@@ -372,7 +372,7 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
               </button>
               <button
                 onClick={handleFullView}
-                className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-zinc-700"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
                 View Full Evidence Log

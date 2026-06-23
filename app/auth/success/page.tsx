@@ -18,7 +18,7 @@ import { ShieldCheck, CheckCircle2 } from "lucide-react";
 
 export default function AuthSuccessPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6 py-12 dark:bg-slate-950">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6 py-12">
       <div className="w-full max-w-md text-center">
         {/* Brand mark */}
         <div className="mb-8 flex items-center justify-center gap-2.5">
@@ -26,24 +26,24 @@ export default function AuthSuccessPage() {
             <ShieldCheck className="h-5 w-5 text-emerald-500" strokeWidth={1.75} />
           </div>
           <div className="text-left leading-none">
-            <span className="block text-sm font-bold text-slate-900 dark:text-slate-100">
+            <span className="block text-sm font-bold text-slate-900">
               Omnis MedTech Corp
             </span>
-            <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+            <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-600">
               RegOps Platform
             </span>
           </div>
         </div>
 
         {/* Success mark */}
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:ring-emerald-800">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200">
           <CheckCircle2 className="h-8 w-8 text-emerald-500" strokeWidth={1.75} />
         </div>
 
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
           Your email is now confirmed.
         </h1>
-        <p className="mt-3 text-base leading-relaxed text-slate-500 dark:text-slate-400">
+        <p className="mt-3 text-base leading-relaxed text-slate-500">
           You can close this tab and return to your original window.
         </p>
       </div>

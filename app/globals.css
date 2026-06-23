@@ -2,6 +2,14 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* ---------------------------------------------------------------------------
+   Omnis RegOps — Global Stylesheet (LIGHT MODE LOCK)
+   --------------------------------------------------------------------------
+   Dark mode has been fully eradicated from this codebase. There is no theme
+   provider, no `dark:` variant, and no `.dark` class hook. The application
+   renders exclusively in the enterprise light palette below.
+   --------------------------------------------------------------------------- */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -47,6 +55,7 @@
 }
 
 :root {
+  color-scheme: light;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -85,51 +94,33 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    color-scheme: light;
+    @apply font-sans;
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background text-foreground;
     overflow-x: hidden;
     max-width: 100vw;
   }
-  html {
-    @apply font-sans;
-    overflow-x: hidden;
-  }
 }
 
-/* ── Absolute light-mode lock ──────────────────────────────────────────────
-   The shadcn/tailwind.css import ships a prefers-color-scheme: dark block
-   that would override CSS variables on dark-OS browsers. We re-declare every
-   token here — AFTER the imports — so these values always win regardless of
-   OS preference or any injected dark media query.
-   -------------------------------------------------------------------------- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-    color-scheme: light;
-  }
+/* ---------------------------------------------------------------------------
+   Auth input autofill defense
+   --------------------------------------------------------------------------
+   Chrome / Safari paint a yellow-grey background on autofilled inputs which
+   visually contradicts the enterprise white auth surfaces. Force the
+   autofill state to render the same white background and dark slate text
+   as the un-filled state. The 5000s transition is the canonical hack to
+   defer Chrome's internal repaint past any reasonable session.
+   --------------------------------------------------------------------------- */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #0f172a;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  caret-color: #0f172a;
+  transition: background-color 5000s ease-in-out 0s;
 }

@@ -376,11 +376,11 @@ function TenantBanner({
   totalLogsForOrg: number;
 }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-xs dark:border-zinc-700 dark:bg-zinc-900/50">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-zinc-600 dark:text-zinc-300">
+    <div className="rounded-lg border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-xs">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-zinc-600">
         <span className="flex items-center gap-1.5">
           <Building2 className="h-3.5 w-3.5 text-zinc-400" />
-          <span className="font-semibold text-zinc-700 dark:text-zinc-200">
+          <span className="font-semibold text-zinc-700">
             {tenant.orgName ?? "(no organization assigned)"}
           </span>
         </span>
@@ -411,21 +411,21 @@ function RuleRow({ rule }: { rule: ParsedRule }) {
     );
 
   return (
-    <div className="flex items-start gap-3 border-b border-zinc-100 dark:border-zinc-800 py-3 last:border-0">
+    <div className="flex items-start gap-3 border-b border-zinc-100 py-3 last:border-0">
       <div className="mt-0.5">{icon}</div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+          <span className="font-mono text-xs font-semibold text-zinc-700">
             {rule.req_id}
           </span>
           {rule.evidence_type && (
-            <span className="rounded bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">
+            <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500">
               {rule.evidence_type}
             </span>
           )}
         </div>
         {rule.description && (
-          <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+          <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
             {rule.description}
           </p>
         )}
@@ -489,7 +489,7 @@ async function ReadinessContent() {
       {/* HEADER ROW */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <h2 className="text-xl font-bold tracking-tight text-zinc-900">
             Traceability Matrix
           </h2>
           <p className="mt-1 text-sm text-zinc-400">
@@ -501,7 +501,7 @@ async function ReadinessContent() {
       </div>
 
       {/* PROGRESS CARD */}
-      <Card className="border-zinc-200 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+      <Card className="border-zinc-200 shadow-sm">
         <CardContent className="pt-6 pb-5">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
@@ -521,9 +521,9 @@ async function ReadinessContent() {
           </div>
           <Progress
             value={completionPercent}
-            className="h-3 bg-zinc-100 dark:bg-zinc-800"
+            className="h-3 bg-zinc-100"
           />
-          <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-500">
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
               {compliant} Compliant
@@ -549,15 +549,15 @@ async function ReadinessContent() {
         {missingRules.length > 0 && (
           <AccordionItem
             value="missing"
-            className="rounded-xl border border-red-200 dark:border-red-900/60 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden"
+            className="rounded-xl border border-red-200 bg-white shadow-sm overflow-hidden"
           >
-            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-red-50/40 dark:hover:bg-red-950/20 [&[data-state=open]]:bg-red-50/40 dark:[&[data-state=open]]:bg-red-950/20">
+            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-red-50/40 [&[data-state=open]]:bg-red-50/40">
               <div className="flex items-center gap-3">
                 <XCircle className="h-4 w-4 text-red-500" />
-                <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                <span className="text-sm font-semibold text-zinc-800">
                   Missing Evidence
                 </span>
-                <span className="rounded-full border border-red-200 dark:border-red-800 bg-red-100 dark:bg-red-950/60 px-2 py-0.5 text-xs font-semibold text-red-700 dark:text-red-400">
+                <span className="rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
                   {missingRules.length}
                 </span>
               </div>
@@ -567,7 +567,7 @@ async function ReadinessContent() {
               </p>
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-4 pt-0">
-              <Separator className="mb-3 bg-red-100 dark:bg-red-900/40" />
+              <Separator className="mb-3 bg-red-100" />
               {missingRules.map((rule) => (
                 <RuleRow key={rule.req_id} rule={rule} />
               ))}
@@ -578,15 +578,15 @@ async function ReadinessContent() {
         {pendingRules.length > 0 && (
           <AccordionItem
             value="pending"
-            className="rounded-xl border border-amber-200 dark:border-amber-800/60 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden"
+            className="rounded-xl border border-amber-200 bg-white shadow-sm overflow-hidden"
           >
-            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-amber-50/40 dark:hover:bg-amber-950/20 [&[data-state=open]]:bg-amber-50/40 dark:[&[data-state=open]]:bg-amber-950/20">
+            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-amber-50/40 [&[data-state=open]]:bg-amber-50/40">
               <div className="flex items-center gap-3">
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                <span className="text-sm font-semibold text-zinc-800">
                   Pending Approval
                 </span>
-                <span className="rounded-full border border-amber-200 dark:border-amber-800 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-400">
+                <span className="rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
                   {pendingRules.length}
                 </span>
               </div>
@@ -596,7 +596,7 @@ async function ReadinessContent() {
               </p>
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-4 pt-0">
-              <Separator className="mb-3 bg-amber-100 dark:bg-amber-900/40" />
+              <Separator className="mb-3 bg-amber-100" />
               {pendingRules.map((rule) => (
                 <RuleRow key={rule.req_id} rule={rule} />
               ))}
@@ -607,15 +607,15 @@ async function ReadinessContent() {
         {compliantRules.length > 0 && (
           <AccordionItem
             value="compliant"
-            className="rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden"
+            className="rounded-xl border border-emerald-200 bg-white shadow-sm overflow-hidden"
           >
-            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 [&[data-state=open]]:bg-emerald-50/30 dark:[&[data-state=open]]:bg-emerald-950/20">
+            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-emerald-50/30 [&[data-state=open]]:bg-emerald-50/30">
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                <span className="text-sm font-semibold text-zinc-800">
                   Compliant
                 </span>
-                <span className="rounded-full border border-emerald-200 dark:border-emerald-800 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                <span className="rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                   {compliantRules.length}
                 </span>
               </div>
@@ -625,7 +625,7 @@ async function ReadinessContent() {
               </p>
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-4 pt-0">
-              <Separator className="mb-3 bg-emerald-100 dark:bg-emerald-900/40" />
+              <Separator className="mb-3 bg-emerald-100" />
               {compliantRules.map((rule) => (
                 <RuleRow key={rule.req_id} rule={rule} />
               ))}
@@ -646,22 +646,22 @@ function ReadinessSkeleton() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <div className="h-6 w-48 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-          <div className="h-3 w-64 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+          <div className="h-6 w-48 animate-pulse rounded bg-zinc-200" />
+          <div className="h-3 w-64 animate-pulse rounded bg-zinc-100" />
         </div>
-        <div className="h-9 w-48 animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800" />
+        <div className="h-9 w-48 animate-pulse rounded-lg bg-zinc-200" />
       </div>
-      <Card className="border-zinc-200 dark:border-zinc-700 dark:bg-zinc-900">
+      <Card className="border-zinc-200">
         <CardContent className="pt-6 pb-5">
           <div className="mb-2 flex justify-between">
-            <div className="h-3 w-40 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-            <div className="h-6 w-16 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+            <div className="h-3 w-40 animate-pulse rounded bg-zinc-200" />
+            <div className="h-6 w-16 animate-pulse rounded bg-zinc-200" />
           </div>
-          <div className="h-3 animate-pulse rounded-full bg-zinc-100 dark:bg-zinc-800" />
+          <div className="h-3 animate-pulse rounded-full bg-zinc-100" />
         </CardContent>
       </Card>
       {[1, 2, 3].map((i) => (
-        <div key={i} className="h-16 animate-pulse rounded-xl bg-zinc-100 dark:bg-zinc-800" />
+        <div key={i} className="h-16 animate-pulse rounded-xl bg-zinc-100" />
       ))}
     </div>
   );
@@ -673,13 +673,13 @@ function ReadinessSkeleton() {
 
 export default function ReadinessPage() {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="min-h-screen bg-zinc-50">
+      <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center px-4 py-4 md:px-8 md:py-5">
           <div className="flex items-center gap-2 shrink-0">
-            <ShieldCheck className="h-5 w-5 md:h-6 md:w-6 text-zinc-800 dark:text-zinc-200" strokeWidth={1.75} />
+            <ShieldCheck className="h-5 w-5 md:h-6 md:w-6 text-zinc-800" strokeWidth={1.75} />
             <div>
-              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
                 Omnis RegOps
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">FDA Submission Readiness</p>
@@ -689,33 +689,33 @@ export default function ReadinessPage() {
           <div className="hidden sm:flex flex-1 justify-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:border-zinc-600 dark:hover:bg-zinc-700"
+              className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
               Back to Dashboard
             </Link>
           </div>
 
           <div className="flex items-center gap-2 ml-auto sm:ml-0 shrink-0">
-            <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none dark:border-zinc-700 dark:bg-zinc-800">
+            <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none">
               <Activity className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+              <span className="text-xs font-medium text-zinc-600">
                 IEC 62304 · 21 CFR Part 11
               </span>
             </span>
             <Link
               href="/dashboard/settings"
               aria-label="Settings"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
             >
               <Settings className="h-4 w-4" strokeWidth={1.75} />
             </Link>
           </div>
         </div>
 
-        <div className="flex sm:hidden border-t border-zinc-100 dark:border-zinc-800 px-4 py-2">
+        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2">
           <Link
             href="/dashboard"
-            className="flex-1 text-center rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+            className="flex-1 text-center rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
             ← Back to Dashboard
           </Link>

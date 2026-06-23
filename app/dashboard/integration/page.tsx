@@ -66,7 +66,7 @@ const PLATFORMS: Platform[] = [
 
 function StepBadge({ n }: { n: number }) {
   return (
-    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white">
       {n}
     </span>
   );
@@ -78,9 +78,9 @@ function StepBadge({ n }: { n: number }) {
 
 export default function IntegrationPage() {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-zinc-50">
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center px-4 py-4 md:px-8 md:py-5">
           {/* Left: logo */}
           <Link
@@ -88,11 +88,11 @@ export default function IntegrationPage() {
             className="flex items-center gap-2 group shrink-0"
           >
             <ShieldCheck
-              className="h-5 w-5 md:h-6 md:w-6 text-zinc-800 dark:text-zinc-200"
+              className="h-5 w-5 md:h-6 md:w-6 text-zinc-800"
               strokeWidth={1.75}
             />
             <div>
-              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
                 Omnis RegOps
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">
@@ -105,7 +105,7 @@ export default function IntegrationPage() {
           <div className="hidden sm:flex flex-1 justify-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               Back to Dashboard
@@ -114,9 +114,9 @@ export default function IntegrationPage() {
 
           {/* Right: badge + settings */}
           <div className="flex items-center gap-2 ml-auto sm:ml-0 shrink-0">
-            <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none dark:border-zinc-700 dark:bg-zinc-800">
+            <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none">
               <Activity className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+              <span className="text-xs font-medium text-zinc-600">
                 IEC 62304 · 21 CFR Part 11
               </span>
             </span>
@@ -125,10 +125,10 @@ export default function IntegrationPage() {
         </div>
 
         {/* Mobile sub-bar */}
-        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2 dark:border-zinc-800">
+        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2">
           <Link
             href="/dashboard"
-            className="flex-1 text-center inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+            className="flex-1 text-center inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Back to Dashboard
@@ -142,7 +142,7 @@ export default function IntegrationPage() {
         <div className="mb-8 flex items-center gap-3">
           <Terminal className="h-5 w-5 text-zinc-500" strokeWidth={1.75} />
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-xl font-bold tracking-tight text-zinc-900">
               CLI Integration Setup
             </h2>
             <p className="mt-0.5 text-sm text-zinc-400">
@@ -151,7 +151,7 @@ export default function IntegrationPage() {
           </div>
         </div>
 
-        <Separator className="mb-10 bg-zinc-200 dark:bg-zinc-800" />
+        <Separator className="mb-10 bg-zinc-200" />
 
         {/* ── Step 1: Download ─────────────────────────────────────────── */}
         <section aria-labelledby="step1-heading" className="mb-10">
@@ -160,7 +160,7 @@ export default function IntegrationPage() {
             <div>
               <h3
                 id="step1-heading"
-                className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-100"
+                className="flex items-center gap-2 text-base font-semibold text-zinc-900"
               >
                 <Download className="h-4 w-4 text-zinc-500" strokeWidth={1.75} />
                 Download the CLI Tool
@@ -178,15 +178,15 @@ export default function IntegrationPage() {
                 key={p.label}
                 href={p.href}
                 aria-label={`Download Omnis CLI for ${p.label}`}
-                className="group flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:border-zinc-300 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600"
+                className="group flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:border-zinc-300 hover:shadow-md"
               >
                 {/* Icon + badge */}
                 <div className="flex items-start justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 group-hover:border-zinc-300 group-hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:group-hover:text-zinc-100">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 group-hover:border-zinc-300 group-hover:text-zinc-900">
                     {p.icon}
                   </div>
                   {p.badge && (
-                    <span className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                    <span className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500">
                       {p.badge}
                     </span>
                   )}
@@ -194,19 +194,19 @@ export default function IntegrationPage() {
 
                 {/* Label */}
                 <div>
-                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                  <p className="text-sm font-semibold text-zinc-800">
                     {p.label}
                   </p>
                   <p className="text-[11px] text-zinc-400">{p.os}</p>
                 </div>
 
                 {/* Filename */}
-                <code className="mt-auto truncate rounded bg-zinc-50 px-2 py-1 font-mono text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                <code className="mt-auto truncate rounded bg-zinc-50 px-2 py-1 font-mono text-[10px] text-zinc-500">
                   {p.filename}
                 </code>
 
                 {/* CTA */}
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700 group-hover:text-zinc-900 dark:text-zinc-300 dark:group-hover:text-zinc-100">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700 group-hover:text-zinc-900">
                   <Download className="h-3 w-3" strokeWidth={2} />
                   Download
                 </div>
@@ -221,7 +221,7 @@ export default function IntegrationPage() {
           </p>
         </section>
 
-        <Separator className="mb-10 bg-zinc-200 dark:bg-zinc-800" />
+        <Separator className="mb-10 bg-zinc-200" />
 
         {/* ── Step 2: Authenticate ─────────────────────────────────────── */}
         <section aria-labelledby="step2-heading" className="mb-10">
@@ -230,7 +230,7 @@ export default function IntegrationPage() {
             <div>
               <h3
                 id="step2-heading"
-                className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-100"
+                className="flex items-center gap-2 text-base font-semibold text-zinc-900"
               >
                 <KeyRound className="h-4 w-4 text-zinc-500" strokeWidth={1.75} />
                 Authenticate with Your API Key
@@ -243,8 +243,8 @@ export default function IntegrationPage() {
           </div>
 
           {/* Instruction card */}
-          <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <p className="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <p className="mb-3 text-sm font-medium text-zinc-700">
               Export your API key as an environment variable:
             </p>
 
@@ -280,16 +280,16 @@ export default function IntegrationPage() {
             </div>
 
             {/* Key generation CTA */}
-            <div className="mt-4 flex items-start gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800/60">
+            <div className="mt-4 flex items-start gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
               <KeyRound
                 className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400"
                 strokeWidth={1.75}
               />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs text-zinc-500">
                 Don&apos;t have an API key yet?{" "}
                 <Link
                   href="/dashboard/settings"
-                  className="font-semibold text-zinc-800 underline underline-offset-2 hover:text-zinc-600 dark:text-zinc-200 dark:hover:text-zinc-400"
+                  className="font-semibold text-zinc-800 underline underline-offset-2 hover:text-zinc-600"
                 >
                   Generate one in Settings →
                 </Link>
@@ -298,7 +298,7 @@ export default function IntegrationPage() {
           </div>
         </section>
 
-        <Separator className="mb-10 bg-zinc-200 dark:bg-zinc-800" />
+        <Separator className="mb-10 bg-zinc-200" />
 
         {/* ── Step 3: Execute ──────────────────────────────────────────── */}
         <section aria-labelledby="step3-heading" className="mb-10">
@@ -307,7 +307,7 @@ export default function IntegrationPage() {
             <div>
               <h3
                 id="step3-heading"
-                className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-100"
+                className="flex items-center gap-2 text-base font-semibold text-zinc-900"
               >
                 <Terminal className="h-4 w-4 text-zinc-500" strokeWidth={1.75} />
                 Run the CLI &amp; Ingest Evidence
@@ -322,7 +322,7 @@ export default function IntegrationPage() {
 
           {/* Primary command */}
           <div className="mb-4">
-            <p className="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            <p className="mb-2 text-xs font-medium text-zinc-500">
               Basic usage
             </p>
             <TerminalBlock
@@ -334,7 +334,7 @@ export default function IntegrationPage() {
 
           {/* Extended example */}
           <div>
-            <p className="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            <p className="mb-2 text-xs font-medium text-zinc-500">
               Full CI/CD example (with build version and requirement tag)
             </p>
             <TerminalBlock
@@ -344,7 +344,7 @@ export default function IntegrationPage() {
           </div>
 
           {/* Flag reference */}
-          <div className="mt-5 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="mt-5 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">
               Flag Reference
             </p>
@@ -368,10 +368,10 @@ export default function IntegrationPage() {
                 },
               ].map(({ flag, desc }) => (
                 <div key={flag} className="flex items-start gap-3">
-                  <code className="shrink-0 rounded bg-zinc-100 px-2 py-0.5 font-mono text-[11px] text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                  <code className="shrink-0 rounded bg-zinc-100 px-2 py-0.5 font-mono text-[11px] text-zinc-700">
                     {flag}
                   </code>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{desc}</p>
+                  <p className="text-xs text-zinc-500">{desc}</p>
                 </div>
               ))}
             </div>
@@ -379,24 +379,24 @@ export default function IntegrationPage() {
         </section>
 
         {/* ── Done CTA ────────────────────────────────────────────────── */}
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 dark:border-emerald-800/40 dark:bg-emerald-950/30">
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
           <div className="flex items-start gap-3">
             <ShieldCheck
-              className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400"
+              className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600"
               strokeWidth={1.75}
             />
             <div>
-              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+              <p className="text-sm font-semibold text-emerald-800">
                 Integration complete
               </p>
-              <p className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-400">
+              <p className="mt-0.5 text-xs text-emerald-700">
                 Once your first run arrives, it will appear in the Evidence
                 Dashboard within seconds. Each log is HMAC-signed, hashed, and
                 linked to its regulatory requirement automatically.
               </p>
               <Link
                 href="/dashboard"
-                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-600 dark:text-emerald-300 dark:hover:text-emerald-400"
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-600"
               >
                 View Evidence Dashboard →
               </Link>

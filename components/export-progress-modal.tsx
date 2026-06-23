@@ -317,14 +317,14 @@ export function ExportProgressModal({
       onKeyDown={handleKeyDown}
     >
       {/* Modal panel */}
-      <div className="relative w-full max-w-md mx-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-6 flex flex-col gap-5">
+      <div className="relative w-full max-w-md mx-4 rounded-2xl border border-zinc-200 bg-white shadow-2xl p-6 flex flex-col gap-5">
 
         {/* Close button — only enabled once complete or errored */}
         {(isComplete || apiState === "error") && (
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="absolute top-4 right-4 rounded-md p-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
+            className="absolute top-4 right-4 rounded-md p-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -334,7 +334,7 @@ export function ExportProgressModal({
         <div>
           <h2
             id="export-modal-title"
-            className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100"
+            className="text-lg font-bold tracking-tight text-zinc-900"
           >
             Generating eSTAR Documentation
           </h2>
@@ -347,11 +347,11 @@ export function ExportProgressModal({
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs text-zinc-400">
             <span>Export progress</span>
-            <span className="tabular-nums font-medium text-zinc-600 dark:text-zinc-300">
+            <span className="tabular-nums font-medium text-zinc-600">
               {Math.round(progressPercent)}%
             </span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
             <div
               className={[
                 "h-full rounded-full transition-all duration-150 ease-linear",
@@ -388,7 +388,7 @@ export function ExportProgressModal({
                           "mt-1 w-px flex-1 min-h-[20px] rounded-full transition-colors duration-300",
                           status === "completed"
                             ? "bg-emerald-400"
-                            : "bg-zinc-200 dark:bg-zinc-700",
+                            : "bg-zinc-200",
                         ].join(" ")}
                       />
                     )}
@@ -400,10 +400,10 @@ export function ExportProgressModal({
                       className={[
                         "text-sm leading-snug transition-colors duration-200",
                         status === "completed"
-                          ? "font-semibold text-emerald-600 dark:text-emerald-400"
+                          ? "font-semibold text-emerald-600"
                           : status === "active"
-                            ? "font-semibold text-blue-600 dark:text-blue-400"
-                            : "font-normal text-zinc-400 dark:text-zinc-500",
+                            ? "font-semibold text-blue-600"
+                            : "font-normal text-zinc-400",
                       ].join(" ")}
                     >
                       {step.label}
@@ -425,15 +425,15 @@ export function ExportProgressModal({
 
         {/* Error panel */}
         {apiState === "error" && (
-          <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-900/60 dark:bg-red-950/30 p-4 space-y-3">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                <p className="text-sm font-semibold text-red-700">
                   Compilation Failed
                 </p>
                 {apiError && (
-                  <p className="mt-1 text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap break-words">
+                  <p className="mt-1 text-xs text-red-600 whitespace-pre-wrap break-words">
                     {apiError}
                   </p>
                 )}
@@ -443,7 +443,7 @@ export function ExportProgressModal({
               size="sm"
               variant="outline"
               onClick={handleRetry}
-              className="flex items-center gap-2 border-red-300 text-red-700 hover:bg-red-100 dark:border-red-800 dark:text-red-400"
+              className="flex items-center gap-2 border-red-300 text-red-700 hover:bg-red-100"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Retry
@@ -453,19 +453,19 @@ export function ExportProgressModal({
 
         {/* Completion actions */}
         {isComplete && (
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end border-t border-zinc-100 dark:border-zinc-800 pt-4 mt-1">
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end border-t border-zinc-100 pt-4 mt-1">
             <Button
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="order-2 sm:order-1 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              className="order-2 sm:order-1 border-zinc-200 text-zinc-600 hover:bg-zinc-50"
             >
               Close
             </Button>
             <Button
               size="sm"
               onClick={handleDownloadClick}
-              className="order-1 sm:order-2 flex items-center gap-2 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              className="order-1 sm:order-2 flex items-center gap-2 bg-zinc-900 text-white hover:bg-zinc-700"
             >
               <Download className="h-3.5 w-3.5" />
               Download PDF
@@ -496,6 +496,6 @@ function StepIcon({ status }: { status: StepStatus }) {
     );
   }
   return (
-    <Circle className="h-5 w-5 shrink-0 text-zinc-300 dark:text-zinc-600" aria-label="Pending" />
+    <Circle className="h-5 w-5 shrink-0 text-zinc-300" aria-label="Pending" />
   );
 }

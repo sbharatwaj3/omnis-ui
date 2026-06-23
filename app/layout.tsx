@@ -2,9 +2,17 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { ThemeProvider } from "@/components/theme-provider";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+// ---------------------------------------------------------------------------
+// Omnis RegOps Root Layout
+//
+// LIGHT-MODE LOCK: This layout is hardcoded to render in light mode. There is
+// no ThemeProvider, no `next-themes` dependency, and no runtime theme switch.
+// The `<html>` tag is locked to className="light" with style colorScheme:"light"
+// so that OS-level dark preferences cannot override the application palette.
+// ---------------------------------------------------------------------------
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,19 +38,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("light h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
+      className={cn(
+        "light h-full antialiased font-sans",
+        geistSans.variable,
+        geistMono.variable,
+        inter.variable,
+      )}
       style={{ colorScheme: "light" }}
-      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+      <body className="min-h-full flex flex-col bg-white text-slate-900">
+        {children}
       </body>
     </html>
   );

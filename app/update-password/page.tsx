@@ -30,7 +30,7 @@ import {
 
 function BrandPanel() {
   return (
-    <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col justify-between bg-slate-900 px-12 py-12 dark:bg-slate-950">
+    <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col justify-between bg-slate-900 px-12 py-12">
       <Link href="/" className="flex items-center gap-3 group">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-200">
           <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
@@ -145,18 +145,18 @@ function UpdatePasswordForm() {
   // ── Success state ─────────────────────────────────────────────────────────
   if (success) {
     return (
-      <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white dark:bg-slate-950">
+      <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white">
         <div className="w-full max-w-sm text-center">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:ring-emerald-800">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200">
             <CheckCircle2 className="h-7 w-7 text-emerald-500" strokeWidth={1.75} />
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Password updated</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+          <h2 className="text-xl font-bold tracking-tight text-slate-900">Password updated</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-500">
             Your password has been changed successfully. Redirecting you to sign in…
           </p>
           <Link
             href="/login"
-            className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-slate-700 underline-offset-2 hover:underline dark:text-slate-300"
+            className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-slate-700 underline-offset-2 hover:underline"
           >
             Go to Sign In
           </Link>
@@ -168,10 +168,10 @@ function UpdatePasswordForm() {
   // ── Session not yet established (token exchange in progress) ──────────────
   if (!sessionReady) {
     return (
-      <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white dark:bg-slate-950">
+      <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white">
         <div className="flex flex-col items-center gap-3 text-center">
           <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-          <p className="text-sm text-slate-500 dark:text-slate-400">Verifying your reset link…</p>
+          <p className="text-sm text-slate-500">Verifying your reset link…</p>
         </div>
       </div>
     );
@@ -179,29 +179,29 @@ function UpdatePasswordForm() {
 
   // ── Main form ──────────────────────────────────────────────────────────────
   return (
-    <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white dark:bg-slate-950">
+    <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white">
       {/* Mobile logo */}
       <Link href="/" className="mb-8 flex flex-col items-center gap-3 lg:hidden group">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg group-hover:ring-2 group-hover:ring-emerald-400 transition-all dark:bg-slate-800">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg group-hover:ring-2 group-hover:ring-emerald-400 transition-all">
           <ShieldCheck className="h-6 w-6 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Omnis MedTech Corp</p>
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">RegOps Platform</p>
+          <p className="text-sm font-bold text-slate-900">Omnis MedTech Corp</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">RegOps Platform</p>
         </div>
       </Link>
 
       <div className="w-full max-w-sm">
         <div className="mb-7">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Set new password</h2>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Set new password</h2>
+          <p className="mt-1.5 text-sm text-slate-500">
             Choose a strong password of at least 8 characters.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1.5">
-            <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               New Password
             </Label>
             <Input
@@ -213,12 +213,12 @@ function UpdatePasswordForm() {
               value={password}
               onChange={(e) => { setPassword(e.target.value); if (error) setError(null); }}
               disabled={loading}
-              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
+              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500"
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="confirm-password" className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <Label htmlFor="confirm-password" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Confirm New Password
             </Label>
             <Input
@@ -230,21 +230,21 @@ function UpdatePasswordForm() {
               value={confirmPassword}
               onChange={(e) => { setConfirmPassword(e.target.value); if (error) setError(null); }}
               disabled={loading}
-              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
+              className="h-11 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500"
             />
           </div>
 
           {error && (
-            <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 dark:border-red-900/60 dark:bg-red-950/40">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500 dark:text-red-400" />
-              <p className="text-xs leading-relaxed text-red-700 dark:text-red-300">{error}</p>
+            <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3">
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+              <p className="text-xs leading-relaxed text-red-700">{error}</p>
             </div>
           )}
 
           <Button
             type="submit"
             disabled={loading}
-            className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+            className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
           >
             {loading ? (
               <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Saving…</span>
@@ -254,9 +254,9 @@ function UpdatePasswordForm() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-6 text-center text-sm text-slate-500">
           Remember your password?{" "}
-          <Link href="/login" className="font-semibold text-slate-800 underline-offset-2 hover:underline dark:text-slate-200">
+          <Link href="/login" className="font-semibold text-slate-800 underline-offset-2 hover:underline">
             Sign in
           </Link>
         </p>

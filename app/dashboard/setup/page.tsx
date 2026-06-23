@@ -20,9 +20,9 @@ export default async function SetupPage() {
   const { firstKey, logCount, error } = await getSetupPageData();
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-zinc-50">
       {/* ── Header (matches dashboard/settings chrome) ─────────────────── */}
-      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center px-4 py-4 md:px-8 md:py-5">
           {/* Left: logo */}
           <Link
@@ -30,11 +30,11 @@ export default async function SetupPage() {
             className="flex items-center gap-2 group shrink-0"
           >
             <ShieldCheck
-              className="h-5 w-5 md:h-6 md:w-6 text-zinc-800 dark:text-zinc-200"
+              className="h-5 w-5 md:h-6 md:w-6 text-zinc-800"
               strokeWidth={1.75}
             />
             <div>
-              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
                 Omnis RegOps
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">
@@ -45,9 +45,9 @@ export default async function SetupPage() {
 
           {/* Right: compliance badge + settings menu */}
           <div className="flex items-center gap-2 ml-auto shrink-0">
-            <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none dark:border-zinc-700 dark:bg-zinc-800">
+            <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none">
               <Activity className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+              <span className="text-xs font-medium text-zinc-600">
                 IEC 62304 · 21 CFR Part 11
               </span>
             </span>
