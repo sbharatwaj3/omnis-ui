@@ -314,27 +314,8 @@ export type Database = {
         }
         Relationships: []
       }
-      regulatory_clauses: {
-        Row: {
-          clause_number: string
-          description: string | null
-          id: string
-          standard_name: string
-        }
-        Insert: {
-          clause_number: string
-          description?: string | null
-          id?: string
-          standard_name: string
-        }
-        Update: {
-          clause_number?: string
-          description?: string | null
-          id?: string
-          standard_name?: string
-        }
-        Relationships: []
-      }
+      // regulatory_clauses was dropped in migration 20260624120000.
+      // Use regulatory_rules as the canonical FDA/IEC code source.
       regulatory_frameworks: {
         Row: {
           clause_code: string
@@ -394,31 +375,31 @@ export type Database = {
       }
       requirement_regulatory_mappings: {
         Row: {
-          clause_id: string
           requirement_id: string
+          rule_id: string
         }
         Insert: {
-          clause_id: string
           requirement_id: string
+          rule_id: string
         }
         Update: {
-          clause_id?: string
           requirement_id?: string
+          rule_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "requirement_regulatory_mappings_clause_id_fkey"
-            columns: ["clause_id"]
-            isOneToOne: false
-            referencedRelation: "regulatory_clauses"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "requirement_regulatory_mappings_requirement_id_fkey"
             columns: ["requirement_id"]
             isOneToOne: false
             referencedRelation: "company_requirements"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requirement_regulatory_mappings_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "regulatory_rules"
+            referencedColumns: ["req_id"]
           },
         ]
       }
@@ -684,8 +665,11 @@ export const Constants = {
 // verbose Tables<"table_name"> form in component and action files.
 // ---------------------------------------------------------------------------
 
-/** A row from public.regulatory_clauses */
-export type RegulatoryClause = Tables<"regulatory_clauses">
+/**
+ * A row from public.regulatory_rules — the canonical FDA/IEC code source.
+ * regulatory_clauses was dropped in migration 20260624120000.
+ */
+export type RegulatoryRule = Tables<"regulatory_rules">
 
 /** A row from public.company_requirements */
 export type CompanyRequirement = Tables<"company_requirements">
@@ -703,9 +687,9 @@ export type NewRequirementRegulatoryMapping =
 
 /**
  * A fully-resolved traceability matrix row — a requirement with its mapped
- * clauses joined in. Constructed at the query layer by the Server Action;
+ * rules joined in. Constructed at the query layer by the Server Action;
  * typed here for use in page components.
  */
 export type TraceabilityMatrixRow = CompanyRequirement & {
-  clauses: RegulatoryClause[]
+  rules: RegulatoryRule[]
 }
