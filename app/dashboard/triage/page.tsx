@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { ShieldCheck, Activity, Brain, LayoutDashboard } from "lucide-react";
+import { ShieldCheck, Activity, Brain, LayoutDashboard, ShieldAlert } from "lucide-react";
 import { getPendingTriageItems } from "@/app/dashboard/triage/actions";
 import { TriageQueueClient } from "@/components/triage-queue-client";
 import { SettingsMenu } from "@/components/settings-menu";
@@ -91,6 +91,13 @@ export default function TriagePage() {
               <LayoutDashboard className="h-4 w-4 shrink-0" strokeWidth={1.75} />
               Back to Dashboard
             </Link>
+            <Link
+              href="/dashboard/audit-logs"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+            >
+              <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+              Audit Logs
+            </Link>
           </div>
 
           {/* Right: status badge + role + settings */}
@@ -103,8 +110,7 @@ export default function TriagePage() {
             </span>
             <RoleBadge />
             <SettingsMenu />
-          </div>
-        </div>
+          </div>        </div>
       </header>
 
       {/* Main content */}
