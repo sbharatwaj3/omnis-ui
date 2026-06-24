@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   Activity,
   ClipboardList,
+  Brain,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
@@ -237,6 +238,13 @@ export default function DashboardPage() {
               <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
               Manage Requirements
             </Link>
+            <Link
+              href="/dashboard/triage"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-1.5 text-sm font-semibold text-amber-800 shadow-sm transition-colors hover:border-amber-300 hover:bg-amber-100"
+            >
+              <Brain className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+              Triage Inbox
+            </Link>
           </div>
 
           {/* Right: informational badge (hidden on mobile) + role badge + settings */}
@@ -266,6 +274,13 @@ export default function DashboardPage() {
           >
             <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
             Requirements
+          </Link>
+          <Link
+            href="/dashboard/triage"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-100"
+          >
+            <Brain className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            Triage
           </Link>
         </div>
       </header>
