@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { ShieldCheck, Activity, Brain, ArrowLeft } from "lucide-react";
+import { ShieldCheck, Activity, Brain, LayoutDashboard } from "lucide-react";
 import { getPendingTriageItems } from "@/app/dashboard/triage/actions";
 import { TriageQueueClient } from "@/components/triage-queue-client";
 import { SettingsMenu } from "@/components/settings-menu";
@@ -86,10 +86,10 @@ export default function TriagePage() {
             <span className="hidden sm:block text-zinc-300">|</span>
             <Link
               href="/dashboard"
-              className="hidden sm:inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-700 transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
-              <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
-              Dashboard
+              <LayoutDashboard className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+              Back to Dashboard
             </Link>
           </div>
 
