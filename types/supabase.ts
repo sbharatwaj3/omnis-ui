@@ -103,6 +103,57 @@ export type Database = {
           },
         ]
       }
+      // -----------------------------------------------------------------------
+      // audit_logs — 21 CFR Part 11 immutable audit trail.
+      // Append-only: no UPDATE or DELETE policies exist at the DB layer.
+      // -----------------------------------------------------------------------
+      audit_logs: {
+        Row: {
+          id: string
+          /** Supabase Auth user who performed the action. NULL for service_role background tasks. */
+          user_id: string | null
+          /** Org scoping key. Stored without FK so records survive org deletion. */
+          org_id: string
+          /** The operation performed: CREATE | UPDATE | DELETE | TRIAGE_RESOLVE */
+          action_type: "CREATE" | "UPDATE" | "DELETE" | "TRIAGE_RESOLVE"
+          /** The class of entity affected: REQUIREMENT | MAPPING | EVIDENCE_LOG */
+          entity_type: string
+          /** Primary key of the affected entity, serialised as TEXT. */
+          entity_id: string
+          /** Before/after snapshot: { before: {...}|null, after: {...}|null } */
+          changes: {
+            before: Record<string, unknown> | null
+            after: Record<string, unknown> | null
+          }
+          /** Server-set timestamp — never supplied by the client. */
+          timestamp: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          org_id: string
+          action_type: "CREATE" | "UPDATE" | "DELETE" | "TRIAGE_RESOLVE"
+          entity_type: string
+          entity_id: string
+          changes: {
+            before: Record<string, unknown> | null
+            after: Record<string, unknown> | null
+          }
+          timestamp?: string
+        }
+        // UPDATE is intentionally omitted — audit_logs rows are immutable.
+        // The DB enforces this with the absence of an UPDATE RLS policy.
+        Update: Record<string, never>
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_compliance_insights: {
         Row: {
           ai_confidence_score: number | null
@@ -743,3 +794,35 @@ export type AiTriageQueueUpdate = TablesUpdate<"ai_triage_queue">
 
 /** The three valid lifecycle states of a triage item */
 export type TriageStatus = "pending" | "approved" | "rejected"
+
+// ---------------------------------------------------------------------------
+// 21 CFR Part 11 Audit Trail types
+// ---------------------------------------------------------------------------
+
+/** A row from public.audit_logs — the immutable 21 CFR Part 11 audit ledger */
+export type AuditLog = Tables<"audit_logs">
+
+/**
+ * Insert shape for public.audit_logs.
+ * Use this when writing audit records from Server Actions.
+ * Note: timestamp is intentionally omitted — always set by the DB server clock.
+ */
+export type NewAuditLog = TablesInsert<"audit_logs">
+
+/** The four action verbs used in the audit trail */
+export type AuditActionType = "CREATE" | "UPDATE" | "DELETE" | "TRIAGE_RESOLVE"
+
+/**
+ * The entity classes tracked by the audit trail.
+ * Extend this union as new tracked entity types are introduced.
+ */
+export type AuditEntityType = "REQUIREMENT" | "MAPPING" | "EVIDENCE_LOG"
+
+/**
+ * The strongly-typed JSONB changes payload stored in audit_logs.changes.
+ * before is null for CREATE operations; after is null for DELETE operations.
+ */
+export type AuditChangesPayload = {
+  before: Record<string, unknown> | null
+  after: Record<string, unknown> | null
+}

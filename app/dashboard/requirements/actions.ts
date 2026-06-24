@@ -16,13 +16,72 @@
 //     source of truth). The redundant regulatory_clauses table has been
 //     dropped per migration 20260624120000.
 //
+// 21 CFR PART 11 AUDIT TRAIL:
+//   - createRequirement and bulkImportRequirements write to audit_logs on
+//     every successful mutation. The audit record captures a before/after
+//     JSONB snapshot of the changed data. Audit writes use the adminClient
+//     so RLS on audit_logs cannot silently swallow the insert.
+//
 // DUPLICATE DETECTION:
 //   - requirement_id has a UNIQUE constraint in the DB. We surface a clean
 //     user-facing message instead of exposing the raw Postgres 23505 code.
 
+import "server-only";
+
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
+
+// ---------------------------------------------------------------------------
+// Audit trail helper
+// ---------------------------------------------------------------------------
+
+/**
+ * Writes a single immutable record to the audit_logs table.
+ * Uses adminClient so the RLS INSERT policy cannot silently reject the write.
+ * Fails loudly (console.error) if the insert fails — silent audit failures
+ * violate 21 CFR Part 11 and must be surfaced per IEC 62304 IV fail-safe rules.
+ */
+async function writeAuditLog({
+  userId,
+  orgId,
+  actionType,
+  entityType,
+  entityId,
+  before,
+  after,
+}: {
+  userId: string;
+  orgId: string;
+  actionType: "CREATE" | "UPDATE" | "DELETE" | "TRIAGE_RESOLVE";
+  entityType: "REQUIREMENT" | "MAPPING" | "EVIDENCE_LOG";
+  entityId: string;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+}): Promise<void> {
+  const { error } = await adminClient.from("audit_logs").insert({
+    user_id: userId,
+    org_id: orgId,
+    action_type: actionType,
+    entity_type: entityType,
+    entity_id: entityId,
+    changes: { before, after },
+  });
+
+  if (error) {
+    // Loud failure — a failed audit write is a compliance anomaly.
+    console.error(
+      "[AUDIT TRAIL] CRITICAL: audit_logs insert failed. " +
+        "This is a 21 CFR Part 11 violation. Investigate immediately.",
+      {
+        action_type: actionType,
+        entity_type: entityType,
+        entity_id: entityId,
+        error: error.message,
+      },
+    );
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -326,9 +385,41 @@ export async function createRequirement(
           "Requirement created, but regulatory mappings could not be saved. Please edit the requirement to add mappings.",
       };
     }
+
+    // Audit: one record per mapping row created.
+    await Promise.all(
+      ruleIds.map((ruleId) =>
+        writeAuditLog({
+          userId: ctx.userId,
+          orgId: ctx.orgId,
+          actionType: "CREATE",
+          entityType: "MAPPING",
+          entityId: JSON.stringify({ requirement_id: newId, rule_id: ruleId }),
+          before: null,
+          after: { requirement_id: newId, rule_id: ruleId },
+        }),
+      ),
+    );
   }
 
-  // Step 6: Revalidate the page so the table reflects the new row.
+  // Step 6: Write the 21 CFR Part 11 audit record for the requirement itself.
+  await writeAuditLog({
+    userId: ctx.userId,
+    orgId: ctx.orgId,
+    actionType: "CREATE",
+    entityType: "REQUIREMENT",
+    entityId: newId,
+    before: null,
+    after: {
+      id: newId,
+      requirement_id: trimmedId,
+      title: trimmedTitle,
+      description: trimmedDesc || null,
+      rule_ids: ruleIds,
+    },
+  });
+
+  // Step 7: Revalidate the page so the table reflects the new row.
   revalidatePath("/dashboard/requirements");
 
   return { success: true };
@@ -421,13 +512,15 @@ export async function bulkImportRequirements(
       continue;
     }
 
-    const { error: insertError } = await adminClient
+    const { data: insertedRow, error: insertError } = await adminClient
       .from("company_requirements")
       .insert({
         requirement_id: trimmedId,
         title: trimmedTitle,
         description: trimmedDesc || null,
-      });
+      })
+      .select("id")
+      .single();
 
     if (insertError) {
       skipped++;
@@ -446,6 +539,23 @@ export async function bulkImportRequirements(
       continue;
     }
 
+    // Write the 21 CFR Part 11 audit record for each successfully imported row.
+    await writeAuditLog({
+      userId: ctx.userId,
+      orgId: ctx.orgId,
+      actionType: "CREATE",
+      entityType: "REQUIREMENT",
+      entityId: insertedRow.id,
+      before: null,
+      after: {
+        id: insertedRow.id,
+        requirement_id: trimmedId,
+        title: trimmedTitle,
+        description: trimmedDesc || null,
+        import_source: "BULK_CSV",
+      },
+    });
+
     imported++;
   }
 
@@ -458,4 +568,73 @@ export async function bulkImportRequirements(
     skipped,
     errors,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Action: getAuditLogs
+// ---------------------------------------------------------------------------
+// Fetches audit records for the caller's organisation, ordered by timestamp
+// descending (newest first). Paginates via limit/offset.
+//
+// 21 CFR Part 11.10(e): Audit trails must be "available for review and
+// copying by FDA." This action is the read surface for that mandate.
+//
+// ACCESS: admin and qa_manager only.
+// CONSTITUTION LAW II: session verified server-side; identity derived from JWT.
+// ---------------------------------------------------------------------------
+
+export interface AuditLogRow {
+  id: string;
+  user_id: string | null;
+  org_id: string;
+  action_type: "CREATE" | "UPDATE" | "DELETE" | "TRIAGE_RESOLVE";
+  entity_type: string;
+  entity_id: string;
+  changes: {
+    before: Record<string, unknown> | null;
+    after: Record<string, unknown> | null;
+  };
+  timestamp: string;
+}
+
+export interface GetAuditLogsResult {
+  logs: AuditLogRow[];
+  error?: string;
+}
+
+export async function getAuditLogs(
+  limit = 100,
+  offset = 0,
+): Promise<GetAuditLogsResult> {
+  // Step 1: Verify session and resolve role.
+  const ctx = await resolveCallerRole();
+  if (!ctx) {
+    return { logs: [], error: "Unauthorized: valid session required." };
+  }
+
+  // Step 2: Gate — only admin and qa_manager may read the audit trail.
+  if (ctx.role !== "admin" && ctx.role !== "qa_manager") {
+    return {
+      logs: [],
+      error:
+        "Forbidden: only Admins and QA Managers may access the audit trail.",
+    };
+  }
+
+  // Step 3: Fetch audit records for this org, newest first.
+  const { data, error } = await adminClient
+    .from("audit_logs")
+    .select(
+      "id, user_id, org_id, action_type, entity_type, entity_id, changes, timestamp",
+    )
+    .eq("org_id", ctx.orgId)
+    .order("timestamp", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    console.error("[getAuditLogs] Supabase select error:", error.message);
+    return { logs: [], error: "Database error: could not load audit logs." };
+  }
+
+  return { logs: (data ?? []) as AuditLogRow[] };
 }

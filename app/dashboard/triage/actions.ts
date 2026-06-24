@@ -17,6 +17,12 @@
 //     triage row status AND (if approved) patch evidence_logs.req_id.
 //     Both writes use the admin client so RLS cannot silently swallow either
 //     update; the org guard is enforced explicitly via the query predicate.
+//
+// 21 CFR PART 11 AUDIT TRAIL:
+//   - resolveTriageItem writes to audit_logs with action_type TRIAGE_RESOLVE
+//     after every successful resolution (approved or rejected).
+//   - The before/after JSONB captures the full triage decision including
+//     the original_req_id, suggested_req_id, and the reviewer's resolution.
 
 import "server-only";
 
@@ -24,6 +30,54 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
 import type { AiTriageQueueRow, TriageStatus } from "@/types/supabase";
+
+// ---------------------------------------------------------------------------
+// Audit trail helper (local to this module — mirrors the one in requirements/actions.ts)
+// ---------------------------------------------------------------------------
+
+/**
+ * Writes a single immutable record to the audit_logs table.
+ * Fails loudly on error — silent audit failures violate 21 CFR Part 11.
+ */
+async function writeAuditLog({
+  userId,
+  orgId,
+  actionType,
+  entityType,
+  entityId,
+  before,
+  after,
+}: {
+  userId: string;
+  orgId: string;
+  actionType: "CREATE" | "UPDATE" | "DELETE" | "TRIAGE_RESOLVE";
+  entityType: "REQUIREMENT" | "MAPPING" | "EVIDENCE_LOG";
+  entityId: string;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+}): Promise<void> {
+  const { error } = await adminClient.from("audit_logs").insert({
+    user_id: userId,
+    org_id: orgId,
+    action_type: actionType,
+    entity_type: entityType,
+    entity_id: entityId,
+    changes: { before, after },
+  });
+
+  if (error) {
+    console.error(
+      "[AUDIT TRAIL] CRITICAL: audit_logs insert failed. " +
+        "This is a 21 CFR Part 11 violation. Investigate immediately.",
+      {
+        action_type: actionType,
+        entity_type: entityType,
+        entity_id: entityId,
+        error: error.message,
+      },
+    );
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -211,7 +265,7 @@ export async function resolveTriageItem(
   }
 
   // Verify session and resolve identity.
-  const { orgId, role, error: ctxError } = await resolveCallerContext();
+  const { userId, orgId, role, error: ctxError } = await resolveCallerContext();
 
   if (ctxError || !orgId || !role) {
     return { success: false, error: ctxError ?? "Unauthorized." };
@@ -301,7 +355,30 @@ export async function resolveTriageItem(
     }
   }
 
-  // Step 4: Revalidate affected pages.
+  // Step 4: Write the 21 CFR Part 11 audit record for this triage resolution.
+  // entity_id is the evidence_log_id — the EVIDENCE_LOG that was re-tagged.
+  await writeAuditLog({
+    userId: userId ?? "service_role",
+    orgId,
+    actionType: "TRIAGE_RESOLVE",
+    entityType: "EVIDENCE_LOG",
+    entityId: triageRow.evidence_log_id,
+    before: {
+      triage_id: id,
+      status: "pending",
+      original_req_id: triageRow.suggested_req_id,
+    },
+    after: {
+      triage_id: id,
+      status: resolution,
+      resolved_by: userId ?? "service_role",
+      ...(resolution === "approved"
+        ? { req_id_updated_to: triageRow.suggested_req_id }
+        : { req_id_unchanged: true }),
+    },
+  });
+
+  // Step 5: Revalidate affected pages.
   revalidatePath("/dashboard/triage");
   revalidatePath(`/logs/${triageRow.evidence_log_id}`);
 
