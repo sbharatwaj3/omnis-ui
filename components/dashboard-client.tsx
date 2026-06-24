@@ -45,6 +45,8 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  LayoutList,
+  Rows3,
   X,
 } from "lucide-react";
 
@@ -81,9 +83,11 @@ interface SuiteGroup {
 // Constants
 // ---------------------------------------------------------------------------
 
-const PAGE_SIZE = 50; // max groups per page (not rows)
+const PAGE_SIZE = 50;      // max groups per page (grouped mode)
+const FLAT_PAGE_SIZE = 100; // max rows per page (flat mode)
 
 type Timeframe = "today" | "week" | "month" | "year" | "custom" | "all";
+type ViewMode = "grouped" | "flat";
 
 const TIMEFRAME_LABELS: Record<Timeframe, string> = {
   today: "Today",
@@ -576,11 +580,17 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
   const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
+  // ── View mode (grouped accordion vs flat list) ────────────────────────────
+  const [viewMode, setViewMode] = useState<ViewMode>("grouped");
+
   // ── Accordion open state — track which suite keys are expanded ────────────
   const [openSuites, setOpenSuites] = useState<Set<string>>(new Set());
 
   // ── Pagination state (over groups, not rows) ──────────────────────────────
   const [currentPage, setCurrentPage] = useState(1);
+
+  // ── Flat-mode pagination ──────────────────────────────────────────────────
+  const [flatPage, setFlatPage] = useState(1);
 
   // ── Modal state ───────────────────────────────────────────────────────────
   const [drawerLogId, setDrawerLogId] = useState<string | null>(null);
@@ -617,10 +627,29 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
     safePage * PAGE_SIZE,
   );
 
+  // ── Flat-mode pagination (over individual rows) ───────────────────────────
+  // Sort flat rows newest-first to match the order inside each accordion group.
+  const flatRows = useMemo(
+    () =>
+      [...filteredRows].sort(
+        (a, b) =>
+          new Date(b.rawExecutionTimestamp).getTime() -
+          new Date(a.rawExecutionTimestamp).getTime(),
+      ),
+    [filteredRows],
+  );
+  const flatTotalPages = Math.max(1, Math.ceil(flatRows.length / FLAT_PAGE_SIZE));
+  const safeFlatPage = Math.min(flatPage, flatTotalPages);
+  const pageFlatRows = flatRows.slice(
+    (safeFlatPage - 1) * FLAT_PAGE_SIZE,
+    safeFlatPage * FLAT_PAGE_SIZE,
+  );
+
   // Reset to page 1 when filter changes; also collapse all groups
   const setTimeframeAndReset = useCallback((tf: Timeframe) => {
     setTimeframe(tf);
     setCurrentPage(1);
+    setFlatPage(1);
     setOpenSuites(new Set());
   }, []);
 
@@ -672,15 +701,57 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
               Evidence Log · Traffic Light Matrix
             </h2>
             <p className="mt-0.5 text-xs text-zinc-400">
-              {filteredRows.length} log{filteredRows.length !== 1 ? "s" : ""} across{" "}
-              {suiteGroups.length} test suite{suiteGroups.length !== 1 ? "s" : ""} ·{" "}
-              <span className="font-medium text-zinc-500">{activeFilterLabel}</span>
-              {totalPages > 1 && ` · Page ${safePage} of ${totalPages}`}
+              {viewMode === "grouped" ? (
+                <>
+                  {filteredRows.length} log{filteredRows.length !== 1 ? "s" : ""} across{" "}
+                  {suiteGroups.length} test suite{suiteGroups.length !== 1 ? "s" : ""} ·{" "}
+                  <span className="font-medium text-zinc-500">{activeFilterLabel}</span>
+                  {totalPages > 1 && ` · Page ${safePage} of ${totalPages}`}
+                </>
+              ) : (
+                <>
+                  {filteredRows.length} log{filteredRows.length !== 1 ? "s" : ""} ·{" "}
+                  <span className="font-medium text-zinc-500">{activeFilterLabel}</span>
+                  {flatTotalPages > 1 && ` · Page ${safeFlatPage} of ${flatTotalPages}`}
+                </>
+              )}
             </p>
           </div>
 
           {/* Filter controls */}
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            {/* View mode toggle — Grouped | List */}
+            <div className="flex items-center rounded-lg border border-zinc-200 bg-zinc-50 p-0.5">
+              <button
+                onClick={() => { setViewMode("grouped"); setCurrentPage(1); }}
+                className={[
+                  "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all",
+                  viewMode === "grouped"
+                    ? "bg-zinc-100 text-zinc-900 shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-700",
+                ].join(" ")}
+                aria-pressed={viewMode === "grouped"}
+                title="Grouped by test suite"
+              >
+                <Rows3 className="h-3.5 w-3.5" />
+                Grouped
+              </button>
+              <button
+                onClick={() => { setViewMode("flat"); setFlatPage(1); }}
+                className={[
+                  "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all",
+                  viewMode === "flat"
+                    ? "bg-zinc-100 text-zinc-900 shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-700",
+                ].join(" ")}
+                aria-pressed={viewMode === "flat"}
+                title="Flat list of all logs"
+              >
+                <LayoutList className="h-3.5 w-3.5" />
+                List
+              </button>
+            </div>
+
             {/* Timeframe quick-select — scrollable on mobile */}
             <div className="flex items-center overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 max-w-full">
               {(["today", "week", "month", "year", "all"] as Timeframe[]).map((tf) => (
@@ -768,7 +839,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
         </div>
 
         {/* Empty state */}
-        {suiteGroups.length === 0 ? (
+        {filteredRows.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <CalendarDays className="mb-3 h-10 w-10 text-zinc-300" />
             <p className="text-sm font-medium text-zinc-500">No evidence logs for this period</p>
@@ -776,8 +847,8 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
               Try a different timeframe or clear the date filter.
             </p>
           </div>
-        ) : (
-          // Task 1: single unified flush block container — rows separated only by border-b
+        ) : viewMode === "grouped" ? (
+          // ── Grouped accordion view (existing, untouched) ───────────────────
           <div className="border border-slate-200 rounded-md overflow-hidden mx-4 my-4 md:mx-6 md:my-5">
             {pageGroups.map((group, idx) => (
               <SuiteAccordionItem
@@ -791,10 +862,85 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
               />
             ))}
           </div>
+        ) : (
+          // ── Flat list view — reuses exact same row styling as accordion body ─
+          <div className="border border-slate-200 rounded-md overflow-hidden mx-4 my-4 md:mx-6 md:my-5 bg-slate-50">
+            {/* Mobile card list */}
+            <div className="flex flex-col divide-y divide-slate-100 md:hidden">
+              {pageFlatRows.map((row) => (
+                <button
+                  key={row.logId}
+                  onClick={() => openDrawer(row.logId)}
+                  className={[
+                    "w-full text-left px-4 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
+                    drawerLogId === row.logId
+                      ? "bg-slate-100"
+                      : "active:bg-slate-100",
+                  ].join(" ")}
+                >
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <StatusBadge status={row.executionStatus} />
+                    <SeverityBadge severity={row.severity} />
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <p className="text-xs text-slate-500 truncate">{row.executionTime}</p>
+                    <code className="shrink-0 font-mono text-[10px] text-slate-400">
+                      {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
+                    </code>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop table — same grid columns + styling as the accordion body */}
+            <div className="hidden md:block overflow-x-auto w-full">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow className="bg-slate-100 hover:bg-slate-100 border-b border-slate-200">
+                    {["STATUS", "AI RISK", "EXECUTION TIME", "LOG ID"].map((h, i) => (
+                      <TableHead
+                        key={h}
+                        className={`py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 ${i === 0 ? "pl-4 md:pl-6" : ""}`}
+                      >
+                        {h}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pageFlatRows.map((row) => (
+                    <TableRow
+                      key={row.logId}
+                      onClick={() => openDrawer(row.logId)}
+                      className={[
+                        "cursor-pointer border-b border-slate-100 last:border-b-0 transition-colors",
+                        drawerLogId === row.logId
+                          ? "bg-slate-100"
+                          : "hover:bg-slate-100",
+                      ].join(" ")}
+                    >
+                      <TableCell className="py-2 pl-4 md:pl-6">
+                        <StatusBadge status={row.executionStatus} />
+                      </TableCell>
+                      <TableCell className="py-2">
+                        <SeverityBadge severity={row.severity} />
+                      </TableCell>
+                      <TableCell className="py-2 text-xs text-slate-500 whitespace-nowrap">
+                        {row.executionTime}
+                      </TableCell>
+                      <TableCell className="py-2 font-mono text-xs text-slate-400">
+                        {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         )}
 
-        {/* Pagination footer */}
-        {totalPages > 1 && (
+        {/* Pagination footer — grouped mode */}
+        {viewMode === "grouped" && totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 md:px-6">
             <p className="text-xs text-zinc-400">
               Showing suites {(safePage - 1) * PAGE_SIZE + 1}–
@@ -811,7 +957,6 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
 
-              {/* Page number pills */}
               {Array.from({ length: totalPages }, (_, i) => i + 1)
                 .filter((p) => {
                   if (totalPages <= 7) return true;
@@ -854,6 +999,75 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={safePage === totalPages}
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Next page"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Pagination footer — flat mode */}
+        {viewMode === "flat" && flatTotalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 md:px-6">
+            <p className="text-xs text-zinc-400">
+              Showing rows {(safeFlatPage - 1) * FLAT_PAGE_SIZE + 1}–
+              {Math.min(safeFlatPage * FLAT_PAGE_SIZE, flatRows.length)} of{" "}
+              {flatRows.length}
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setFlatPage((p) => Math.max(1, p - 1))}
+                disabled={safeFlatPage === 1}
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+
+              {Array.from({ length: flatTotalPages }, (_, i) => i + 1)
+                .filter((p) => {
+                  if (flatTotalPages <= 7) return true;
+                  if (p === 1 || p === flatTotalPages) return true;
+                  if (Math.abs(p - safeFlatPage) <= 1) return true;
+                  return false;
+                })
+                .reduce<(number | "…")[]>((acc, p, idx, arr) => {
+                  if (
+                    idx > 0 &&
+                    typeof arr[idx - 1] === "number" &&
+                    (p as number) - (arr[idx - 1] as number) > 1
+                  ) {
+                    acc.push("…");
+                  }
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((item, idx) =>
+                  item === "…" ? (
+                    <span key={`ellipsis-${idx}`} className="px-1 text-xs text-zinc-400">
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      onClick={() => setFlatPage(item as number)}
+                      className={[
+                        "flex h-7 min-w-[28px] items-center justify-center rounded-md px-1.5 text-xs font-medium transition-colors",
+                        safeFlatPage === item
+                          ? "bg-zinc-900 text-white"
+                          : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50",
+                      ].join(" ")}
+                    >
+                      {item}
+                    </button>
+                  ),
+                )}
+
+              <button
+                onClick={() => setFlatPage((p) => Math.min(flatTotalPages, p + 1))}
+                disabled={safeFlatPage === flatTotalPages}
                 className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Next page"
               >
