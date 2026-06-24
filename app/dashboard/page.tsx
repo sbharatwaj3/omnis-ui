@@ -21,6 +21,7 @@ import {
 import {
   ShieldCheck,
   Activity,
+  ClipboardList,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
@@ -221,13 +222,20 @@ export default function DashboardPage() {
             </div>
           </Link>
 
-          {/* Centre: Compliance Matrix CTA — hidden on small phones, shown on sm+ */}
-          <div className="hidden sm:flex flex-1 justify-center">
+          {/* Centre: primary nav CTAs — hidden on small phones, shown on sm+ */}
+          <div className="hidden sm:flex flex-1 justify-center items-center gap-2">
             <Link
               href="/readiness"
               className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
               View Compliance Matrix
+            </Link>
+            <Link
+              href="/dashboard/requirements"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
+            >
+              <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+              Manage Requirements
             </Link>
           </div>
 
@@ -244,13 +252,20 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Mobile-only sub-bar: Compliance Matrix link */}
-        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2">
+        {/* Mobile-only sub-bar: primary nav links */}
+        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2 gap-2">
           <Link
             href="/readiness"
             className="flex-1 text-center rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
-            View Compliance Matrix
+            Compliance Matrix
+          </Link>
+          <Link
+            href="/dashboard/requirements"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
+          >
+            <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            Requirements
           </Link>
         </div>
       </header>
