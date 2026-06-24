@@ -5,18 +5,22 @@
 // Responsibilities:
 //   1. Data table displaying all company_requirements rows.
 //   2. "Add New Requirement" modal with form inputs + regulatory clause multi-select.
-//   3. Calls createRequirement server action and refreshes the table on success.
+//   3. "Import CSV" modal with native File API parser — no external deps.
+//   4. Calls createRequirement / bulkImportRequirements server actions and
+//      refreshes the table on success.
 //
 // CONSTITUTION LAW VII:
-//   - RBAC visual enforcement: Add button is disabled for developer/viewer roles.
-//     The server action independently re-enforces this gate.
+//   - RBAC visual enforcement: Add and Import buttons are disabled for
+//     developer/viewer roles. Server actions independently re-enforce this gate.
 //   - Light mode only — no dark: variants used anywhere.
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useRef, useCallback, useEffect } from "react";
 import {
   createRequirement,
+  bulkImportRequirements,
   type CompanyRequirement,
   type RegulatoryClause,
+  type BulkImportRow,
 } from "@/app/dashboard/requirements/actions";
 import {
   Table,
@@ -39,6 +43,8 @@ import {
   ClipboardList,
   ChevronDown,
   ChevronUp,
+  Upload,
+  FileText,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -485,6 +491,400 @@ function AddRequirementModal({
 }
 
 // ---------------------------------------------------------------------------
+// Toast — lightweight inline notification (no external lib needed)
+// ---------------------------------------------------------------------------
+
+interface ToastProps {
+  variant: "success" | "error";
+  title: string;
+  body?: string;
+  onDismiss: () => void;
+}
+
+function Toast({ variant, title, body, onDismiss }: ToastProps) {
+  // Auto-dismiss after 5 s
+  useEffect(() => {
+    const id = setTimeout(onDismiss, 5000);
+    return () => clearTimeout(id);
+  }, [onDismiss]);
+
+  const isSuccess = variant === "success";
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={[
+        "fixed bottom-5 right-5 z-[100] flex w-80 max-w-[calc(100vw-2.5rem)] items-start gap-3 rounded-xl border px-4 py-3 shadow-lg",
+        isSuccess
+          ? "border-emerald-200 bg-emerald-50"
+          : "border-red-200 bg-red-50",
+      ].join(" ")}
+    >
+      {isSuccess ? (
+        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+      ) : (
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+      )}
+      <div className="min-w-0 flex-1">
+        <p className={`text-sm font-semibold ${isSuccess ? "text-emerald-800" : "text-red-800"}`}>
+          {title}
+        </p>
+        {body && (
+          <p className={`mt-0.5 text-xs ${isSuccess ? "text-emerald-600" : "text-red-600"}`}>
+            {body}
+          </p>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Dismiss notification"
+        className={`shrink-0 rounded p-0.5 transition-colors ${
+          isSuccess
+            ? "text-emerald-400 hover:text-emerald-700"
+            : "text-red-400 hover:text-red-700"
+        }`}
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CSV parser — uses the native File API; zero external dependencies.
+//
+// Expected headers (case-insensitive): requirement_id, title, description
+// Returns parsed rows or throws with a user-facing message.
+// ---------------------------------------------------------------------------
+
+const REQUIRED_HEADERS = ["requirement_id", "title"] as const;
+const OPTIONAL_HEADERS = ["description"] as const;
+
+function parseCSV(text: string): BulkImportRow[] {
+  // Normalise line endings
+  const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+  const nonEmpty = lines.map((l) => l.trim()).filter(Boolean);
+
+  if (nonEmpty.length < 2) {
+    throw new Error("The CSV file appears to be empty or only contains a header row.");
+  }
+
+  // --- Parse header row ---
+  const rawHeaders = nonEmpty[0].split(",").map((h) => h.trim().toLowerCase().replace(/^["']|["']$/g, ""));
+
+  // Validate required headers are present
+  for (const required of REQUIRED_HEADERS) {
+    if (!rawHeaders.includes(required)) {
+      throw new Error(
+        `Missing required column "${required}". Expected headers: requirement_id, title, description (optional).`,
+      );
+    }
+  }
+
+  const colIndex = (name: string) => rawHeaders.indexOf(name);
+
+  // --- Parse data rows ---
+  const rows: BulkImportRow[] = [];
+  for (let i = 1; i < nonEmpty.length; i++) {
+    // Simple CSV split — handles quoted fields containing commas
+    const cols = splitCSVLine(nonEmpty[i]);
+
+    const requirement_id = (cols[colIndex("requirement_id")] ?? "").trim();
+    const title = (cols[colIndex("title")] ?? "").trim();
+    const descIdx = colIndex("description");
+    const description = descIdx >= 0 ? (cols[descIdx] ?? "").trim() : "";
+
+    // Skip entirely blank rows silently
+    if (!requirement_id && !title) continue;
+
+    rows.push({ requirement_id, title, description: description || undefined });
+  }
+
+  if (rows.length === 0) {
+    throw new Error("No data rows found after the header. Check your CSV content.");
+  }
+
+  return rows;
+}
+
+/** Splits a single CSV line respecting double-quoted fields. */
+function splitCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        // Escaped quote ""
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// ImportCSVModal
+// ---------------------------------------------------------------------------
+
+interface ImportCSVModalProps {
+  onClose: () => void;
+  onSuccess: (newReqs: CompanyRequirement[]) => void;
+}
+
+function ImportCSVModal({ onClose, onSuccess }: ImportCSVModalProps) {
+  const [isPending, startTransition] = useTransition();
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [parsedRows, setParsedRows] = useState<BulkImportRow[] | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Escape" && !isPending) onClose();
+  }
+
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setParseError(null);
+      setParsedRows(null);
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (!file.name.toLowerCase().endsWith(".csv")) {
+        setParseError("Please select a .csv file.");
+        return;
+      }
+
+      setFileName(file.name);
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const text = evt.target?.result as string;
+          const rows = parseCSV(text);
+          setParsedRows(rows);
+        } catch (err) {
+          setParseError(err instanceof Error ? err.message : "Failed to parse CSV.");
+        }
+      };
+      reader.onerror = () => setParseError("Could not read the file. Please try again.");
+      reader.readAsText(file);
+    },
+    [],
+  );
+
+  function handleImport() {
+    if (!parsedRows || parsedRows.length === 0) return;
+
+    startTransition(async () => {
+      const result = await bulkImportRequirements(parsedRows);
+
+      if (result.fatalError) {
+        setParseError(result.fatalError);
+        return;
+      }
+
+      // Build optimistic rows for the table (rows that were actually inserted).
+      // We can only synthesise rows for IDs that didn't error; the server
+      // revalidation picks up the truth, but this gives instant UI feedback.
+      const skippedIds = new Set(Object.keys(result.errors));
+      const optimisticRows: CompanyRequirement[] = parsedRows
+        .filter((r) => !skippedIds.has(r.requirement_id))
+        .map((r) => ({
+          id: crypto.randomUUID(),
+          requirement_id: r.requirement_id,
+          title: r.title,
+          description: r.description ?? null,
+          created_at: new Date().toISOString(),
+          clause_ids: [],
+        }));
+
+      onSuccess(optimisticRows);
+      onClose();
+    });
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        aria-hidden="true"
+        onClick={() => !isPending && onClose()}
+        className="fixed inset-0 z-40 bg-zinc-900/40 backdrop-blur-[2px]"
+      />
+
+      {/* Modal panel */}
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onKeyDown={handleKeyDown}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="import-csv-modal-title"
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-lg rounded-2xl border border-zinc-200 bg-white shadow-2xl"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+            <div>
+              <h2
+                id="import-csv-modal-title"
+                className="text-sm font-bold tracking-tight text-zinc-900"
+              >
+                Import Requirements via CSV
+              </h2>
+              <p className="mt-0.5 text-xs text-zinc-400">
+                Bulk-upload SRS/SDS artefacts · IEC 62304 §5.2.6
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => !isPending && onClose()}
+              aria-label="Close modal"
+              disabled={isPending}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="space-y-5 px-6 py-5">
+            {/* Format guide */}
+            <div className="rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">
+                Required CSV format
+              </p>
+              <pre className="overflow-x-auto rounded bg-white border border-zinc-200 px-3 py-2 font-mono text-[11px] text-zinc-700 leading-relaxed">
+{`requirement_id,title,description
+SRS-001,User Authentication,The system shall authenticate via OAuth2
+SRS-002,Audit Logging,All events must be timestamped and immutable`}
+              </pre>
+              <p className="mt-2 text-[11px] text-zinc-400">
+                <span className="font-semibold text-zinc-500">requirement_id</span> and{" "}
+                <span className="font-semibold text-zinc-500">title</span> are required.{" "}
+                <span className="font-semibold text-zinc-500">description</span> is optional.
+                Rows with duplicate IDs are skipped without aborting the import.
+              </p>
+            </div>
+
+            {/* File picker */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="csv-file-input"
+                className="text-xs font-semibold uppercase tracking-widest text-zinc-500"
+              >
+                Select CSV File <span aria-hidden="true" className="text-red-500">*</span>
+              </Label>
+              <label
+                htmlFor="csv-file-input"
+                className={[
+                  "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-8 transition-colors",
+                  isPending
+                    ? "cursor-not-allowed border-zinc-200 bg-zinc-50 opacity-60"
+                    : parsedRows
+                    ? "border-emerald-300 bg-emerald-50"
+                    : "border-zinc-200 bg-zinc-50 hover:border-zinc-300 hover:bg-zinc-100",
+                ].join(" ")}
+              >
+                {parsedRows ? (
+                  <>
+                    <FileText className="h-6 w-6 text-emerald-500" />
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-emerald-700">{fileName}</p>
+                      <p className="text-xs text-emerald-600">
+                        {parsedRows.length} row{parsedRows.length !== 1 ? "s" : ""} ready to import
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-6 w-6 text-zinc-400" />
+                    <div className="text-center">
+                      <p className="text-sm font-medium text-zinc-600">
+                        Click to select a CSV file
+                      </p>
+                      <p className="text-xs text-zinc-400">.csv files only</p>
+                    </div>
+                  </>
+                )}
+              </label>
+              <input
+                ref={fileInputRef}
+                id="csv-file-input"
+                type="file"
+                accept=".csv,text/csv"
+                onChange={handleFileChange}
+                disabled={isPending}
+                className="sr-only"
+                aria-describedby="csv-format-hint"
+              />
+              <p id="csv-format-hint" className="sr-only">
+                Upload a CSV file with columns: requirement_id, title, description
+              </p>
+            </div>
+
+            {/* Parse error */}
+            {parseError && (
+              <div
+                role="alert"
+                className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3"
+              >
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                <p className="text-sm text-red-700">{parseError}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between border-t border-zinc-100 px-6 py-4">
+            <button
+              type="button"
+              onClick={() => !isPending && onClose()}
+              disabled={isPending}
+              className="text-xs font-medium text-zinc-400 transition-colors hover:text-zinc-600 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <Button
+              type="button"
+              onClick={handleImport}
+              disabled={isPending || !parsedRows || parsedRows.length === 0}
+              className="inline-flex items-center gap-2 bg-zinc-900 text-sm text-white hover:bg-zinc-700 disabled:opacity-60"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Importing…
+                </>
+              ) : (
+                <>
+                  <Upload className="h-3.5 w-3.5" />
+                  Import {parsedRows && parsedRows.length > 0 ? `${parsedRows.length} Row${parsedRows.length !== 1 ? "s" : ""}` : "CSV"}
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // RequirementsClient — main exported component
 // ---------------------------------------------------------------------------
 
@@ -495,6 +895,12 @@ export function RequirementsClient({
 }: RequirementsClientProps) {
   const [requirements, setRequirements] = useState<CompanyRequirement[]>(initialRequirements);
   const [modalOpen, setModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [toast, setToast] = useState<{
+    variant: "success" | "error";
+    title: string;
+    body?: string;
+  } | null>(null);
 
   // RBAC visual gate — developer and viewer cannot create requirements.
   // The server action enforces this independently; this is the UI layer gate
@@ -508,6 +914,21 @@ export function RequirementsClient({
         a.requirement_id.localeCompare(b.requirement_id),
       ),
     );
+  }
+
+  function handleImportSuccess(newReqs: CompanyRequirement[]) {
+    if (newReqs.length > 0) {
+      setRequirements((prev) =>
+        [...prev, ...newReqs].sort((a, b) =>
+          a.requirement_id.localeCompare(b.requirement_id),
+        ),
+      );
+    }
+    setToast({
+      variant: "success",
+      title: `${newReqs.length} requirement${newReqs.length !== 1 ? "s" : ""} imported`,
+      body: "The table has been updated. Any duplicate IDs were skipped.",
+    });
   }
 
   return (
@@ -524,20 +945,40 @@ export function RequirementsClient({
               {requirements.length} requirement{requirements.length !== 1 ? "s" : ""} · IEC 62304 §5.2.6 traceability
             </p>
           </div>
-          <Button
-            onClick={() => setModalOpen(true)}
-            disabled={!canCreate}
-            title={
-              !canCreate
-                ? "Only Admins and QA Managers may add requirements."
-                : "Add a new requirement"
-            }
-            className="inline-flex items-center gap-2 bg-zinc-900 text-sm text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Add Requirement</span>
-            <span className="sm:hidden">Add</span>
-          </Button>
+          {/* Action buttons row */}
+          <div className="flex items-center gap-2">
+            {/* Import CSV button */}
+            <Button
+              onClick={() => setImportModalOpen(true)}
+              disabled={!canCreate}
+              variant="outline"
+              title={
+                !canCreate
+                  ? "Only Admins and QA Managers may import requirements."
+                  : "Bulk import requirements from a CSV file"
+              }
+              className="inline-flex items-center gap-2 border-zinc-200 bg-white text-sm text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Import CSV</span>
+            </Button>
+
+            {/* Add Requirement button */}
+            <Button
+              onClick={() => setModalOpen(true)}
+              disabled={!canCreate}
+              title={
+                !canCreate
+                  ? "Only Admins and QA Managers may add requirements."
+                  : "Add a new requirement"
+              }
+              className="inline-flex items-center gap-2 bg-zinc-900 text-sm text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Add Requirement</span>
+              <span className="sm:hidden">Add</span>
+            </Button>
+          </div>
         </div>
 
         {/* Empty state */}
@@ -547,7 +988,7 @@ export function RequirementsClient({
             <p className="text-sm font-medium text-zinc-500">No requirements yet</p>
             <p className="mt-1 text-xs text-zinc-400">
               {canCreate
-                ? 'Click "Add Requirement" to capture your first SRS artefact.'
+                ? 'Click "Add Requirement" or "Import CSV" to capture your first SRS artefact.'
                 : "Contact your Admin or QA Manager to add requirements."}
             </p>
           </div>
@@ -612,12 +1053,30 @@ export function RequirementsClient({
         )}
       </div>
 
-      {/* Modal */}
+      {/* Add Requirement Modal */}
       {modalOpen && (
         <AddRequirementModal
           clauses={clauses}
           onClose={() => setModalOpen(false)}
           onSuccess={handleSuccess}
+        />
+      )}
+
+      {/* Import CSV Modal */}
+      {importModalOpen && (
+        <ImportCSVModal
+          onClose={() => setImportModalOpen(false)}
+          onSuccess={handleImportSuccess}
+        />
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <Toast
+          variant={toast.variant}
+          title={toast.title}
+          body={toast.body}
+          onDismiss={() => setToast(null)}
         />
       )}
     </>

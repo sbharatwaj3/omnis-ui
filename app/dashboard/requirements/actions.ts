@@ -47,6 +47,21 @@ export interface CreateRequirementResult {
   error?: string;
 }
 
+export interface BulkImportRow {
+  requirement_id: string;
+  title: string;
+  description?: string;
+}
+
+export interface BulkImportResult {
+  success: boolean;
+  imported: number;
+  skipped: number;
+  /** Per-row errors: key = requirement_id (or row index), value = message */
+  errors: Record<string, string>;
+  fatalError?: string;
+}
+
 // ---------------------------------------------------------------------------
 // Helper: resolve caller's role from the verified session
 // ---------------------------------------------------------------------------
@@ -305,4 +320,127 @@ export async function createRequirement(
   revalidatePath("/dashboard/requirements");
 
   return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Action: bulkImportRequirements
+// ---------------------------------------------------------------------------
+// Accepts a pre-parsed array of CSV rows and bulk-inserts them into
+// company_requirements. Rows with duplicate requirement_id values are skipped
+// with a per-row error; all other rows are inserted individually so a single
+// bad row does not abort the entire batch.
+//
+// PERMISSION GATE: admin or qa_manager only.
+// CONSTITUTION LAW II: session verified server-side, no auth bypass.
+// IEC 62304 §5.2.6: every inserted row is a traceable SRS artefact.
+// ---------------------------------------------------------------------------
+
+export async function bulkImportRequirements(
+  rows: BulkImportRow[],
+): Promise<BulkImportResult> {
+  // Step 1: Verify session and resolve role.
+  const ctx = await resolveCallerRole();
+  if (!ctx) {
+    return {
+      success: false,
+      imported: 0,
+      skipped: 0,
+      errors: {},
+      fatalError: "Unauthorized: valid session required.",
+    };
+  }
+
+  // Step 2: RBAC — admin or qa_manager only.
+  if (ctx.role !== "admin" && ctx.role !== "qa_manager") {
+    return {
+      success: false,
+      imported: 0,
+      skipped: 0,
+      errors: {},
+      fatalError:
+        "Permission denied: only Admins and QA Managers may import requirements.",
+    };
+  }
+
+  // Step 3: Guard against empty payloads.
+  if (!rows || rows.length === 0) {
+    return {
+      success: false,
+      imported: 0,
+      skipped: 0,
+      errors: {},
+      fatalError: "No rows provided for import.",
+    };
+  }
+
+  let imported = 0;
+  let skipped = 0;
+  const errors: Record<string, string> = {};
+
+  // Step 4: Insert each row individually so a duplicate doesn't abort the batch.
+  for (const row of rows) {
+    const trimmedId = (row.requirement_id ?? "").trim();
+    const trimmedTitle = (row.title ?? "").trim();
+    const trimmedDesc = (row.description ?? "").trim();
+
+    // Row-level validation.
+    if (!trimmedId) {
+      skipped++;
+      errors[trimmedId || "(empty)"] = "requirement_id is missing or empty.";
+      continue;
+    }
+    if (!/^[A-Za-z0-9_-]{1,50}$/.test(trimmedId)) {
+      skipped++;
+      errors[trimmedId] =
+        "Invalid format — letters, digits, hyphens, underscores only (max 50 chars).";
+      continue;
+    }
+    if (!trimmedTitle) {
+      skipped++;
+      errors[trimmedId] = "Title is required.";
+      continue;
+    }
+    if (trimmedTitle.length > 255) {
+      skipped++;
+      errors[trimmedId] = "Title must be 255 characters or fewer.";
+      continue;
+    }
+
+    const { error: insertError } = await adminClient
+      .from("company_requirements")
+      .insert({
+        requirement_id: trimmedId,
+        title: trimmedTitle,
+        description: trimmedDesc || null,
+      });
+
+    if (insertError) {
+      skipped++;
+      if (
+        insertError.code === "23505" ||
+        insertError.message?.toLowerCase().includes("unique")
+      ) {
+        errors[trimmedId] = `"${trimmedId}" already exists — skipped.`;
+      } else {
+        console.error(
+          `[bulkImportRequirements] Insert error for ${trimmedId}:`,
+          insertError.message,
+        );
+        errors[trimmedId] = "Database error — could not insert row.";
+      }
+      continue;
+    }
+
+    imported++;
+  }
+
+  // Step 5: Revalidate so the table reflects newly imported rows.
+  revalidatePath("/dashboard/requirements");
+
+  return {
+    success: imported > 0,
+    imported,
+    skipped,
+    errors,
+  };
 }
