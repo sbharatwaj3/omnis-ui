@@ -20,7 +20,6 @@ import {
   Activity,
   ClipboardList,
   LayoutDashboard,
-  ShieldAlert,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
@@ -118,7 +117,7 @@ export default function RequirementsPage() {
   return (
     <div className="min-h-screen bg-zinc-50">
       <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center px-4 py-4 md:px-8 md:py-5">
+        <div className="mx-auto flex max-w-screen-2xl w-full items-center px-6 py-4 md:px-8 md:py-5">
           {/* Left: logo */}
           <Link href="/dashboard" className="flex items-center gap-2 group shrink-0">
             <ShieldCheck
@@ -135,34 +134,14 @@ export default function RequirementsPage() {
             </div>
           </Link>
 
-          {/* Centre: nav CTAs — Requirements is active/highlighted on this page */}
-          <div className="hidden sm:flex flex-1 justify-center items-center gap-2">
+          {/* Centre: back to hub */}
+          <div className="hidden sm:flex flex-1 justify-center items-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
+              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
               <LayoutDashboard className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              Dashboard
-            </Link>
-            <Link
-              href="/readiness"
-              className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
-            >
-              Compliance Matrix
-            </Link>
-            <span
-              aria-current="page"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-1.5 text-sm font-semibold text-white shadow-sm"
-            >
-              <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              Requirements
-            </span>
-            <Link
-              href="/dashboard/audit-logs"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50"
-            >
-              <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              Audit Logs
+              ← Back to Dashboard
             </Link>
           </div>
 
@@ -183,21 +162,14 @@ export default function RequirementsPage() {
         <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2 gap-2">
           <Link
             href="/dashboard"
-            className="flex-1 text-center rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
+            className="flex-1 text-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
-            ← Dashboard
+            ← Back to Dashboard
           </Link>
-          <span
-            aria-current="page"
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
-          >
-            <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-            Requirements
-          </span>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-10">
+      <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
         {/* Page heading */}
         <div className="mb-6 flex items-start gap-3">
           <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white shadow-sm">

@@ -266,7 +266,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-zinc-50">
       <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center px-4 py-4 md:px-8 md:py-5">
+        <div className="mx-auto flex max-w-screen-2xl w-full items-center px-6 py-4 md:px-8 md:py-5">
           {/* Left: logo */}
           <Link href="/dashboard" className="flex items-center gap-2 group shrink-0">
             <ShieldCheck
@@ -317,7 +317,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-10">
+      <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
         <Suspense fallback={<DashboardSkeleton />}>
           <DashboardContent />
         </Suspense>
