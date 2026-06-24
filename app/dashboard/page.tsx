@@ -24,6 +24,7 @@ import {
   ClipboardList,
   Brain,
   ShieldAlert,
+  Table2,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
@@ -198,7 +199,63 @@ function DashboardSkeleton() {
 
 async function DashboardContent() {
   const rows = await fetchAllLogs();
-  return <DashboardClient allRows={rows} />;
+  return (
+    <>
+      {/* ── Primary Action Cards ──────────────────────────────────────── */}
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {/* Card 1: Compliance Matrix */}
+        <Link
+          href="/readiness"
+          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-zinc-300"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 group-hover:bg-zinc-200 transition-colors">
+              <Table2 className="h-4 w-4 text-zinc-700" strokeWidth={1.75} />
+            </div>
+            <span className="text-sm font-semibold text-zinc-900">Compliance Matrix</span>
+          </div>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Generate and export traceability reports
+          </p>
+        </Link>
+
+        {/* Card 2: Requirements */}
+        <Link
+          href="/dashboard/requirements"
+          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-zinc-300"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 group-hover:bg-zinc-200 transition-colors">
+              <ClipboardList className="h-4 w-4 text-zinc-700" strokeWidth={1.75} />
+            </div>
+            <span className="text-sm font-semibold text-zinc-900">Requirements</span>
+          </div>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Map SRS/SDS to regulatory codes
+          </p>
+        </Link>
+
+        {/* Card 3: Triage Inbox */}
+        <Link
+          href="/dashboard/triage"
+          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-zinc-300"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 group-hover:bg-amber-100 transition-colors">
+              <Brain className="h-4 w-4 text-amber-700" strokeWidth={1.75} />
+            </div>
+            <span className="text-sm font-semibold text-zinc-900">Triage Inbox</span>
+          </div>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Review AI-flagged compliance discrepancies
+          </p>
+        </Link>
+      </div>
+
+      {/* ── Metrics cards + evidence log table ───────────────────────── */}
+      <DashboardClient allRows={rows} />
+    </>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -227,26 +284,6 @@ export default function DashboardPage() {
           {/* Centre: primary nav CTAs — hidden on small phones, shown on sm+ */}
           <div className="hidden sm:flex flex-1 justify-center items-center gap-2">
             <Link
-              href="/readiness"
-              className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
-            >
-              View Compliance Matrix
-            </Link>
-            <Link
-              href="/dashboard/requirements"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
-            >
-              <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              Manage Requirements
-            </Link>
-            <Link
-              href="/dashboard/triage"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-1.5 text-sm font-semibold text-amber-800 shadow-sm transition-colors hover:border-amber-300 hover:bg-amber-100"
-            >
-              <Brain className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              Triage Inbox
-            </Link>
-            <Link
               href="/dashboard/audit-logs"
               className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50"
             >
@@ -270,26 +307,6 @@ export default function DashboardPage() {
 
         {/* Mobile-only sub-bar: primary nav links */}
         <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2 gap-2">
-          <Link
-            href="/readiness"
-            className="flex-1 text-center rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
-          >
-            Compliance Matrix
-          </Link>
-          <Link
-            href="/dashboard/requirements"
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
-          >
-            <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-            Requirements
-          </Link>
-          <Link
-            href="/dashboard/triage"
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-100"
-          >
-            <Brain className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-            Triage
-          </Link>
           <Link
             href="/dashboard/audit-logs"
             className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
