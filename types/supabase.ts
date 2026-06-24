@@ -65,6 +65,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_triage_queue: {
+        Row: {
+          id: string
+          evidence_log_id: string
+          original_req_id: string
+          suggested_req_id: string
+          ai_reasoning: string
+          status: "pending" | "approved" | "rejected"
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          evidence_log_id: string
+          original_req_id: string
+          suggested_req_id: string
+          ai_reasoning: string
+          status?: "pending" | "approved" | "rejected"
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          evidence_log_id?: string
+          original_req_id?: string
+          suggested_req_id?: string
+          ai_reasoning?: string
+          status?: "pending" | "approved" | "rejected"
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_triage_queue_evidence_log_id_fkey"
+            columns: ["evidence_log_id"]
+            isOneToOne: false
+            referencedRelation: "evidence_logs"
+            referencedColumns: ["log_id"]
+          },
+        ]
+      }
       ai_compliance_insights: {
         Row: {
           ai_confidence_score: number | null
@@ -693,3 +731,15 @@ export type NewRequirementRegulatoryMapping =
 export type TraceabilityMatrixRow = CompanyRequirement & {
   rules: RegulatoryRule[]
 }
+
+/** A row from public.ai_triage_queue */
+export type AiTriageQueueRow = Tables<"ai_triage_queue">
+
+/** Insert shape for public.ai_triage_queue (used by the Bedrock pipeline) */
+export type NewAiTriageQueueItem = TablesInsert<"ai_triage_queue">
+
+/** Update shape for public.ai_triage_queue (used by resolveTriageItem) */
+export type AiTriageQueueUpdate = TablesUpdate<"ai_triage_queue">
+
+/** The three valid lifecycle states of a triage item */
+export type TriageStatus = "pending" | "approved" | "rejected"
