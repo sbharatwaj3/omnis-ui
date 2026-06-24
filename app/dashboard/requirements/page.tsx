@@ -20,6 +20,7 @@ import {
   Activity,
   ClipboardList,
   LayoutDashboard,
+  ShieldAlert,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
@@ -156,6 +157,13 @@ export default function RequirementsPage() {
               <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
               Requirements
             </span>
+            <Link
+              href="/dashboard/audit-logs"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+            >
+              <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+              Audit Logs
+            </Link>
           </div>
 
           {/* Right: compliance badge + role badge + settings */}
