@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Activity,
   ClipboardList,
+  LayoutDashboard,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
@@ -133,14 +134,28 @@ export default function RequirementsPage() {
             </div>
           </Link>
 
-          {/* Centre: back to Dashboard */}
-          <div className="hidden sm:flex flex-1 justify-center">
+          {/* Centre: nav CTAs — Requirements is active/highlighted on this page */}
+          <div className="hidden sm:flex flex-1 justify-center items-center gap-2">
             <Link
               href="/dashboard"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
+            >
+              <LayoutDashboard className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+              Dashboard
+            </Link>
+            <Link
+              href="/readiness"
               className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
-              ← Back to Dashboard
+              Compliance Matrix
             </Link>
+            <span
+              aria-current="page"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-1.5 text-sm font-semibold text-white shadow-sm"
+            >
+              <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+              Requirements
+            </span>
           </div>
 
           {/* Right: compliance badge + role badge + settings */}
@@ -157,13 +172,20 @@ export default function RequirementsPage() {
         </div>
 
         {/* Mobile sub-bar */}
-        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2">
+        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2 gap-2">
           <Link
             href="/dashboard"
             className="flex-1 text-center rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
-            ← Back to Dashboard
+            ← Dashboard
           </Link>
+          <span
+            aria-current="page"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
+          >
+            <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            Requirements
+          </span>
         </div>
       </header>
 
