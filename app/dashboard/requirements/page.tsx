@@ -19,7 +19,6 @@ import {
   ShieldCheck,
   Activity,
   ClipboardList,
-  LayoutDashboard,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
@@ -126,7 +125,7 @@ export default function RequirementsPage() {
             />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                Omnis RegOps
+                QAVRO
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">
                 Requirements Management · SRS Registry
@@ -138,10 +137,9 @@ export default function RequirementsPage() {
           <div className="hidden sm:flex flex-1 justify-center items-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
+              className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
-              <LayoutDashboard className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              ← Back to Dashboard
+              Back to Dashboard
             </Link>
           </div>
 
@@ -164,7 +162,7 @@ export default function RequirementsPage() {
             href="/dashboard"
             className="flex-1 text-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
-            ← Back to Dashboard
+            Back to Dashboard
           </Link>
         </div>
       </header>

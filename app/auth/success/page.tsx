@@ -27,10 +27,10 @@ export default function AuthSuccessPage() {
           </div>
           <div className="text-left leading-none">
             <span className="block text-sm font-bold text-slate-900">
-              Omnis MedTech Corp
+              QAVRO
             </span>
             <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-600">
-              RegOps Platform
+              FDA Assurance Platform
             </span>
           </div>
         </div>

@@ -17,7 +17,6 @@ import Link from "next/link";
 import {
   ShieldCheck,
   Activity,
-  ArrowLeft,
   Users,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -80,7 +79,7 @@ export default async function TeamPage() {
             />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                Omnis RegOps
+                QAVRO
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">Team</p>
             </div>
@@ -90,9 +89,8 @@ export default async function TeamPage() {
           <div className="hidden sm:flex flex-1 justify-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
+              className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
-              <ArrowLeft className="h-3.5 w-3.5" />
               Back to Dashboard
             </Link>
           </div>
@@ -114,9 +112,8 @@ export default async function TeamPage() {
         <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2">
           <Link
             href="/dashboard"
-            className="flex-1 text-center inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
+            className="flex-1 text-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
             Back to Dashboard
           </Link>
         </div>

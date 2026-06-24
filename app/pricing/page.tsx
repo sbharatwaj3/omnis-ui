@@ -132,10 +132,10 @@ function PricingHeader({ userEmail }: PricingHeaderProps) {
           </div>
           <div className="leading-none">
             <span className="block text-sm font-bold tracking-tight text-slate-900">
-              Omnis MedTech Corp
+              QAVRO
             </span>
             <span className="block text-[10px] font-medium tracking-widest text-emerald-600 uppercase">
-              RegOps Platform
+              FDA Assurance Platform
             </span>
           </div>
         </Link>
@@ -451,7 +451,7 @@ function Footer() {
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
           <span className="text-xs font-medium text-slate-500">
-            © 2026 Omnis MedTech Corp. All rights reserved.
+            © 2026 QAVRO. All rights reserved.
           </span>
         </div>
         <p className="text-xs text-slate-400">

@@ -312,9 +312,9 @@ async function ForensicContent({ id }: { id: string }) {
         </p>
         <Link
           href="/dashboard"
-          className="mt-6 inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50"
+          className="mt-6 inline-flex items-center rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50"
         >
-          ← Back to Dashboard
+          Back to Dashboard
         </Link>
       </div>
     );
@@ -730,7 +730,7 @@ export default async function LogDetailPage({ params }: PageProps) {
             />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                Omnis RegOps
+                QAVRO
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">
                 Forensic Evidence Viewer
