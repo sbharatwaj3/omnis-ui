@@ -143,13 +143,37 @@ interface RuleMultiSelectProps {
 }
 
 function RuleMultiSelect({ rules, selected, onToggle }: RuleMultiSelectProps) {
-  const grouped = useMemo(() => groupRulesBySource(rules), [rules]);
+  const [query, setQuery] = useState("");
 
+  // Derive filtered rules from the raw search string — pure client-side,
+  // case-insensitive match against req_id and description.
+  const filteredRules = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return rules;
+    return rules.filter(
+      (r) =>
+        r.req_id.toLowerCase().includes(q) ||
+        (r.description ?? "").toLowerCase().includes(q),
+    );
+  }, [rules, query]);
+
+  // Grouping is recomputed from the filtered set so empty groups are
+  // automatically excluded — no explicit guard needed in the render loop.
+  const grouped = useMemo(() => groupRulesBySource(filteredRules), [filteredRules]);
+
+  // Track which source groups are open. Seed from the full rule set so that
+  // groups don't collapse when the query is cleared.
+  const allSources = useMemo(() => groupRulesBySource(rules), [rules]);
   const [openSources, setOpenSources] = useState<Set<string>>(
-    () => new Set(Array.from(grouped.keys())),
+    () => new Set(Array.from(allSources.keys())),
   );
 
+  // When a search is active, expand all matching groups automatically so the
+  // user doesn't have to open each one manually.
+  const isSearching = query.trim().length > 0;
+
   function toggleSource(name: string) {
+    // Collapse/expand is only meaningful when not searching (search auto-expands all).
     setOpenSources((prev) => {
       const next = new Set(prev);
       if (next.has(name)) next.delete(name);
@@ -167,64 +191,121 @@ function RuleMultiSelect({ rules, selected, onToggle }: RuleMultiSelectProps) {
   }
 
   return (
-    <div className="max-h-56 overflow-y-auto rounded-lg border border-zinc-200 bg-white">
-      {Array.from(grouped.entries()).map(([source, items]) => {
-        const isOpen = openSources.has(source);
-        const selectedInGroup = items.filter((r) => selected.has(r.req_id)).length;
-        return (
-          <div key={source} className="border-b border-zinc-100 last:border-b-0">
+    <div className="rounded-lg border border-zinc-200 bg-white">
+      {/* Sticky search bar */}
+      <div className="sticky top-0 z-10 border-b border-zinc-100 bg-white px-2 py-2">
+        <div className="relative">
+          <svg
+            aria-hidden="true"
+            className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search regulatory codes or descriptions…"
+            aria-label="Filter regulatory rules"
+            className="w-full rounded-md border border-zinc-200 bg-white py-1.5 pl-8 pr-3 text-xs text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
+          />
+          {query && (
             <button
               type="button"
-              onClick={() => toggleSource(source)}
-              className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-400"
+              onClick={() => setQuery("")}
+              aria-label="Clear search"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
             >
-              <span className="text-xs font-semibold text-zinc-700">{source}</span>
-              <div className="flex items-center gap-2">
-                {selectedInGroup > 0 && (
-                  <span className="rounded-full border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600">
-                    {selectedInGroup}
-                  </span>
-                )}
-                {isOpen ? (
-                  <ChevronUp className="h-3.5 w-3.5 text-zinc-400" />
-                ) : (
-                  <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
-                )}
-              </div>
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
             </button>
-            {isOpen && (
-              <div className="divide-y divide-zinc-50 bg-zinc-50/50">
-                {items.map((rule) => {
-                  const checked = selected.has(rule.req_id);
-                  return (
-                    <label
-                      key={rule.req_id}
-                      className="flex cursor-pointer items-start gap-3 px-4 py-2 hover:bg-zinc-100"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => onToggle(rule.req_id)}
-                        className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-zinc-900"
-                      />
-                      <div className="min-w-0">
-                        <span className="font-mono text-xs font-semibold text-zinc-800">
-                          {rule.req_id}
-                        </span>
-                        {rule.description && (
-                          <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500 line-clamp-2">
-                            {rule.description}
-                          </p>
-                        )}
-                      </div>
-                    </label>
-                  );
-                })}
+          )}
+        </div>
+      </div>
+
+      {/* Results list */}
+      <div className="max-h-48 overflow-y-auto">
+        {grouped.size === 0 ? (
+          <p className="px-4 py-6 text-center text-xs text-zinc-400">
+            No matching regulatory codes found.
+          </p>
+        ) : (
+          <>
+            {Array.from(grouped.entries()).map(([source, items]) => {
+            // When actively searching, always show items expanded.
+            const isOpen = isSearching || openSources.has(source);
+            const selectedInGroup = items.filter((r) => selected.has(r.req_id)).length;
+            return (
+              <div key={source} className="border-b border-zinc-100 last:border-b-0">
+                <button
+                  type="button"
+                  onClick={() => !isSearching && toggleSource(source)}
+                  // Disable pointer interaction when searching — groups are pinned open.
+                  className={[
+                    "flex w-full items-center justify-between px-3 py-2 text-left",
+                    isSearching
+                      ? "cursor-default"
+                      : "hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-400",
+                  ].join(" ")}
+                >
+                  <span className="text-xs font-semibold text-zinc-700">{source}</span>
+                  <div className="flex items-center gap-2">
+                    {selectedInGroup > 0 && (
+                      <span className="rounded-full border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600">
+                        {selectedInGroup}
+                      </span>
+                    )}
+                    {!isSearching && (
+                      isOpen ? (
+                        <ChevronUp className="h-3.5 w-3.5 text-zinc-400" />
+                      ) : (
+                        <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
+                      )
+                    )}
+                  </div>
+                </button>
+                {isOpen && (
+                  <div className="divide-y divide-zinc-50 bg-zinc-50/50">
+                    {items.map((rule) => {
+                      const checked = selected.has(rule.req_id);
+                      return (
+                        <label
+                          key={rule.req_id}
+                          className="flex cursor-pointer items-start gap-3 px-4 py-2 hover:bg-zinc-100"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => onToggle(rule.req_id)}
+                            className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-zinc-900"
+                          />
+                          <div className="min-w-0">
+                            <span className="font-mono text-xs font-semibold text-zinc-800">
+                              {rule.req_id}
+                            </span>
+                            {rule.description && (
+                              <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500 line-clamp-2">
+                                {rule.description}
+                              </p>
+                            )}
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        );
-      })}
+            );
+          })}
+          </>
+        )}
+      </div>
     </div>
   );
 }
