@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Omnis RegOps — FDA Compliance Platform",
+  title: "QAVRO | FDA Assurance",
   description:
     "Automated eSTAR compliance, IEC 62304 traceability, and CI/CD evidence capture for modern MedTech.",
 };

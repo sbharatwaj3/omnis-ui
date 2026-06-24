@@ -53,10 +53,10 @@ function BrandPanel() {
         </div>
         <div className="leading-none">
           <span className="block text-sm font-bold text-slate-100">
-            Omnis MedTech Corp
+            QAVRO
           </span>
           <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
-            RegOps Platform
+            FDA Assurance Platform
           </span>
         </div>
       </Link>
@@ -101,7 +101,7 @@ function BrandPanel() {
       </div>
 
       <p className="text-xs text-slate-600">
-        © 2026 Omnis MedTech Corp. Access restricted to authorized personnel only.
+        © 2026 QAVRO. Access restricted to authorized personnel only.
       </p>
     </div>
   );
@@ -480,10 +480,10 @@ function OnboardingCard() {
         </div>
         <div className="text-center">
           <p className="text-sm font-bold text-slate-900">
-            Omnis MedTech Corp
+            QAVRO
           </p>
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
-            RegOps Platform
+            FDA Assurance Platform
           </p>
         </div>
       </Link>

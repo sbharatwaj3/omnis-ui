@@ -680,7 +680,7 @@ export default function ReadinessPage() {
             <ShieldCheck className="h-5 w-5 md:h-6 md:w-6 text-zinc-800" strokeWidth={1.75} />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                Omnis RegOps
+                QAVRO
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">FDA Submission Readiness</p>
             </div>
@@ -689,9 +689,9 @@ export default function ReadinessPage() {
           <div className="hidden sm:flex flex-1 justify-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
+              className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
-              ← Back to Dashboard
+              Back to Dashboard
             </Link>
           </div>
 
@@ -717,7 +717,7 @@ export default function ReadinessPage() {
             href="/dashboard"
             className="flex-1 text-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
-            ← Back to Dashboard
+            Back to Dashboard
           </Link>
         </div>
       </header>
