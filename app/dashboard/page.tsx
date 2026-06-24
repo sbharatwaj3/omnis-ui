@@ -203,14 +203,14 @@ async function DashboardContent() {
     <>
       {/* ── Primary Action Cards ──────────────────────────────────────── */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {/* Card 1: Compliance Matrix */}
+        {/* Card 1: Compliance Matrix — Emerald/Teal accent */}
         <Link
           href="/readiness"
-          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-zinc-300"
+          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-emerald-200 hover:bg-emerald-50/30"
         >
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 group-hover:bg-zinc-200 transition-colors">
-              <Table2 className="h-4 w-4 text-zinc-700" strokeWidth={1.75} />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 group-hover:bg-emerald-100 transition-colors">
+              <Table2 className="h-4 w-4 text-emerald-600" strokeWidth={1.75} />
             </div>
             <span className="text-sm font-semibold text-zinc-900">Compliance Matrix</span>
           </div>
@@ -219,14 +219,14 @@ async function DashboardContent() {
           </p>
         </Link>
 
-        {/* Card 2: Requirements */}
+        {/* Card 2: Requirements — Blue/Indigo accent */}
         <Link
           href="/dashboard/requirements"
-          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-zinc-300"
+          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-indigo-200 hover:bg-indigo-50/30"
         >
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 group-hover:bg-zinc-200 transition-colors">
-              <ClipboardList className="h-4 w-4 text-zinc-700" strokeWidth={1.75} />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 group-hover:bg-indigo-100 transition-colors">
+              <ClipboardList className="h-4 w-4 text-indigo-600" strokeWidth={1.75} />
             </div>
             <span className="text-sm font-semibold text-zinc-900">Requirements</span>
           </div>
@@ -235,14 +235,14 @@ async function DashboardContent() {
           </p>
         </Link>
 
-        {/* Card 3: Triage Inbox */}
+        {/* Card 3: Triage Inbox — Amber/Yellow accent (unchanged) */}
         <Link
           href="/dashboard/triage"
-          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-zinc-300"
+          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-amber-200 hover:bg-amber-50/30"
         >
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 group-hover:bg-amber-100 transition-colors">
-              <Brain className="h-4 w-4 text-amber-700" strokeWidth={1.75} />
+              <Brain className="h-4 w-4 text-amber-600" strokeWidth={1.75} />
             </div>
             <span className="text-sm font-semibold text-zinc-900">Triage Inbox</span>
           </div>

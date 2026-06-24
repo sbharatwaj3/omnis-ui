@@ -135,6 +135,25 @@ export interface BulkImportResult {
 
 // ---------------------------------------------------------------------------
 // Helper: resolve caller's role from the verified session
+//
+// CONSTITUTION §II: Identity is derived from the trusted Supabase JWT
+// (createClient → auth.getUser()). All data queries use adminClient so
+// that RLS chain-resolution issues (RBAC migration layering, pending-account
+// edge cases) can never silently drop the role lookup and wrongly gate an
+// Admin or QA Manager out of the audit trail.
+//
+// WHY adminClient FOR users LOOKUP:
+//   The users-table RLS SELECT policy is anchored to auth.uid() = user_id,
+//   which is correct for the anon/session client. However, when the RBAC
+//   migration (20260616) layered private.get_auth_role() checks on top, any
+//   intermittent failure in the SECURITY DEFINER call chain (e.g. a warm
+//   Lambda where auth.uid() is not set on the session client's PostgREST
+//   request) can return null from the users query and mis-classify an Admin
+//   as unauthenticated. Using adminClient for the data-only lookup, while
+//   keeping the JWT identity check on the session client, is the exact same
+//   hardened pattern used by the main dashboard (fetchAllLogs) and is
+//   sanctioned by Constitution §II ("identity derived from JWT; data fetched
+//   via adminClient with explicit org_id scoping").
 // ---------------------------------------------------------------------------
 
 async function resolveCallerRole(): Promise<{
@@ -142,6 +161,9 @@ async function resolveCallerRole(): Promise<{
   orgId: string;
   role: string | null;
 } | null> {
+  // Step 1: Verify identity via the session client — this is the ONLY call
+  // that touches the session/anon client. auth.getUser() validates the JWT
+  // cryptographically server-side, so the resolved user.id is trusted.
   const supabase = await createClient();
   const {
     data: { user },
@@ -150,7 +172,11 @@ async function resolveCallerRole(): Promise<{
 
   if (authError || !user) return null;
 
-  const { data: profile } = await supabase
+  // Step 2: Resolve org_id via adminClient (service role) to bypass any
+  // RLS evaluation that could silently return null for certain role configs.
+  // Security: user.id comes from the verified JWT above — we never trust a
+  // client-supplied value.
+  const { data: profile } = await adminClient
     .from("users")
     .select("org_id")
     .eq("user_id", user.id)
@@ -158,6 +184,8 @@ async function resolveCallerRole(): Promise<{
 
   if (!profile?.org_id) return null;
 
+  // Step 3: Resolve role. adminClient bypasses user_roles RLS — safe because
+  // we scope the query to the exact (user_id, org_id) pair resolved above.
   const { data: roleRow } = await adminClient
     .from("user_roles")
     .select("role")
