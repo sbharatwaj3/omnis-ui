@@ -675,7 +675,7 @@ export default function ReadinessPage() {
   return (
     <div className="min-h-screen bg-zinc-50">
       <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center px-4 py-4 md:px-8 md:py-5">
+        <div className="mx-auto flex max-w-screen-2xl w-full items-center px-6 py-4 md:px-8 md:py-5">
           <div className="flex items-center gap-2 shrink-0">
             <ShieldCheck className="h-5 w-5 md:h-6 md:w-6 text-zinc-800" strokeWidth={1.75} />
             <div>
@@ -689,9 +689,9 @@ export default function ReadinessPage() {
           <div className="hidden sm:flex flex-1 justify-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
+              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
-              Back to Dashboard
+              ← Back to Dashboard
             </Link>
           </div>
 
@@ -715,14 +715,14 @@ export default function ReadinessPage() {
         <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2">
           <Link
             href="/dashboard"
-            className="flex-1 text-center rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
+            className="flex-1 text-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
             ← Back to Dashboard
           </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-10">
+      <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
         <Suspense fallback={<ReadinessSkeleton />}>
           <ReadinessContent />
         </Suspense>

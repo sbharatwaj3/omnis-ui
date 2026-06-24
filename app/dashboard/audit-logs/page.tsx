@@ -22,8 +22,6 @@ import {
   Activity,
   LayoutDashboard,
   ShieldAlert,
-  ClipboardList,
-  Brain,
 } from "lucide-react";
 import { SettingsMenu } from "@/components/settings-menu";
 import { RoleBadge } from "@/components/role-badge";
@@ -116,7 +114,7 @@ export default function AuditLogsPage() {
       {/* Header                                                              */}
       {/* ------------------------------------------------------------------ */}
       <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center px-4 py-4 md:px-8 md:py-5">
+        <div className="mx-auto flex max-w-screen-2xl w-full items-center px-6 py-4 md:px-8 md:py-5">
           {/* Left: logo */}
           <Link
             href="/dashboard"
@@ -136,37 +134,15 @@ export default function AuditLogsPage() {
             </div>
           </Link>
 
-          {/* Centre: nav — Audit Logs active */}
-          <div className="hidden sm:flex flex-1 justify-center items-center gap-2">
+          {/* Centre: back to hub */}
+          <div className="hidden sm:flex flex-1 justify-center items-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
               <LayoutDashboard className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              Dashboard
+              ← Back to Dashboard
             </Link>
-            <Link
-              href="/dashboard/requirements"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50"
-            >
-              <ClipboardList className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              Requirements
-            </Link>
-            <Link
-              href="/dashboard/triage"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-1.5 text-sm font-semibold text-amber-800 shadow-sm transition-colors hover:border-amber-300 hover:bg-amber-100"
-            >
-              <Brain className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              Triage
-            </Link>
-            {/* Audit Logs — active state */}
-            <span
-              aria-current="page"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-1.5 text-sm font-semibold text-white shadow-sm"
-            >
-              <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              Audit Logs
-            </span>
           </div>
 
           {/* Right: compliance badge + role + settings */}
@@ -186,24 +162,17 @@ export default function AuditLogsPage() {
         <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2 gap-2">
           <Link
             href="/dashboard"
-            className="flex-1 text-center rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
+            className="flex-1 text-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
-            ← Dashboard
+            ← Back to Dashboard
           </Link>
-          <span
-            aria-current="page"
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
-          >
-            <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-            Audit Logs
-          </span>
         </div>
       </header>
 
       {/* ------------------------------------------------------------------ */}
       {/* Main                                                                */}
       {/* ------------------------------------------------------------------ */}
-      <main className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-10">
+      <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
         {/* Page heading */}
         <div className="mb-5 flex items-start gap-3">
           <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white shadow-sm">
