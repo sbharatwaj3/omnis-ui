@@ -4,14 +4,15 @@
 //
 // Responsibilities:
 //   1. Data table displaying all company_requirements rows.
-//   2. "Add New Requirement" modal with form inputs + regulatory clause multi-select.
+//   2. "Add New Requirement" modal with regulatory rule multi-select.
 //   3. "Import CSV" modal with native File API parser — no external deps.
-//   4. Calls createRequirement / bulkImportRequirements server actions and
-//      refreshes the table on success.
+//   4. Calls createRequirement / bulkImportRequirements server actions.
 //
 // CONSTITUTION LAW VII:
-//   - RBAC visual enforcement: Add and Import buttons are disabled for
-//     developer/viewer roles. Server actions independently re-enforce this gate.
+//   - RBAC visual enforcement: Add/Import buttons disabled for developer/viewer.
+//     Server actions independently re-enforce this gate.
+//   - Regulatory mapping now reads from regulatory_rules (req_id, rule_source,
+//     description). regulatory_clauses has been dropped per migration 20260624120000.
 //   - Light mode only — no dark: variants used anywhere.
 
 import { useState, useTransition, useMemo, useRef, useCallback, useEffect } from "react";
@@ -19,7 +20,7 @@ import {
   createRequirement,
   bulkImportRequirements,
   type CompanyRequirement,
-  type RegulatoryClause,
+  type RegulatoryRule,
   type BulkImportRow,
 } from "@/app/dashboard/requirements/actions";
 import {
@@ -30,7 +31,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,7 +53,7 @@ import {
 
 interface RequirementsClientProps {
   initialRequirements: CompanyRequirement[];
-  clauses: RegulatoryClause[];
+  rules: RegulatoryRule[];
   /** The current user's role — used for RBAC visual enforcement. */
   userRole: string | null;
 }
@@ -70,56 +70,56 @@ function formatDate(iso: string): string {
   });
 }
 
-/** Groups clauses by standard_name for a cleaner multi-select UI. */
-function groupClausesByStandard(
-  clauses: RegulatoryClause[],
-): Map<string, RegulatoryClause[]> {
-  const map = new Map<string, RegulatoryClause[]>();
-  for (const clause of clauses) {
-    const bucket = map.get(clause.standard_name);
-    if (bucket) bucket.push(clause);
-    else map.set(clause.standard_name, [clause]);
+/** Groups rules by rule_source for a cleaner multi-select UI. */
+function groupRulesBySource(
+  rules: RegulatoryRule[],
+): Map<string, RegulatoryRule[]> {
+  const map = new Map<string, RegulatoryRule[]>();
+  for (const rule of rules) {
+    const bucket = map.get(rule.rule_source);
+    if (bucket) bucket.push(rule);
+    else map.set(rule.rule_source, [rule]);
   }
   return map;
 }
 
 // ---------------------------------------------------------------------------
-// MappingBadges — renders compact clause badges for a requirement row
+// MappingBadges — renders compact rule badges for a requirement row
 // ---------------------------------------------------------------------------
 
 function MappingBadges({
-  clauseIds,
-  clauses,
+  ruleIds,
+  rules,
 }: {
-  clauseIds: string[];
-  clauses: RegulatoryClause[];
+  ruleIds: string[];
+  rules: RegulatoryRule[];
 }) {
-  if (clauseIds.length === 0) {
+  if (ruleIds.length === 0) {
     return <span className="text-xs text-zinc-400 italic">—</span>;
   }
 
-  const clauseMap = useMemo(() => {
-    const m = new Map<string, RegulatoryClause>();
-    for (const c of clauses) m.set(c.id, c);
+  const ruleMap = useMemo(() => {
+    const m = new Map<string, RegulatoryRule>();
+    for (const r of rules) m.set(r.req_id, r);
     return m;
-  }, [clauses]);
+  }, [rules]);
 
   const MAX_VISIBLE = 2;
-  const visible = clauseIds.slice(0, MAX_VISIBLE);
-  const overflow = clauseIds.length - MAX_VISIBLE;
+  const visible = ruleIds.slice(0, MAX_VISIBLE);
+  const overflow = ruleIds.length - MAX_VISIBLE;
 
   return (
     <div className="flex flex-wrap gap-1">
       {visible.map((id) => {
-        const c = clauseMap.get(id);
-        if (!c) return null;
+        const r = ruleMap.get(id);
+        if (!r) return null;
         return (
           <span
             key={id}
-            title={`${c.standard_name} — ${c.description ?? ""}`}
+            title={`${r.rule_source} — ${r.description ?? ""}`}
             className="inline-flex items-center rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] text-zinc-600"
           >
-            {c.clause_number}
+            {r.req_id}
           </span>
         );
       })}
@@ -133,24 +133,24 @@ function MappingBadges({
 }
 
 // ---------------------------------------------------------------------------
-// ClauseMultiSelect — grouped checkbox list for regulatory clause selection
+// RuleMultiSelect — grouped checkbox list for regulatory rule selection
 // ---------------------------------------------------------------------------
 
-interface ClauseMultiSelectProps {
-  clauses: RegulatoryClause[];
+interface RuleMultiSelectProps {
+  rules: RegulatoryRule[];
   selected: Set<string>;
-  onToggle: (id: string) => void;
+  onToggle: (reqId: string) => void;
 }
 
-function ClauseMultiSelect({ clauses, selected, onToggle }: ClauseMultiSelectProps) {
-  const [openStandards, setOpenStandards] = useState<Set<string>>(
-    () => new Set(Array.from(groupClausesByStandard(clauses).keys())),
+function RuleMultiSelect({ rules, selected, onToggle }: RuleMultiSelectProps) {
+  const grouped = useMemo(() => groupRulesBySource(rules), [rules]);
+
+  const [openSources, setOpenSources] = useState<Set<string>>(
+    () => new Set(Array.from(grouped.keys())),
   );
 
-  const grouped = useMemo(() => groupClausesByStandard(clauses), [clauses]);
-
-  function toggleStandard(name: string) {
-    setOpenStandards((prev) => {
+  function toggleSource(name: string) {
+    setOpenSources((prev) => {
       const next = new Set(prev);
       if (next.has(name)) next.delete(name);
       else next.add(name);
@@ -158,28 +158,27 @@ function ClauseMultiSelect({ clauses, selected, onToggle }: ClauseMultiSelectPro
     });
   }
 
-  if (clauses.length === 0) {
+  if (rules.length === 0) {
     return (
       <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs text-zinc-400">
-        No regulatory clauses found. Seed them via the database.
+        No regulatory rules found in the database.
       </p>
     );
   }
 
   return (
     <div className="max-h-56 overflow-y-auto rounded-lg border border-zinc-200 bg-white">
-      {Array.from(grouped.entries()).map(([standard, items]) => {
-        const isOpen = openStandards.has(standard);
-        const selectedInGroup = items.filter((c) => selected.has(c.id)).length;
+      {Array.from(grouped.entries()).map(([source, items]) => {
+        const isOpen = openSources.has(source);
+        const selectedInGroup = items.filter((r) => selected.has(r.req_id)).length;
         return (
-          <div key={standard} className="border-b border-zinc-100 last:border-b-0">
-            {/* Group header */}
+          <div key={source} className="border-b border-zinc-100 last:border-b-0">
             <button
               type="button"
-              onClick={() => toggleStandard(standard)}
+              onClick={() => toggleSource(source)}
               className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-400"
             >
-              <span className="text-xs font-semibold text-zinc-700">{standard}</span>
+              <span className="text-xs font-semibold text-zinc-700">{source}</span>
               <div className="flex items-center gap-2">
                 {selectedInGroup > 0 && (
                   <span className="rounded-full border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600">
@@ -193,29 +192,28 @@ function ClauseMultiSelect({ clauses, selected, onToggle }: ClauseMultiSelectPro
                 )}
               </div>
             </button>
-            {/* Clause rows */}
             {isOpen && (
               <div className="divide-y divide-zinc-50 bg-zinc-50/50">
-                {items.map((clause) => {
-                  const checked = selected.has(clause.id);
+                {items.map((rule) => {
+                  const checked = selected.has(rule.req_id);
                   return (
                     <label
-                      key={clause.id}
+                      key={rule.req_id}
                       className="flex cursor-pointer items-start gap-3 px-4 py-2 hover:bg-zinc-100"
                     >
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() => onToggle(clause.id)}
+                        onChange={() => onToggle(rule.req_id)}
                         className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-zinc-900"
                       />
                       <div className="min-w-0">
                         <span className="font-mono text-xs font-semibold text-zinc-800">
-                          {clause.clause_number}
+                          {rule.req_id}
                         </span>
-                        {clause.description && (
+                        {rule.description && (
                           <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500 line-clamp-2">
-                            {clause.description}
+                            {rule.description}
                           </p>
                         )}
                       </div>
@@ -232,33 +230,29 @@ function ClauseMultiSelect({ clauses, selected, onToggle }: ClauseMultiSelectPro
 }
 
 // ---------------------------------------------------------------------------
-// AddRequirementModal — centered modal with form + clause multi-select
+// AddRequirementModal — centered modal with form + rule multi-select
 // ---------------------------------------------------------------------------
 
 interface AddRequirementModalProps {
-  clauses: RegulatoryClause[];
+  rules: RegulatoryRule[];
   onClose: () => void;
   onSuccess: (req: CompanyRequirement) => void;
 }
 
-function AddRequirementModal({
-  clauses,
-  onClose,
-  onSuccess,
-}: AddRequirementModalProps) {
+function AddRequirementModal({ rules, onClose, onSuccess }: AddRequirementModalProps) {
   const [isPending, startTransition] = useTransition();
   const [reqId, setReqId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedClauses, setSelectedClauses] = useState<Set<string>>(new Set());
+  const [selectedRules, setSelectedRules] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [succeeded, setSucceeded] = useState(false);
 
-  function toggleClause(id: string) {
-    setSelectedClauses((prev) => {
+  function toggleRule(reqIdVal: string) {
+    setSelectedRules((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(reqIdVal)) next.delete(reqIdVal);
+      else next.add(reqIdVal);
       return next;
     });
   }
@@ -272,7 +266,7 @@ function AddRequirementModal({
         reqId,
         title,
         description,
-        Array.from(selectedClauses),
+        Array.from(selectedRules),
       );
 
       if (!result.success) {
@@ -280,20 +274,16 @@ function AddRequirementModal({
         return;
       }
 
-      // Build a synthetic row to hand back so the table updates immediately
-      // without a full page reload. The server revalidation handles the
-      // persistent cache; this is a local optimistic update for UX.
       const optimisticRow: CompanyRequirement = {
         id: crypto.randomUUID(),
         requirement_id: reqId.trim(),
         title: title.trim(),
         description: description.trim() || null,
         created_at: new Date().toISOString(),
-        clause_ids: Array.from(selectedClauses),
+        rule_ids: Array.from(selectedRules),
       };
 
       setSucceeded(true);
-      // Brief success flash before closing
       setTimeout(() => {
         onSuccess(optimisticRow);
         onClose();
@@ -301,21 +291,17 @@ function AddRequirementModal({
     });
   }
 
-  // Close on Escape
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Escape" && !isPending) onClose();
   }
 
   return (
     <>
-      {/* Backdrop */}
       <div
         aria-hidden="true"
         onClick={() => !isPending && onClose()}
         className="fixed inset-0 z-40 bg-zinc-900/40 backdrop-blur-[2px]"
       />
-
-      {/* Modal panel */}
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
         onKeyDown={handleKeyDown}
@@ -327,18 +313,12 @@ function AddRequirementModal({
           onClick={(e) => e.stopPropagation()}
           className="relative w-full max-w-lg rounded-2xl border border-zinc-200 bg-white shadow-2xl"
         >
-          {/* Header */}
           <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
             <div>
-              <h2
-                id="add-req-modal-title"
-                className="text-sm font-bold tracking-tight text-zinc-900"
-              >
+              <h2 id="add-req-modal-title" className="text-sm font-bold tracking-tight text-zinc-900">
                 Add New Requirement
               </h2>
-              <p className="mt-0.5 text-xs text-zinc-400">
-                IEC 62304 §5.2.6 — SRS traceability artefact
-              </p>
+              <p className="mt-0.5 text-xs text-zinc-400">IEC 62304 §5.2.6 — SRS traceability artefact</p>
             </div>
             <button
               type="button"
@@ -350,16 +330,10 @@ function AddRequirementModal({
               <X className="h-4 w-4" />
             </button>
           </div>
-
-          {/* Body */}
           <form onSubmit={handleSubmit} noValidate>
             <div className="space-y-4 px-6 py-5">
-              {/* Requirement ID */}
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="req-id"
-                  className="text-xs font-semibold uppercase tracking-widest text-zinc-500"
-                >
+                <Label htmlFor="req-id" className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
                   Requirement ID <span aria-hidden="true" className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -378,13 +352,8 @@ function AddRequirementModal({
                   Alphanumeric, hyphens, underscores only — e.g. SRS-001, SDS-042
                 </p>
               </div>
-
-              {/* Title */}
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="req-title"
-                  className="text-xs font-semibold uppercase tracking-widest text-zinc-500"
-                >
+                <Label htmlFor="req-title" className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
                   Title <span aria-hidden="true" className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -398,13 +367,8 @@ function AddRequirementModal({
                   className="text-sm border-zinc-200 bg-white placeholder:text-zinc-300 focus-visible:ring-zinc-400"
                 />
               </div>
-
-              {/* Description */}
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="req-desc"
-                  className="text-xs font-semibold uppercase tracking-widest text-zinc-500"
-                >
+                <Label htmlFor="req-desc" className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
                   Description
                 </Label>
                 <textarea
@@ -417,36 +381,23 @@ function AddRequirementModal({
                   className="w-full resize-none rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
-
-              {/* Regulatory mapping */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
                   Regulatory Mapping
-                  {selectedClauses.size > 0 && (
+                  {selectedRules.size > 0 && (
                     <span className="ml-2 rounded-full border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 font-normal normal-case text-[10px] text-zinc-600">
-                      {selectedClauses.size} selected
+                      {selectedRules.size} selected
                     </span>
                   )}
                 </Label>
-                <ClauseMultiSelect
-                  clauses={clauses}
-                  selected={selectedClauses}
-                  onToggle={toggleClause}
-                />
+                <RuleMultiSelect rules={rules} selected={selectedRules} onToggle={toggleRule} />
               </div>
-
-              {/* Error banner */}
               {error && (
-                <div
-                  role="alert"
-                  className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3"
-                >
+                <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
                   <p className="text-sm text-red-700">{error}</p>
                 </div>
               )}
-
-              {/* Success flash */}
               {succeeded && (
                 <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
@@ -454,8 +405,6 @@ function AddRequirementModal({
                 </div>
               )}
             </div>
-
-            {/* Footer */}
             <div className="flex items-center justify-between border-t border-zinc-100 px-6 py-4">
               <button
                 type="button"
@@ -471,15 +420,9 @@ function AddRequirementModal({
                 className="inline-flex items-center gap-2 bg-zinc-900 text-sm text-white hover:bg-zinc-700 disabled:opacity-60"
               >
                 {isPending ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Saving…
-                  </>
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin" />Saving…</>
                 ) : (
-                  <>
-                    <Plus className="h-3.5 w-3.5" />
-                    Add Requirement
-                  </>
+                  <><Plus className="h-3.5 w-3.5" />Add Requirement</>
                 )}
               </Button>
             </div>
@@ -502,7 +445,6 @@ interface ToastProps {
 }
 
 function Toast({ variant, title, body, onDismiss }: ToastProps) {
-  // Auto-dismiss after 5 s
   useEffect(() => {
     const id = setTimeout(onDismiss, 5000);
     return () => clearTimeout(id);
@@ -516,9 +458,7 @@ function Toast({ variant, title, body, onDismiss }: ToastProps) {
       aria-live="polite"
       className={[
         "fixed bottom-5 right-5 z-[100] flex w-80 max-w-[calc(100vw-2.5rem)] items-start gap-3 rounded-xl border px-4 py-3 shadow-lg",
-        isSuccess
-          ? "border-emerald-200 bg-emerald-50"
-          : "border-red-200 bg-red-50",
+        isSuccess ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50",
       ].join(" ")}
     >
       {isSuccess ? (
@@ -527,13 +467,9 @@ function Toast({ variant, title, body, onDismiss }: ToastProps) {
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
       )}
       <div className="min-w-0 flex-1">
-        <p className={`text-sm font-semibold ${isSuccess ? "text-emerald-800" : "text-red-800"}`}>
-          {title}
-        </p>
+        <p className={`text-sm font-semibold ${isSuccess ? "text-emerald-800" : "text-red-800"}`}>{title}</p>
         {body && (
-          <p className={`mt-0.5 text-xs ${isSuccess ? "text-emerald-600" : "text-red-600"}`}>
-            {body}
-          </p>
+          <p className={`mt-0.5 text-xs ${isSuccess ? "text-emerald-600" : "text-red-600"}`}>{body}</p>
         )}
       </div>
       <button
@@ -541,9 +477,7 @@ function Toast({ variant, title, body, onDismiss }: ToastProps) {
         onClick={onDismiss}
         aria-label="Dismiss notification"
         className={`shrink-0 rounded p-0.5 transition-colors ${
-          isSuccess
-            ? "text-emerald-400 hover:text-emerald-700"
-            : "text-red-400 hover:text-red-700"
+          isSuccess ? "text-emerald-400 hover:text-emerald-700" : "text-red-400 hover:text-red-700"
         }`}
       >
         <X className="h-3.5 w-3.5" />
@@ -553,17 +487,12 @@ function Toast({ variant, title, body, onDismiss }: ToastProps) {
 }
 
 // ---------------------------------------------------------------------------
-// CSV parser — uses the native File API; zero external dependencies.
-//
-// Expected headers (case-insensitive): requirement_id, title, description
-// Returns parsed rows or throws with a user-facing message.
+// CSV parser — native File API, zero external dependencies.
 // ---------------------------------------------------------------------------
 
 const REQUIRED_HEADERS = ["requirement_id", "title"] as const;
-const OPTIONAL_HEADERS = ["description"] as const;
 
 function parseCSV(text: string): BulkImportRow[] {
-  // Normalise line endings
   const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
   const nonEmpty = lines.map((l) => l.trim()).filter(Boolean);
 
@@ -571,10 +500,10 @@ function parseCSV(text: string): BulkImportRow[] {
     throw new Error("The CSV file appears to be empty or only contains a header row.");
   }
 
-  // --- Parse header row ---
-  const rawHeaders = nonEmpty[0].split(",").map((h) => h.trim().toLowerCase().replace(/^["']|["']$/g, ""));
+  const rawHeaders = nonEmpty[0]
+    .split(",")
+    .map((h) => h.trim().toLowerCase().replace(/^["']|["']$/g, ""));
 
-  // Validate required headers are present
   for (const required of REQUIRED_HEADERS) {
     if (!rawHeaders.includes(required)) {
       throw new Error(
@@ -585,20 +514,14 @@ function parseCSV(text: string): BulkImportRow[] {
 
   const colIndex = (name: string) => rawHeaders.indexOf(name);
 
-  // --- Parse data rows ---
   const rows: BulkImportRow[] = [];
   for (let i = 1; i < nonEmpty.length; i++) {
-    // Simple CSV split — handles quoted fields containing commas
     const cols = splitCSVLine(nonEmpty[i]);
-
     const requirement_id = (cols[colIndex("requirement_id")] ?? "").trim();
     const title = (cols[colIndex("title")] ?? "").trim();
     const descIdx = colIndex("description");
     const description = descIdx >= 0 ? (cols[descIdx] ?? "").trim() : "";
-
-    // Skip entirely blank rows silently
     if (!requirement_id && !title) continue;
-
     rows.push({ requirement_id, title, description: description || undefined });
   }
 
@@ -609,7 +532,6 @@ function parseCSV(text: string): BulkImportRow[] {
   return rows;
 }
 
-/** Splits a single CSV line respecting double-quoted fields. */
 function splitCSVLine(line: string): string[] {
   const result: string[] = [];
   let current = "";
@@ -619,7 +541,6 @@ function splitCSVLine(line: string): string[] {
     const ch = line[i];
     if (ch === '"') {
       if (inQuotes && line[i + 1] === '"') {
-        // Escaped quote ""
         current += '"';
         i++;
       } else {
@@ -656,34 +577,30 @@ function ImportCSVModal({ onClose, onSuccess }: ImportCSVModalProps) {
     if (e.key === "Escape" && !isPending) onClose();
   }
 
-  const handleFileChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setParseError(null);
-      setParsedRows(null);
-      const file = e.target.files?.[0];
-      if (!file) return;
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setParseError(null);
+    setParsedRows(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      if (!file.name.toLowerCase().endsWith(".csv")) {
-        setParseError("Please select a .csv file.");
-        return;
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      setParseError("Please select a .csv file.");
+      return;
+    }
+
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const rows = parseCSV(evt.target?.result as string);
+        setParsedRows(rows);
+      } catch (err) {
+        setParseError(err instanceof Error ? err.message : "Failed to parse CSV.");
       }
-
-      setFileName(file.name);
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        try {
-          const text = evt.target?.result as string;
-          const rows = parseCSV(text);
-          setParsedRows(rows);
-        } catch (err) {
-          setParseError(err instanceof Error ? err.message : "Failed to parse CSV.");
-        }
-      };
-      reader.onerror = () => setParseError("Could not read the file. Please try again.");
-      reader.readAsText(file);
-    },
-    [],
-  );
+    };
+    reader.onerror = () => setParseError("Could not read the file. Please try again.");
+    reader.readAsText(file);
+  }, []);
 
   function handleImport() {
     if (!parsedRows || parsedRows.length === 0) return;
@@ -696,9 +613,6 @@ function ImportCSVModal({ onClose, onSuccess }: ImportCSVModalProps) {
         return;
       }
 
-      // Build optimistic rows for the table (rows that were actually inserted).
-      // We can only synthesise rows for IDs that didn't error; the server
-      // revalidation picks up the truth, but this gives instant UI feedback.
       const skippedIds = new Set(Object.keys(result.errors));
       const optimisticRows: CompanyRequirement[] = parsedRows
         .filter((r) => !skippedIds.has(r.requirement_id))
@@ -708,7 +622,7 @@ function ImportCSVModal({ onClose, onSuccess }: ImportCSVModalProps) {
           title: r.title,
           description: r.description ?? null,
           created_at: new Date().toISOString(),
-          clause_ids: [],
+          rule_ids: [],
         }));
 
       onSuccess(optimisticRows);
@@ -718,14 +632,11 @@ function ImportCSVModal({ onClose, onSuccess }: ImportCSVModalProps) {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         aria-hidden="true"
         onClick={() => !isPending && onClose()}
         className="fixed inset-0 z-40 bg-zinc-900/40 backdrop-blur-[2px]"
       />
-
-      {/* Modal panel */}
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
         onKeyDown={handleKeyDown}
@@ -737,18 +648,12 @@ function ImportCSVModal({ onClose, onSuccess }: ImportCSVModalProps) {
           onClick={(e) => e.stopPropagation()}
           className="relative w-full max-w-lg rounded-2xl border border-zinc-200 bg-white shadow-2xl"
         >
-          {/* Header */}
           <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
             <div>
-              <h2
-                id="import-csv-modal-title"
-                className="text-sm font-bold tracking-tight text-zinc-900"
-              >
+              <h2 id="import-csv-modal-title" className="text-sm font-bold tracking-tight text-zinc-900">
                 Import Requirements via CSV
               </h2>
-              <p className="mt-0.5 text-xs text-zinc-400">
-                Bulk-upload SRS/SDS artefacts · IEC 62304 §5.2.6
-              </p>
+              <p className="mt-0.5 text-xs text-zinc-400">Bulk-upload SRS/SDS artefacts · IEC 62304 §5.2.6</p>
             </div>
             <button
               type="button"
@@ -760,14 +665,9 @@ function ImportCSVModal({ onClose, onSuccess }: ImportCSVModalProps) {
               <X className="h-4 w-4" />
             </button>
           </div>
-
-          {/* Body */}
           <div className="space-y-5 px-6 py-5">
-            {/* Format guide */}
             <div className="rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">
-                Required CSV format
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">Required CSV format</p>
               <pre className="overflow-x-auto rounded bg-white border border-zinc-200 px-3 py-2 font-mono text-[11px] text-zinc-700 leading-relaxed">
 {`requirement_id,title,description
 SRS-001,User Authentication,The system shall authenticate via OAuth2
@@ -776,17 +676,11 @@ SRS-002,Audit Logging,All events must be timestamped and immutable`}
               <p className="mt-2 text-[11px] text-zinc-400">
                 <span className="font-semibold text-zinc-500">requirement_id</span> and{" "}
                 <span className="font-semibold text-zinc-500">title</span> are required.{" "}
-                <span className="font-semibold text-zinc-500">description</span> is optional.
                 Rows with duplicate IDs are skipped without aborting the import.
               </p>
             </div>
-
-            {/* File picker */}
             <div className="space-y-2">
-              <Label
-                htmlFor="csv-file-input"
-                className="text-xs font-semibold uppercase tracking-widest text-zinc-500"
-              >
+              <Label htmlFor="csv-file-input" className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
                 Select CSV File <span aria-hidden="true" className="text-red-500">*</span>
               </Label>
               <label
@@ -814,9 +708,7 @@ SRS-002,Audit Logging,All events must be timestamped and immutable`}
                   <>
                     <Upload className="h-6 w-6 text-zinc-400" />
                     <div className="text-center">
-                      <p className="text-sm font-medium text-zinc-600">
-                        Click to select a CSV file
-                      </p>
+                      <p className="text-sm font-medium text-zinc-600">Click to select a CSV file</p>
                       <p className="text-xs text-zinc-400">.csv files only</p>
                     </div>
                   </>
@@ -830,26 +722,15 @@ SRS-002,Audit Logging,All events must be timestamped and immutable`}
                 onChange={handleFileChange}
                 disabled={isPending}
                 className="sr-only"
-                aria-describedby="csv-format-hint"
               />
-              <p id="csv-format-hint" className="sr-only">
-                Upload a CSV file with columns: requirement_id, title, description
-              </p>
             </div>
-
-            {/* Parse error */}
             {parseError && (
-              <div
-                role="alert"
-                className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3"
-              >
+              <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
                 <p className="text-sm text-red-700">{parseError}</p>
               </div>
             )}
           </div>
-
-          {/* Footer */}
           <div className="flex items-center justify-between border-t border-zinc-100 px-6 py-4">
             <button
               type="button"
@@ -866,15 +747,9 @@ SRS-002,Audit Logging,All events must be timestamped and immutable`}
               className="inline-flex items-center gap-2 bg-zinc-900 text-sm text-white hover:bg-zinc-700 disabled:opacity-60"
             >
               {isPending ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Importing…
-                </>
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" />Importing…</>
               ) : (
-                <>
-                  <Upload className="h-3.5 w-3.5" />
-                  Import {parsedRows && parsedRows.length > 0 ? `${parsedRows.length} Row${parsedRows.length !== 1 ? "s" : ""}` : "CSV"}
-                </>
+                <><Upload className="h-3.5 w-3.5" />Import {parsedRows && parsedRows.length > 0 ? `${parsedRows.length} Row${parsedRows.length !== 1 ? "s" : ""}` : "CSV"}</>
               )}
             </Button>
           </div>
@@ -890,7 +765,7 @@ SRS-002,Audit Logging,All events must be timestamped and immutable`}
 
 export function RequirementsClient({
   initialRequirements,
-  clauses,
+  rules,
   userRole,
 }: RequirementsClientProps) {
   const [requirements, setRequirements] = useState<CompanyRequirement[]>(initialRequirements);
@@ -903,25 +778,18 @@ export function RequirementsClient({
   } | null>(null);
 
   // RBAC visual gate — developer and viewer cannot create requirements.
-  // The server action enforces this independently; this is the UI layer gate
-  // per Constitution §VII.
   const canCreate = userRole === "admin" || userRole === "qa_manager";
 
   function handleSuccess(newReq: CompanyRequirement) {
-    // Optimistic local update — server revalidation handles persistence.
     setRequirements((prev) =>
-      [...prev, newReq].sort((a, b) =>
-        a.requirement_id.localeCompare(b.requirement_id),
-      ),
+      [...prev, newReq].sort((a, b) => a.requirement_id.localeCompare(b.requirement_id)),
     );
   }
 
   function handleImportSuccess(newReqs: CompanyRequirement[]) {
     if (newReqs.length > 0) {
       setRequirements((prev) =>
-        [...prev, ...newReqs].sort((a, b) =>
-          a.requirement_id.localeCompare(b.requirement_id),
-        ),
+        [...prev, ...newReqs].sort((a, b) => a.requirement_id.localeCompare(b.requirement_id)),
       );
     }
     setToast({
@@ -933,21 +801,16 @@ export function RequirementsClient({
 
   return (
     <>
-      {/* Table card */}
       <div className="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
-        {/* Table toolbar */}
+        {/* Toolbar */}
         <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-4 md:px-6">
           <div>
-            <h2 className="text-sm font-semibold text-zinc-800">
-              Requirements Register
-            </h2>
+            <h2 className="text-sm font-semibold text-zinc-800">Requirements Register</h2>
             <p className="mt-0.5 text-xs text-zinc-400">
               {requirements.length} requirement{requirements.length !== 1 ? "s" : ""} · IEC 62304 §5.2.6 traceability
             </p>
           </div>
-          {/* Action buttons row */}
           <div className="flex items-center gap-2">
-            {/* Import CSV button */}
             <Button
               onClick={() => setImportModalOpen(true)}
               disabled={!canCreate}
@@ -962,8 +825,6 @@ export function RequirementsClient({
               <Upload className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Import CSV</span>
             </Button>
-
-            {/* Add Requirement button */}
             <Button
               onClick={() => setModalOpen(true)}
               disabled={!canCreate}
@@ -1040,7 +901,7 @@ export function RequirementsClient({
                       )}
                     </TableCell>
                     <TableCell className="py-3">
-                      <MappingBadges clauseIds={req.clause_ids} clauses={clauses} />
+                      <MappingBadges ruleIds={req.rule_ids} rules={rules} />
                     </TableCell>
                     <TableCell className="py-3 pr-4 md:pr-6 text-right text-xs text-zinc-400 whitespace-nowrap">
                       {formatDate(req.created_at)}
@@ -1053,16 +914,14 @@ export function RequirementsClient({
         )}
       </div>
 
-      {/* Add Requirement Modal */}
       {modalOpen && (
         <AddRequirementModal
-          clauses={clauses}
+          rules={rules}
           onClose={() => setModalOpen(false)}
           onSuccess={handleSuccess}
         />
       )}
 
-      {/* Import CSV Modal */}
       {importModalOpen && (
         <ImportCSVModal
           onClose={() => setImportModalOpen(false)}
@@ -1070,7 +929,6 @@ export function RequirementsClient({
         />
       )}
 
-      {/* Toast notification */}
       {toast && (
         <Toast
           variant={toast.variant}

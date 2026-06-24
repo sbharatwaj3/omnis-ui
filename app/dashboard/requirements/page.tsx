@@ -27,7 +27,7 @@ import { RoleBadge } from "@/components/role-badge";
 import { RequirementsClient } from "@/components/requirements-client";
 import {
   listRequirements,
-  listRegulatoryClauses,
+  listRegulatoryRules,
 } from "@/app/dashboard/requirements/actions";
 
 // ---------------------------------------------------------------------------
@@ -64,16 +64,16 @@ async function resolveUserRole(): Promise<string | null> {
 // ---------------------------------------------------------------------------
 
 async function RequirementsContent() {
-  const [reqResult, clauseResult, userRole] = await Promise.all([
+  const [reqResult, rulesResult, userRole] = await Promise.all([
     listRequirements(),
-    listRegulatoryClauses(),
+    listRegulatoryRules(),
     resolveUserRole(),
   ]);
 
   return (
     <RequirementsClient
       initialRequirements={reqResult.requirements}
-      clauses={clauseResult.clauses}
+      rules={rulesResult.rules}
       userRole={userRole}
     />
   );

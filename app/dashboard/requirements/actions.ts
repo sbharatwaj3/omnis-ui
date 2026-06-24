@@ -12,6 +12,9 @@
 // IEC 62304 §5.2.6 ALIGNMENT:
 //   - company_requirements maps to the SRS artefact class.
 //   - requirement_regulatory_mappings satisfies bidirectional traceability.
+//   - Mappings now reference regulatory_rules.req_id (the canonical FDA/IEC
+//     source of truth). The redundant regulatory_clauses table has been
+//     dropped per migration 20260624120000.
 //
 // DUPLICATE DETECTION:
 //   - requirement_id has a UNIQUE constraint in the DB. We surface a clean
@@ -25,11 +28,20 @@ import { adminClient } from "@/utils/supabase/admin";
 // Types
 // ---------------------------------------------------------------------------
 
-export interface RegulatoryClause {
-  id: string;
-  standard_name: string;
-  clause_number: string;
+/**
+ * A row from public.regulatory_rules used for the mapping multi-select.
+ * Mirrors the columns we select: req_id (PK), rule_source, description.
+ * notion_page_id is intentionally excluded — Notion is decommissioned.
+ */
+export interface RegulatoryRule {
+  /** Primary key — e.g. "FDA-820.30(g)", "IEC-62304-5.2.6" */
+  req_id: string;
+  /** Regulatory source / standard name — used to group rules in the UI */
+  rule_source: string;
+  /** Human-readable description of what the rule mandates */
   description: string | null;
+  /** Evidence type classification */
+  evidence_type: string | null;
 }
 
 export interface CompanyRequirement {
@@ -38,8 +50,8 @@ export interface CompanyRequirement {
   title: string;
   description: string | null;
   created_at: string;
-  // Joined: the clause IDs that map to this requirement
-  clause_ids: string[];
+  /** Joined: the rule req_ids that map to this requirement */
+  rule_ids: string[];
 }
 
 export interface CreateRequirementResult {
@@ -102,18 +114,20 @@ async function resolveCallerRole(): Promise<{
 }
 
 // ---------------------------------------------------------------------------
-// Action: listRegulatoryClauses
+// Action: listRegulatoryRules
 // ---------------------------------------------------------------------------
-// Fetches all clauses from regulatory_clauses, ordered by standard then clause.
-// Used to populate the dropdown in the "Add New Requirement" modal.
+// Fetches all rules from the canonical regulatory_rules table, ordered by
+// rule_source then req_id. Used to populate the multi-select in the modal.
+//
+// NOTE: notion_page_id is intentionally excluded — Notion is decommissioned
+// per the architecture constitution. We never read or write that field.
 // ---------------------------------------------------------------------------
 
-export async function listRegulatoryClauses(): Promise<{
-  clauses: RegulatoryClause[];
+export async function listRegulatoryRules(): Promise<{
+  rules: RegulatoryRule[];
   error?: string;
 }> {
-  // Session check — we need a valid authenticated user even though the table
-  // has a public SELECT policy. This prevents anonymous scraping via the UI.
+  // Session check — prevents anonymous scraping via the UI.
   const supabase = await createClient();
   const {
     data: { user },
@@ -121,27 +135,27 @@ export async function listRegulatoryClauses(): Promise<{
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { clauses: [], error: "Unauthorized." };
+    return { rules: [], error: "Unauthorized." };
   }
 
   const { data, error } = await adminClient
-    .from("regulatory_clauses")
-    .select("id, standard_name, clause_number, description")
-    .order("standard_name", { ascending: true })
-    .order("clause_number", { ascending: true });
+    .from("regulatory_rules")
+    .select("req_id, rule_source, description, evidence_type")
+    .order("rule_source", { ascending: true })
+    .order("req_id", { ascending: true });
 
   if (error) {
-    console.error("[listRegulatoryClauses] Supabase error:", error.message);
-    return { clauses: [], error: "Failed to load regulatory clauses." };
+    console.error("[listRegulatoryRules] Supabase error:", error.message);
+    return { rules: [], error: "Failed to load regulatory rules." };
   }
 
-  return { clauses: (data ?? []) as RegulatoryClause[] };
+  return { rules: (data ?? []) as RegulatoryRule[] };
 }
 
 // ---------------------------------------------------------------------------
 // Action: listRequirements
 // ---------------------------------------------------------------------------
-// Fetches all company requirements with their mapped clause IDs.
+// Fetches all company requirements with their mapped rule IDs.
 // Returns rows ordered by requirement_id ascending (SRS-001, SRS-002, …).
 // ---------------------------------------------------------------------------
 
@@ -164,7 +178,7 @@ export async function listRequirements(): Promise<{
   const { data, error } = await adminClient
     .from("company_requirements")
     .select(
-      "id, requirement_id, title, description, created_at, requirement_regulatory_mappings(clause_id)",
+      "id, requirement_id, title, description, created_at, requirement_regulatory_mappings(rule_id)",
     )
     .order("requirement_id", { ascending: true });
 
@@ -173,23 +187,21 @@ export async function listRequirements(): Promise<{
     return { requirements: [], error: "Failed to load requirements." };
   }
 
-  // Flatten the embedded mapping rows into a plain string[] of clause_ids.
+  // Flatten the embedded mapping rows into a plain string[] of rule_ids.
   const requirements: CompanyRequirement[] = (data ?? []).map((row: {
     id: string;
     requirement_id: string;
     title: string;
     description: string | null;
     created_at: string;
-    requirement_regulatory_mappings: { clause_id: string }[];
+    requirement_regulatory_mappings: { rule_id: string }[];
   }) => ({
     id: row.id,
     requirement_id: row.requirement_id,
     title: row.title,
     description: row.description,
     created_at: row.created_at,
-    clause_ids: (row.requirement_regulatory_mappings ?? []).map(
-      (m) => m.clause_id,
-    ),
+    rule_ids: (row.requirement_regulatory_mappings ?? []).map((m) => m.rule_id),
   }));
 
   return { requirements };
@@ -199,7 +211,7 @@ export async function listRequirements(): Promise<{
 // Action: createRequirement
 // ---------------------------------------------------------------------------
 // Inserts a new company_requirements row and the corresponding
-// requirement_regulatory_mappings rows (one per selected clause).
+// requirement_regulatory_mappings rows (one per selected rule).
 //
 // PERMISSION GATE: admin or qa_manager only.
 // DUPLICATE GUARD: A meaningful error is returned if requirement_id is taken.
@@ -209,7 +221,7 @@ export async function listRequirements(): Promise<{
 //   2. Enforce RBAC — only admin / qa_manager may create requirements.
 //   3. Validate input fields.
 //   4. Insert into company_requirements via adminClient.
-//   5. If clause_ids were provided, bulk-insert into requirement_regulatory_mappings.
+//   5. If ruleIds were provided, bulk-insert into requirement_regulatory_mappings.
 //   6. Revalidate /dashboard/requirements.
 // ---------------------------------------------------------------------------
 
@@ -217,7 +229,7 @@ export async function createRequirement(
   requirementId: string,
   title: string,
   description: string,
-  clauseIds: string[],
+  ruleIds: string[],
 ): Promise<CreateRequirementResult> {
   // Step 1: Verify session.
   const ctx = await resolveCallerRole();
@@ -291,11 +303,11 @@ export async function createRequirement(
 
   const newId: string = inserted.id;
 
-  // Step 5: Insert mapping rows if clauses were selected.
-  if (clauseIds.length > 0) {
-    const mappingRows = clauseIds.map((clauseId) => ({
+  // Step 5: Insert mapping rows if rules were selected.
+  if (ruleIds.length > 0) {
+    const mappingRows = ruleIds.map((ruleId) => ({
       requirement_id: newId,
-      clause_id: clauseId,
+      rule_id: ruleId,
     }));
 
     const { error: mappingError } = await adminClient
@@ -329,6 +341,9 @@ export async function createRequirement(
 // company_requirements. Rows with duplicate requirement_id values are skipped
 // with a per-row error; all other rows are inserted individually so a single
 // bad row does not abort the entire batch.
+//
+// NOTE: CSV bulk import does not assign regulatory rule mappings — those must
+// be added individually via the "Add Requirement" modal after import.
 //
 // PERMISSION GATE: admin or qa_manager only.
 // CONSTITUTION LAW II: session verified server-side, no auth bypass.
