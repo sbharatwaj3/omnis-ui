@@ -97,6 +97,8 @@ interface IngestPayload {
   req_id?: string;
   /** Optional execution status. Defaults to "PASS". */
   execution_status?: string;
+  /** Optional email of the developer who triggered this test run. Sent by CLI. */
+  developer_email?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -344,6 +346,7 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
     execution_timestamp: executionTimestamp,
     is_deprecated: false,
     event_source: "omnis-cli",
+    developer_email: payload.developer_email?.trim() || null,
   };
 
   const { data: insertedLog, error: insertError } = await adminClient
