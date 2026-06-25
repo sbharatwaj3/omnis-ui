@@ -12,8 +12,10 @@
 //   5. Two-step Quick View → Full View architecture:
 //      - Step A: Centered quick-view modal (LogDetailDrawer) with high-level metadata
 //      - Step B: "View Full Evidence Log" button in the modal routes to /logs/[id]
+//   6. View mode (grouped vs flat) persisted via URL search params (?view=list)
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import {
   Table,
@@ -493,13 +495,17 @@ function SuiteAccordionItem({
                 key={row.logId}
                 onClick={() => onOpenDrawer(row.logId)}
                 className={[
-                  "w-full text-left px-4 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
+                  "w-full text-left px-4 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
                   activeDrawerLogId === row.logId
                     ? "bg-slate-100"
                     : "active:bg-slate-100",
                 ].join(" ")}
               >
-                <div className="flex items-center gap-2 flex-wrap">
+                {/* Primary: parsed log name for immediate context */}
+                <p className="text-sm font-medium text-slate-800 truncate">
+                  {parseLogTitle(row.rawCommand || row.testSuite)}
+                </p>
+                <div className="mt-1 flex items-center gap-2 flex-wrap">
                   <StatusBadge status={row.executionStatus} />
                   <SeverityBadge severity={row.severity} />
                 </div>
@@ -521,7 +527,7 @@ function SuiteAccordionItem({
             <Table className="w-full">
               <TableHeader>
                 <TableRow className="bg-slate-100 hover:bg-slate-100 border-b border-slate-200">
-                  {["Status", "AI Risk", "Execution Time", "Log ID"].map((h, i) => (
+                  {["Log Name", "Status", "AI Risk", "Execution Time", "Log ID"].map((h, i) => (
                     <TableHead
                       key={h}
                       className={`py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 ${i === 0 ? "pl-4 md:pl-6" : ""}`}
@@ -543,7 +549,15 @@ function SuiteAccordionItem({
                         : "hover:bg-slate-100",
                     ].join(" ")}
                   >
-                    <TableCell className="py-2 pl-4 md:pl-6">
+                    <TableCell className="py-2 pl-4 md:pl-6 max-w-[220px]">
+                      <span
+                        className="block text-xs font-medium text-slate-700 truncate"
+                        title={parseLogTitle(row.rawCommand || row.testSuite)}
+                      >
+                        {parseLogTitle(row.rawCommand || row.testSuite)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-2">
                       <StatusBadge status={row.executionStatus} />
                     </TableCell>
                     <TableCell className="py-2">
@@ -572,16 +586,36 @@ function SuiteAccordionItem({
 
 interface DashboardClientProps {
   allRows: DashboardRow[];
+  /** Initial view mode read from URL search params by the server page. */
+  initialViewMode?: ViewMode;
 }
 
-export function DashboardClient({ allRows }: DashboardClientProps) {
+export function DashboardClient({ allRows, initialViewMode = "grouped" }: DashboardClientProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   // ── Filter state ──────────────────────────────────────────────────────────
   const [timeframe, setTimeframe] = useState<Timeframe>("all");
   const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   // ── View mode (grouped accordion vs flat list) ────────────────────────────
-  const [viewMode, setViewMode] = useState<ViewMode>("grouped");
+  // Initialised from the URL param so it survives navigation back to the page.
+  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
+
+  // ── Sync viewMode changes back into the URL ───────────────────────────────
+  const setViewModeAndSync = useCallback((mode: ViewMode) => {
+    setViewMode(mode);
+    const params = new URLSearchParams(searchParams.toString());
+    if (mode === "flat") {
+      params.set("view", "list");
+    } else {
+      params.delete("view");
+    }
+    // Replace (not push) so the toggle doesn't pollute the history stack
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [router, pathname, searchParams]);
 
   // ── Accordion open state — track which suite keys are expanded ────────────
   const [openSuites, setOpenSuites] = useState<Set<string>>(new Set());
@@ -723,7 +757,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
             {/* View mode toggle — Grouped | List */}
             <div className="flex items-center rounded-lg border border-zinc-200 bg-zinc-50 p-0.5">
               <button
-                onClick={() => { setViewMode("grouped"); setCurrentPage(1); }}
+                onClick={() => { setViewModeAndSync("grouped"); setCurrentPage(1); }}
                 className={[
                   "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all",
                   viewMode === "grouped"
@@ -737,7 +771,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                 Grouped
               </button>
               <button
-                onClick={() => { setViewMode("flat"); setFlatPage(1); }}
+                onClick={() => { setViewModeAndSync("flat"); setFlatPage(1); }}
                 className={[
                   "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all",
                   viewMode === "flat"
@@ -872,13 +906,17 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                   key={row.logId}
                   onClick={() => openDrawer(row.logId)}
                   className={[
-                    "w-full text-left px-4 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
+                    "w-full text-left px-4 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
                     drawerLogId === row.logId
                       ? "bg-slate-100"
                       : "active:bg-slate-100",
                   ].join(" ")}
                 >
-                  <div className="flex items-center gap-2 flex-wrap">
+                  {/* Primary: test suite name */}
+                  <p className="text-sm font-medium text-slate-800 truncate">
+                    {parseLogTitle(row.rawCommand || row.testSuite)}
+                  </p>
+                  <div className="mt-1 flex items-center gap-2 flex-wrap">
                     <StatusBadge status={row.executionStatus} />
                     <SeverityBadge severity={row.severity} />
                   </div>
@@ -897,7 +935,7 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
               <Table className="w-full">
                 <TableHeader>
                   <TableRow className="bg-slate-100 hover:bg-slate-100 border-b border-slate-200">
-                    {["STATUS", "AI RISK", "EXECUTION TIME", "LOG ID"].map((h, i) => (
+                    {["TEST SUITE", "STATUS", "AI RISK", "EXECUTION TIME", "LOG ID"].map((h, i) => (
                       <TableHead
                         key={h}
                         className={`py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 ${i === 0 ? "pl-4 md:pl-6" : ""}`}
@@ -919,7 +957,15 @@ export function DashboardClient({ allRows }: DashboardClientProps) {
                           : "hover:bg-slate-100",
                       ].join(" ")}
                     >
-                      <TableCell className="py-2 pl-4 md:pl-6">
+                      <TableCell className="py-2 pl-4 md:pl-6 max-w-[260px]">
+                        <span className="block text-sm font-medium text-slate-800 truncate" title={parseLogTitle(row.rawCommand || row.testSuite)}>
+                          {parseLogTitle(row.rawCommand || row.testSuite)}
+                        </span>
+                        <code className="mt-0.5 block font-mono text-[10px] text-slate-400 truncate" title={row.logId}>
+                          {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
+                        </code>
+                      </TableCell>
+                      <TableCell className="py-2">
                         <StatusBadge status={row.executionStatus} />
                       </TableCell>
                       <TableCell className="py-2">
