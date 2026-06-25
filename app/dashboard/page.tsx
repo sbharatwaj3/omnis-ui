@@ -200,10 +200,39 @@ function DashboardSkeleton() {
 
 async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped" | "flat" }) {
   const rows = await fetchAllLogs();
+
+  // Resolve the caller's role to gate the Team Usage card.
+  // Step 1: Verify identity via the session client (JWT verification).
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Step 2 & 3: Resolve org_id then role via adminClient.
+  let userRole: string | null = null;
+  if (user) {
+    const { data: profile } = await adminClient
+      .from("users")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profile?.org_id) {
+      const { data: roleRow } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("org_id", profile.org_id)
+        .single();
+
+      userRole = roleRow?.role ?? null;
+    }
+  }
+
   return (
     <>
       {/* ── Primary Action Cards ──────────────────────────────────────── */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={`mb-6 grid grid-cols-1 gap-4 ${userRole === "admin" ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
         {/* Card 1: Compliance Matrix — Emerald/Teal accent */}
         <Link
           href="/readiness"
@@ -252,7 +281,8 @@ async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped
           </p>
         </Link>
 
-        {/* Card 4: Team Usage — Violet accent */}
+        {/* Card 4: Team Usage — Violet accent (admin only) */}
+        {userRole === "admin" && (
         <Link
           href="/dashboard/usage"
           className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-violet-200 hover:bg-violet-50/30"
@@ -267,6 +297,7 @@ async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped
             Monitor AI token consumption and CLI activity.
           </p>
         </Link>
+        )}
       </div>
 
       {/* ── Metrics cards + evidence log table ───────────────────────── */}
