@@ -25,6 +25,7 @@ import {
   Brain,
   ShieldAlert,
   Table2,
+  BarChart2,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
@@ -202,7 +203,7 @@ async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped
   return (
     <>
       {/* ── Primary Action Cards ──────────────────────────────────────── */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Card 1: Compliance Matrix — Emerald/Teal accent */}
         <Link
           href="/readiness"
@@ -248,6 +249,22 @@ async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped
           </div>
           <p className="text-xs text-zinc-400 leading-relaxed">
             Review AI-flagged compliance discrepancies
+          </p>
+        </Link>
+
+        {/* Card 4: Team Usage — Violet accent */}
+        <Link
+          href="/dashboard/usage"
+          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-violet-200 hover:bg-violet-50/30"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-50 group-hover:bg-violet-100 transition-colors">
+              <BarChart2 className="h-4 w-4 text-violet-600" strokeWidth={1.75} />
+            </div>
+            <span className="text-sm font-semibold text-zinc-900">Team Usage</span>
+          </div>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Monitor AI token consumption and CLI activity.
           </p>
         </Link>
       </div>
