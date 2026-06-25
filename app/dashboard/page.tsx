@@ -197,7 +197,7 @@ function DashboardSkeleton() {
 // Dashboard content — async server component, streams into Suspense
 // ---------------------------------------------------------------------------
 
-async function DashboardContent() {
+async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped" | "flat" }) {
   const rows = await fetchAllLogs();
   return (
     <>
@@ -253,7 +253,7 @@ async function DashboardContent() {
       </div>
 
       {/* ── Metrics cards + evidence log table ───────────────────────── */}
-      <DashboardClient allRows={rows} />
+      <DashboardClient allRows={rows} initialViewMode={initialViewMode} />
     </>
   );
 }
@@ -262,7 +262,14 @@ async function DashboardContent() {
 // Page export
 // ---------------------------------------------------------------------------
 
-export default function DashboardPage() {
+interface DashboardPageProps {
+  searchParams: Promise<{ view?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const { view } = await searchParams;
+  const initialViewMode: "grouped" | "flat" = view === "list" ? "flat" : "grouped";
+
   return (
     <div className="min-h-screen bg-zinc-50">
       <header className="border-b border-zinc-200 bg-white">
@@ -319,7 +326,7 @@ export default function DashboardPage() {
 
       <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
         <Suspense fallback={<DashboardSkeleton />}>
-          <DashboardContent />
+          <DashboardContent initialViewMode={initialViewMode} />
         </Suspense>
       </main>
     </div>

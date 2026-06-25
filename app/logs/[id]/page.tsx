@@ -737,6 +737,17 @@ export default async function LogDetailPage({ params }: PageProps) {
               </p>
             </div>
           </Link>
+
+          {/* Centre: back to dashboard pill — matches Requirements & Audit Logs pattern */}
+          <div className="hidden sm:flex flex-1 justify-center items-center">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
+            >
+              ← Back to Dashboard
+            </Link>
+          </div>
+
           <div className="ml-auto flex items-center gap-2">
             <div className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5">
               <Activity className="h-3.5 w-3.5 text-emerald-500" />
@@ -747,6 +758,16 @@ export default async function LogDetailPage({ params }: PageProps) {
             <RoleBadge />
             <SettingsMenu />
           </div>
+        </div>
+
+        {/* Mobile sub-bar */}
+        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2 gap-2 mt-0">
+          <Link
+            href="/dashboard"
+            className="flex-1 text-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
+          >
+            ← Back to Dashboard
+          </Link>
         </div>
       </header>
 
