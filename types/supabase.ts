@@ -263,6 +263,8 @@ export type Database = {
           signature_hash: string
           supersedes_log_id: string | null
           user_id: string
+          developer_email: string | null
+          ai_tokens_used: number | null
         }
         Insert: {
           approved_at?: string | null
@@ -281,6 +283,8 @@ export type Database = {
           signature_hash: string
           supersedes_log_id?: string | null
           user_id: string
+          developer_email?: string | null
+          ai_tokens_used?: number | null
         }
         Update: {
           approved_at?: string | null
@@ -299,6 +303,8 @@ export type Database = {
           signature_hash?: string
           supersedes_log_id?: string | null
           user_id?: string
+          developer_email?: string | null
+          ai_tokens_used?: number | null
         }
         Relationships: [
           {
