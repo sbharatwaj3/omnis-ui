@@ -19,6 +19,8 @@ import {
 import { SettingsMenu } from "@/components/settings-menu";
 import { RoleBadge } from "@/components/role-badge";
 import { getDeveloperUsage, type DeveloperUsageRow } from "./actions";
+import { createClient } from "@/utils/supabase/server";
+import { adminClient } from "@/utils/supabase/admin";
 
 // ---------------------------------------------------------------------------
 // Loading skeleton
@@ -208,7 +210,37 @@ async function UsageContent() {
 // Page export
 // ---------------------------------------------------------------------------
 
-export default function UsagePage() {
+export default async function UsagePage() {
+  // Resolve user identity and role server-side before rendering content.
+  // Step 1: Verify identity via the session client (JWT verification).
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Step 2: Resolve org_id via adminClient to bypass RBAC-gated RLS.
+  let userRole: string | null = null;
+  if (user) {
+    const { data: profile } = await adminClient
+      .from("users")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profile?.org_id) {
+      // Step 3: Resolve role scoped to (user_id, org_id).
+      const { data: roleRow } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("org_id", profile.org_id)
+        .single();
+
+      userRole = roleRow?.role ?? null;
+    }
+  }
+
+  const isAdmin = userRole === "admin";
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* ------------------------------------------------------------------ */}
@@ -290,9 +322,13 @@ export default function UsagePage() {
         </div>
 
         {/* Data table — streamed via Suspense */}
-        <Suspense fallback={<UsageSkeleton />}>
-          <UsageContent />
-        </Suspense>
+        {isAdmin ? (
+          <Suspense fallback={<UsageSkeleton />}>
+            <UsageContent />
+          </Suspense>
+        ) : (
+          <UsageAccessDenied reason="Forbidden: Team AI Usage is restricted to Admin accounts." />
+        )}
       </main>
     </div>
   );

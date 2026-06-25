@@ -54,7 +54,7 @@ function normaliseEmail(raw: string | null | undefined): string {
 // Supabase default range limit (same pattern as fetchAllLogs on the main
 // dashboard).
 //
-// Access: any authenticated member of the org may call this action.
+// Access: admin role only.
 // ---------------------------------------------------------------------------
 
 export async function getDeveloperUsage(): Promise<{
@@ -100,7 +100,25 @@ export async function getDeveloperUsage(): Promise<{
     return { rows: [], error: "Failed to resolve organisation." };
   }
 
-  // Step 3: Fetch ALL evidence_logs rows for this org in batches of 1000.
+  // Step 3: Resolve role. adminClient bypasses user_roles RLS — safe because
+  // we scope the query to the exact (user_id, org_id) pair resolved above.
+  const { data: roleRow } = await adminClient
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("org_id", orgId)
+    .single();
+
+  const role: string | null = roleRow?.role ?? null;
+
+  if (role !== "admin") {
+    return {
+      rows: [],
+      error: "Forbidden: only Admins may access token usage telemetry.",
+    };
+  }
+
+  // Step 4: Fetch ALL evidence_logs rows for this org in batches of 1000.
   // We only need developer_email and ai_tokens_used to minimise data transfer.
   interface RawLogRow {
     developer_email: string | null;
@@ -137,7 +155,7 @@ export async function getDeveloperUsage(): Promise<{
     return { rows: [], error: "Failed to load usage data." };
   }
 
-  // Step 4: Group rows in TypeScript by normalised developer_email.
+  // Step 5: Group rows in TypeScript by normalised developer_email.
   // Any null / empty / "unknown_developer" values are bucketed under
   // the display label "Unknown Developer".
   const groupMap = new Map<
@@ -161,7 +179,7 @@ export async function getDeveloperUsage(): Promise<{
     }
   }
 
-  // Step 5: Convert to array and sort DESCENDING by total_tokens_consumed.
+  // Step 6: Convert to array and sort DESCENDING by total_tokens_consumed.
   const sorted: DeveloperUsageRow[] = Array.from(groupMap.entries())
     .map(([developer_email, stats]) => ({
       developer_email,
