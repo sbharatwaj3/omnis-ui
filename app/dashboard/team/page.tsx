@@ -67,7 +67,7 @@ export default async function TeamPage() {
     <div className="min-h-screen bg-zinc-50">
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center px-4 py-4 md:px-8 md:py-5">
+        <div className="mx-auto flex max-w-screen-2xl w-full items-center px-6 py-4 md:px-8 md:py-5">
           {/* Left: logo */}
           <Link
             href="/dashboard"
@@ -120,7 +120,7 @@ export default async function TeamPage() {
       </header>
 
       {/* ── Main ────────────────────────────────────────────────────────── */}
-      <main className="mx-auto max-w-3xl px-4 py-8 md:px-8 md:py-12">
+      <main className="mx-auto max-w-7xl w-full px-6 py-8 md:px-8 md:py-12">
         {/* Page title */}
         <div className="mb-8 flex items-center gap-3">
           <Users className="h-5 w-5 text-zinc-500" strokeWidth={1.75} />

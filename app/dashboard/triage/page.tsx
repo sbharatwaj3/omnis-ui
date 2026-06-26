@@ -136,16 +136,26 @@ export default function TriagePage() {
         </div>
 
         {/* Guidance banner */}
-        <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+        <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-5 py-4">
+          <p className="mb-2 text-xs font-semibold text-amber-800">How this works</p>
           <p className="text-xs leading-relaxed text-amber-700">
-            <span className="font-semibold">How this works:</span> When
-            Claude&apos;s AI analysis disagrees with the regulatory tag a developer
-            applied to an evidence log, it flags the discrepancy here.{" "}
-            <span className="font-semibold">Approve AI Fix</span> re-tags the
-            original log to the AI&apos;s suggestion.{" "}
-            <span className="font-semibold">Reject / Keep Original</span>{" "}
-            dismisses the flag and preserves the developer&apos;s tag.
+            When Claude&apos;s AI analysis disagrees with the regulatory tag a developer
+            applied to an evidence log, it flags the discrepancy here for human review.
           </p>
+          <ul className="mt-3 space-y-2 text-xs leading-relaxed text-amber-700">
+            <li className="flex items-start gap-2">
+              <span className="mt-0.5 shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                Approve AI Fix
+              </span>
+              <span>Re-tags the original evidence log to the AI&apos;s suggested regulatory requirement.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-0.5 shrink-0 rounded-full bg-zinc-200 px-2 py-0.5 text-[10px] font-semibold text-zinc-600">
+                Reject / Keep Original
+              </span>
+              <span>Dismisses the flag and preserves the developer&apos;s original tag.</span>
+            </li>
+          </ul>
         </div>
 
         {/* Queue */}
