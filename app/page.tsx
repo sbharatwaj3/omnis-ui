@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 // omnis-ui/app/page.tsx
 // Omnis MedTech Corp — Public Marketing Landing Page
 //
@@ -83,7 +83,7 @@ function Header({ isAuthenticated, userEmail }: { isAuthenticated: boolean; user
             <ShieldCheck className="h-4 w-4 text-slate-800" strokeWidth={1.75} />
           </div>
           <div className="leading-none">
-            <span className="block text-sm font-bold tracking-tight text-slate-900">QAVRO</span>
+            <span className="block text-sm font-bold tracking-tight text-slate-900">Qavro</span>
             <span className="block text-[10px] font-medium tracking-widest text-emerald-600 uppercase">FDA Assurance Platform</span>
           </div>
         </Link>
@@ -250,7 +250,7 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
           {/* Inner app header strip */}
           <div className="flex items-center gap-2 border-b border-slate-100 bg-white px-5 py-3">
             <ShieldCheck className="h-4 w-4 text-slate-700" strokeWidth={1.75} />
-            <span className="text-xs font-semibold text-slate-700">QAVRO</span>
+            <span className="text-xs font-semibold text-slate-700">Qavro</span>
             <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live · IEC 62304 · 21 CFR Part 11
@@ -386,7 +386,7 @@ function Footer() {
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
           <span className="text-xs font-medium text-slate-500">
-            © 2026 QAVRO. All rights reserved.
+            © 2026 Qavro. All rights reserved.
           </span>
         </div>
         <p className="text-xs text-slate-400">

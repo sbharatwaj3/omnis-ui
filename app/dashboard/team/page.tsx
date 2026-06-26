@@ -1,4 +1,4 @@
-// omnis-ui/app/dashboard/team/page.tsx
+﻿// omnis-ui/app/dashboard/team/page.tsx
 // Team Management page — Server Component shell.
 //
 // Fetches current team members server-side and resolves the caller's role
@@ -79,7 +79,7 @@ export default async function TeamPage() {
             />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                QAVRO
+                Qavro
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">Team</p>
             </div>

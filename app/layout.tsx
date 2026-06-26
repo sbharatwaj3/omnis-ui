@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "QAVRO | FDA Assurance",
+  title: "Qavro | FDA Assurance",
   description:
     "Automated eSTAR compliance, IEC 62304 traceability, and CI/CD evidence capture for modern MedTech.",
 };

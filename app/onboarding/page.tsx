@@ -53,7 +53,7 @@ function BrandPanel() {
         </div>
         <div className="leading-none">
           <span className="block text-sm font-bold text-slate-100">
-            QAVRO
+            Qavro
           </span>
           <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
             FDA Assurance Platform
@@ -101,7 +101,7 @@ function BrandPanel() {
       </div>
 
       <p className="text-xs text-slate-600">
-        © 2026 QAVRO. Access restricted to authorized personnel only.
+        © 2026 Qavro. Access restricted to authorized personnel only.
       </p>
     </div>
   );
@@ -480,7 +480,7 @@ function OnboardingCard() {
         </div>
         <div className="text-center">
           <p className="text-sm font-bold text-slate-900">
-            QAVRO
+            Qavro
           </p>
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
             FDA Assurance Platform

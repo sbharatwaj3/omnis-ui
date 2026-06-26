@@ -1,4 +1,4 @@
-// omnis-ui/app/dashboard/integration/page.tsx
+﻿// omnis-ui/app/dashboard/integration/page.tsx
 // CLI Setup & Integration Guide — Step-by-step onboarding for connecting
 // an external CI/CD pipeline to the Omnis RegOps platform.
 //
@@ -92,7 +92,7 @@ export default function IntegrationPage() {
             />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                QAVRO
+                Qavro
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">
                 CLI Integration
