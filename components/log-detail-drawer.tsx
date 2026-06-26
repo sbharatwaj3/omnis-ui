@@ -140,9 +140,10 @@ function MetaField({
 interface LogDetailDrawerProps {
   logId: string | null;
   onClose: () => void;
+  viewMode?: "grouped" | "flat";
 }
 
-export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
+export function LogDetailDrawer({ logId, onClose, viewMode = "grouped" }: LogDetailDrawerProps) {
   const router = useRouter();
   const [log, setLog] = useState<QuickViewLog | null>(null);
   const [insight, setInsight] = useState<QuickViewInsight | null>(null);
@@ -207,7 +208,8 @@ export function LogDetailDrawer({ logId, onClose }: LogDetailDrawerProps) {
   function handleFullView() {
     if (logId) {
       onClose();
-      router.push(`/logs/${logId}`);
+      const backParam = viewMode === "flat" ? "?from=list" : "";
+      router.push(`/logs/${logId}${backParam}`);
     }
   }
 
