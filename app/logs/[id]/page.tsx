@@ -270,7 +270,7 @@ function DetailField({
 // FORENSIC CONTENT — async Server Component
 // ---------------------------------------------------------------------------
 
-async function ForensicContent({ id }: { id: string }) {
+async function ForensicContent({ id, backHref }: { id: string; backHref: string }) {
   const result = await fetchLogDetail(id);
 
   // Resolve user role server-side so ApproveLogButton knows what to render
@@ -311,7 +311,7 @@ async function ForensicContent({ id }: { id: string }) {
           . It may have been deprecated or never ingested.
         </p>
         <Link
-          href="/dashboard"
+          href={backHref}
           className="mt-6 inline-flex items-center rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50"
         >
           Back to Dashboard
@@ -373,7 +373,7 @@ async function ForensicContent({ id }: { id: string }) {
         {/* Breadcrumb */}
         <nav className="mb-4 flex items-center gap-1.5 text-xs text-zinc-400">
           <Link
-            href="/dashboard"
+            href={backHref}
             className="transition-colors hover:text-zinc-700"
           >
             Dashboard
@@ -713,17 +713,22 @@ function ForensicSkeleton() {
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }
 
-export default async function LogDetailPage({ params }: PageProps) {
+export default async function LogDetailPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const { from } = await searchParams;
+
+  // If the user came from the flat-list view, send them back to it.
+  const backHref = from === "list" ? "/dashboard?view=list" : "/dashboard";
 
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* Header */}
-      <header className="border-b border-zinc-200 bg-white px-4 py-4 md:px-8 md:py-5">
-        <div className="mx-auto flex max-w-7xl items-center gap-3">
-          <Link href="/dashboard" className="flex items-center gap-3 group">
+      <header className="border-b border-zinc-200 bg-white">
+        <div className="mx-auto flex max-w-screen-2xl w-full items-center px-6 py-4 md:px-8 md:py-5">
+          <Link href="/dashboard" className="flex items-center gap-3 group shrink-0">
             <ShieldCheck
               className="h-5 w-5 md:h-6 md:w-6 text-zinc-800 transition-colors group-hover:text-zinc-600"
               strokeWidth={1.75}
@@ -741,10 +746,10 @@ export default async function LogDetailPage({ params }: PageProps) {
           {/* Centre: back to dashboard pill — matches Requirements & Audit Logs pattern */}
           <div className="hidden sm:flex flex-1 justify-center items-center">
             <Link
-              href="/dashboard"
+              href={backHref}
               className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
             >
-              ← Back to Dashboard
+              Back to Dashboard
             </Link>
           </div>
 
@@ -763,18 +768,18 @@ export default async function LogDetailPage({ params }: PageProps) {
         {/* Mobile sub-bar */}
         <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2 gap-2 mt-0">
           <Link
-            href="/dashboard"
+            href={backHref}
             className="flex-1 text-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
           >
-            ← Back to Dashboard
+            Back to Dashboard
           </Link>
         </div>
       </header>
 
       {/* Main */}
-      <main className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-10">
+      <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
         <Suspense fallback={<ForensicSkeleton />}>
-          <ForensicContent id={id} />
+          <ForensicContent id={id} backHref={backHref} />
         </Suspense>
       </main>
     </div>

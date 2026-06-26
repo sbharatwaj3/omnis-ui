@@ -524,17 +524,24 @@ function SuiteAccordionItem({
               Cell padding px-4 md:px-6 mirrors the trigger's own horizontal padding
               so columns feel anchored to the same grid as the header above. */}
           <div className="hidden md:block overflow-x-auto w-full">
-            <Table className="w-full">
+            <Table className="w-full table-fixed">
               <TableHeader>
                 <TableRow className="bg-slate-100 hover:bg-slate-100 border-b border-slate-200">
-                  {["Log Name", "Status", "AI Risk", "Execution Time", "Log ID"].map((h, i) => (
-                    <TableHead
-                      key={h}
-                      className={`py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 ${i === 0 ? "pl-4 md:pl-6" : ""}`}
-                    >
-                      {h}
-                    </TableHead>
-                  ))}
+                  <TableHead className="py-2 pl-4 md:pl-6 w-[35%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Log Name
+                  </TableHead>
+                  <TableHead className="py-2 w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Status
+                  </TableHead>
+                  <TableHead className="py-2 w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    AI Risk
+                  </TableHead>
+                  <TableHead className="py-2 w-[26%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Execution Time
+                  </TableHead>
+                  <TableHead className="py-2 pr-4 md:pr-6 w-[15%] text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Log ID
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -549,7 +556,7 @@ function SuiteAccordionItem({
                         : "hover:bg-slate-100",
                     ].join(" ")}
                   >
-                    <TableCell className="py-2 pl-4 md:pl-6 max-w-[220px]">
+                    <TableCell className="py-2 pl-4 md:pl-6">
                       <span
                         className="block text-xs font-medium text-slate-700 truncate"
                         title={parseLogTitle(row.rawCommand || row.testSuite)}
@@ -566,7 +573,7 @@ function SuiteAccordionItem({
                     <TableCell className="py-2 text-xs text-slate-500 whitespace-nowrap">
                       {row.executionTime}
                     </TableCell>
-                    <TableCell className="py-2 font-mono text-xs text-slate-400">
+                    <TableCell className="py-2 pr-4 md:pr-6 text-right font-mono text-xs text-slate-400">
                       {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
                     </TableCell>
                   </TableRow>
@@ -932,17 +939,24 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
 
             {/* Desktop table — same grid columns + styling as the accordion body */}
             <div className="hidden md:block overflow-x-auto w-full">
-              <Table className="w-full">
+              <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow className="bg-slate-100 hover:bg-slate-100 border-b border-slate-200">
-                    {["TEST SUITE", "STATUS", "AI RISK", "EXECUTION TIME", "LOG ID"].map((h, i) => (
-                      <TableHead
-                        key={h}
-                        className={`py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 ${i === 0 ? "pl-4 md:pl-6" : ""}`}
-                      >
-                        {h}
-                      </TableHead>
-                    ))}
+                    <TableHead className="py-2 pl-4 md:pl-6 w-[35%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      Test Suite
+                    </TableHead>
+                    <TableHead className="py-2 w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      Status
+                    </TableHead>
+                    <TableHead className="py-2 w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      AI Risk
+                    </TableHead>
+                    <TableHead className="py-2 w-[26%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      Execution Time
+                    </TableHead>
+                    <TableHead className="py-2 pr-4 md:pr-6 w-[15%] text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      Log ID
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -957,7 +971,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                           : "hover:bg-slate-100",
                       ].join(" ")}
                     >
-                      <TableCell className="py-2 pl-4 md:pl-6 max-w-[260px]">
+                      <TableCell className="py-2 pl-4 md:pl-6">
                         <span className="block text-sm font-medium text-slate-800 truncate" title={parseLogTitle(row.rawCommand || row.testSuite)}>
                           {parseLogTitle(row.rawCommand || row.testSuite)}
                         </span>
@@ -974,7 +988,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                       <TableCell className="py-2 text-xs text-slate-500 whitespace-nowrap">
                         {row.executionTime}
                       </TableCell>
-                      <TableCell className="py-2 font-mono text-xs text-slate-400">
+                      <TableCell className="py-2 pr-4 md:pr-6 text-right font-mono text-xs text-slate-400">
                         {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
                       </TableCell>
                     </TableRow>
@@ -1125,7 +1139,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
       </div>
 
       {/* Quick View Modal */}
-      <LogDetailDrawer logId={drawerLogId} onClose={closeDrawer} />
+      <LogDetailDrawer logId={drawerLogId} onClose={closeDrawer} viewMode={viewMode} />
     </>
   );
 }
