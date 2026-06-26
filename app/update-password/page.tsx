@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 // omnis-ui/app/update-password/page.tsx
 // Omnis RegOps — Password Reset Completion
 //
@@ -36,7 +36,7 @@ function BrandPanel() {
           <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="leading-none">
-          <span className="block text-sm font-bold text-slate-100">QAVRO</span>
+          <span className="block text-sm font-bold text-slate-100">Qavro</span>
           <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-400">FDA Assurance Platform</span>
         </div>
       </Link>
@@ -69,7 +69,7 @@ function BrandPanel() {
       </div>
 
       <p className="text-xs text-slate-600">
-        © 2026 QAVRO. Access restricted to authorized personnel only.
+        © 2026 Qavro. Access restricted to authorized personnel only.
       </p>
     </div>
   );
@@ -186,7 +186,7 @@ function UpdatePasswordForm() {
           <ShieldCheck className="h-6 w-6 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-slate-900">QAVRO</p>
+          <p className="text-sm font-bold text-slate-900">Qavro</p>
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">FDA Assurance Platform</p>
         </div>
       </Link>

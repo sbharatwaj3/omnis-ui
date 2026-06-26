@@ -1,4 +1,4 @@
-// omnis-ui/app/auth/success/page.tsx
+﻿// omnis-ui/app/auth/success/page.tsx
 // Email Confirmation Success — static terminal page.
 //
 // The Supabase email-confirmation flow (/auth/callback) routes the user here
@@ -27,7 +27,7 @@ export default function AuthSuccessPage() {
           </div>
           <div className="text-left leading-none">
             <span className="block text-sm font-bold text-slate-900">
-              QAVRO
+              Qavro
             </span>
             <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-600">
               FDA Assurance Platform

@@ -1,4 +1,4 @@
-// omnis-ui/app/dashboard/page.tsx
+﻿// omnis-ui/app/dashboard/page.tsx
 // FDA Assurance Dashboard — Evidence Log Traffic Light Matrix
 //
 // React Server Component. Fetches ALL evidence_logs + ai_compliance_insights
@@ -330,7 +330,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                QAVRO
+                Qavro
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">FDA Assurance Dashboard · Live</p>
             </div>

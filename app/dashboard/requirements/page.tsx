@@ -1,4 +1,4 @@
-// omnis-ui/app/dashboard/requirements/page.tsx
+﻿// omnis-ui/app/dashboard/requirements/page.tsx
 // Requirements Management Page — SRS/SDS traceability artefact registry.
 //
 // RSC (React Server Component). Fetches requirements and regulatory clauses
@@ -125,7 +125,7 @@ export default function RequirementsPage() {
             />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                QAVRO
+                Qavro
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">
                 Requirements Management · SRS Registry

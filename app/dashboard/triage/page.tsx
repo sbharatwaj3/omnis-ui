@@ -1,4 +1,4 @@
-// omnis-ui/app/dashboard/triage/page.tsx
+﻿// omnis-ui/app/dashboard/triage/page.tsx
 // AI Triage Queue — Server Component page.
 //
 // Fetches pending triage items server-side and passes them to the client
@@ -75,7 +75,7 @@ export default function TriagePage() {
             />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                QAVRO
+                Qavro
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">
                 FDA Assurance Dashboard · Live

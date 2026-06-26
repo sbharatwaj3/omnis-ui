@@ -1,4 +1,4 @@
-// omnis-ui/app/dashboard/settings/page.tsx
+﻿// omnis-ui/app/dashboard/settings/page.tsx
 // Settings page — account preferences and Developer API Keys.
 //
 // React Server Component shell. Fetches the user's active API keys at
@@ -42,7 +42,7 @@ export default async function SettingsPage() {
             />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                QAVRO
+                Qavro
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">Settings</p>
             </div>

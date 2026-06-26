@@ -1,4 +1,4 @@
-// omnis-ui/app/dashboard/usage/page.tsx
+﻿// omnis-ui/app/dashboard/usage/page.tsx
 // Team AI Usage — Per-Developer Bedrock Token Telemetry
 //
 // React Server Component. Calls getDeveloperUsage() server-side and renders
@@ -259,7 +259,7 @@ export default async function UsagePage() {
             />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                QAVRO
+                Qavro
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">
                 Team AI Usage · Token Telemetry

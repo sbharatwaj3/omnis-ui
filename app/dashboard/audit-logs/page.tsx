@@ -1,4 +1,4 @@
-// omnis-ui/app/dashboard/audit-logs/page.tsx
+﻿// omnis-ui/app/dashboard/audit-logs/page.tsx
 // 21 CFR Part 11 Audit Trail — Read-Only Ledger View
 //
 // IMMUTABILITY MANDATE (21 CFR Part 11.10(e)):
@@ -125,7 +125,7 @@ export default function AuditLogsPage() {
             />
             <div>
               <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                QAVRO
+                Qavro
               </h1>
               <p className="hidden sm:block text-xs text-zinc-400">
                 Audit Trail · 21 CFR Part 11 Ledger

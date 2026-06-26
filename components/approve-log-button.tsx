@@ -71,11 +71,11 @@ export function ApproveLogButton({
   }
 
   // ── Viewer / no-role: locked state ────────────────────────────────────
-  if (userRole !== "qa_manager") {
+  if (userRole !== "qa_manager" && userRole !== "admin") {
     return (
       <div className="flex flex-col items-end gap-1">
         <div
-          title="Role: Viewer or Developer — only QA Managers can approve logs"
+          title="Role: Viewer or Developer — only QA Managers and Admins can approve logs"
           className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 opacity-60 cursor-not-allowed"
         >
           <Lock className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
@@ -84,13 +84,13 @@ export function ApproveLogButton({
           </span>
         </div>
         <p className="text-right text-[10px] text-zinc-400">
-          Requires QA Manager role
+          Requires QA Manager or Admin role
         </p>
       </div>
     );
   }
 
-  // ── State 1: Unsigned (qa_manager only) ───────────────────────────────
+  // ── State 1: Unsigned (qa_manager or admin) ───────────────────────────
   async function handleApprove() {
     setError(null);
     setLoading(true);
