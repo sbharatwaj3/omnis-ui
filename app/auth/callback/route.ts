@@ -20,6 +20,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { waitForUserProfile, MAX_POLL_ATTEMPTS } from "@/utils/supabase/waitForUserProfile";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -90,13 +91,25 @@ export async function GET(request: NextRequest) {
   // OAuth flow: derive routing destination from the user's org_id in the
   // database. Identity is always sourced from the session JWT (getUser above),
   // never from URL parameters.
-  const { data: userData } = await supabase
-    .from("users")
-    .select("org_id")
-    .eq("user_id", user.id)
-    .single();
 
-  if (userData?.org_id) {
+  // Bounded-poll: retry the public.users SELECT up to MAX_POLL_ATTEMPTS times
+  // with exponential back-off to resolve pgBouncer connection-pool lag where
+  // the on_auth_user_created trigger-written stub row may not yet be visible.
+  const userProfile = await waitForUserProfile(supabase, user.id);
+
+  if (userProfile === null) {
+    // All poll attempts exhausted — row not found after MAX_POLL_ATTEMPTS tries.
+    // IEC 62304 fail-loud: log structured error, redirect loudly.
+    // NEVER silently misdirect to /onboarding when the row is absent.
+    console.error(
+      "[auth/callback] profile_unavailable: public.users row not found after",
+      MAX_POLL_ATTEMPTS,
+      "attempts for user", user.id
+    );
+    return NextResponse.redirect(`${origin}/login?error=profile_unavailable`);
+  }
+
+  if (userProfile.org_id) {
     // Returning user with an organisation — go to the app dashboard.
     return NextResponse.redirect(`${origin}/dashboard`);
   }
