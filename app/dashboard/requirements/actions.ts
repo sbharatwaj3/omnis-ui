@@ -31,6 +31,7 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
+import { bulkImportRowSchema } from "@/lib/schemas";
 
 // ---------------------------------------------------------------------------
 // Audit trail helper
@@ -512,33 +513,19 @@ export async function bulkImportRequirements(
   const errors: Record<string, string> = {};
 
   // Step 4: Insert each row individually so a duplicate doesn't abort the batch.
-  for (const row of rows) {
-    const trimmedId = (row.requirement_id ?? "").trim();
-    const trimmedTitle = (row.title ?? "").trim();
-    const trimmedDesc = (row.description ?? "").trim();
+  // Security Standard §III.1: every row is validated through Zod before use.
+  for (const rawRow of rows) {
+    const parseResult = bulkImportRowSchema.safeParse(rawRow);
+    if (!parseResult.success) {
+      const firstError = parseResult.error.errors[0];
+      const badId = (rawRow as { requirement_id?: string }).requirement_id ?? "(empty)";
+      skipped++;
+      errors[badId] = firstError?.message ?? "Invalid row format.";
+      continue;
+    }
 
-    // Row-level validation.
-    if (!trimmedId) {
-      skipped++;
-      errors[trimmedId || "(empty)"] = "requirement_id is missing or empty.";
-      continue;
-    }
-    if (!/^[A-Za-z0-9_-]{1,50}$/.test(trimmedId)) {
-      skipped++;
-      errors[trimmedId] =
-        "Invalid format — letters, digits, hyphens, underscores only (max 50 chars).";
-      continue;
-    }
-    if (!trimmedTitle) {
-      skipped++;
-      errors[trimmedId] = "Title is required.";
-      continue;
-    }
-    if (trimmedTitle.length > 255) {
-      skipped++;
-      errors[trimmedId] = "Title must be 255 characters or fewer.";
-      continue;
-    }
+    const { requirement_id: trimmedId, title: trimmedTitle, description } = parseResult.data;
+    const trimmedDesc = description ?? "";
 
     const { data: insertedRow, error: insertError } = await adminClient
       .from("company_requirements")

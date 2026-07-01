@@ -3,19 +3,31 @@
 // Client Component — Stripe Checkout initiator button.
 //
 // Responsibilities:
-//   1. Accept orgId and an optional priceId (for multi-tier pricing).
+//   1. Accept an optional priceId (for multi-tier pricing).
 //   2. Invoke the `createCheckoutSession` server action on click.
 //   3. Manage a loading/redirecting state with a spinner.
 //   4. Hard-redirect to the Stripe-hosted checkout URL.
 //   5. Surface any errors inline without crashing the page.
+//
+// SECURITY (LOW-01 fix): orgId is NO LONGER accepted as a prop and is NOT
+// passed to the server action. The server action re-derives org_id from the
+// verified JWT session internally. Passing orgId from the client would allow
+// a malicious actor to craft a checkout session for a foreign org_id and
+// trigger a Stripe webhook that updates another org's subscription_status.
+// The prop is kept as an optional no-op for backwards compatibility at
+// existing call-sites while the parent components are migrated.
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { createCheckoutSession } from "@/app/actions/stripe";
 
 interface CheckoutButtonProps {
-  /** The Supabase org_id of the purchasing organization. */
-  orgId: string;
+  /**
+   * @deprecated orgId is no longer forwarded to the server action.
+   * The action self-derives org_id from the verified session JWT.
+   * This prop is accepted but ignored to avoid breaking existing call-sites.
+   */
+  orgId?: string;
   /** Optional Stripe Price ID override — allows multi-tier checkout buttons. */
   priceId?: string;
   /** Button label. Defaults to "Get Started". */
@@ -25,7 +37,8 @@ interface CheckoutButtonProps {
 }
 
 export function CheckoutButton({
-  orgId,
+  // orgId intentionally destructured but not used — see deprecation notice above.
+  orgId: _orgId,
   priceId,
   label = "Get Started",
   className,
@@ -38,7 +51,8 @@ export function CheckoutButton({
     setErrorMessage(null);
 
     try {
-      const url = await createCheckoutSession(orgId, priceId);
+      // orgId is derived from the verified session inside the server action.
+      const url = await createCheckoutSession(priceId);
 
       if (!url) {
         throw new Error("Checkout session returned no URL. Please try again.");

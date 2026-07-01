@@ -112,11 +112,29 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 
+  // ── 0b. Verify authenticated session ─────────────────────────────────────
+  // Security Standard §II.1: every API route is a public endpoint.
+  // The middleware matcher does NOT cover /api/* paths, so this is the
+  // authoritative auth gate for this route. Middleware / RLS alone is
+  // insufficient — we must verify explicitly before any data query.
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json(
+      { error: "Unauthorized: valid session required." },
+      { status: 401 }
+    );
+  }
+
   // ── 1a. Fetch regulatory_rules with nested evidence_logs ─────────────────
   //
   // approved_by has no FK constraint so PostgREST cannot auto-join it.
   // We resolve user emails via a separate query in step 1b.
-  const supabase = await createClient();
 
   const { data: rulesData, error: rulesError } = await supabase
     .from("regulatory_rules")
