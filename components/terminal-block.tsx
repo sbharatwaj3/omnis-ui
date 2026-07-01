@@ -46,17 +46,17 @@ export function TerminalBlock({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-xl border border-zinc-700/60 bg-zinc-900",
-        prominent ? "shadow-lg" : "shadow-sm",
+        "group relative overflow-hidden rounded border border-zinc-700/60 bg-zinc-900",
+        prominent ? "" : "",
       )}
     >
       {/* Top bar */}
       <div className="flex items-center justify-between border-b border-zinc-700/60 bg-zinc-800/80 px-4 py-2">
-        {/* Traffic-light dots */}
+        {/* Window chrome dots — square, not circular */}
         <div className="flex items-center gap-1.5" aria-hidden="true">
-          <span className="h-2.5 w-2.5 rounded-full bg-zinc-600" />
-          <span className="h-2.5 w-2.5 rounded-full bg-zinc-600" />
-          <span className="h-2.5 w-2.5 rounded-full bg-zinc-600" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-zinc-600" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-zinc-600" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-zinc-600" />
         </div>
 
         {/* Lang label */}
@@ -71,7 +71,7 @@ export function TerminalBlock({
           onClick={handleCopy}
           aria-label={copied ? "Copied" : "Copy to clipboard"}
           className={cn(
-            "flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-all",
+            "flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium transition-all",
             copied
               ? "text-emerald-400"
               : "text-zinc-500 hover:bg-zinc-700/60 hover:text-zinc-200",

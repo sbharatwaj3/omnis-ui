@@ -8,6 +8,10 @@
    Dark mode has been fully eradicated from this codebase. There is no theme
    provider, no `dark:` variant, and no `.dark` class hook. The application
    renders exclusively in the enterprise light palette below.
+
+   DESIGN SYSTEM: Flat elevation only. No box-shadows anywhere. Depth is
+   expressed exclusively through 1px hairlines and surface colour shifts.
+   Maximum border-radius: 4px (--radius: 0.25rem).
    --------------------------------------------------------------------------- */
 
 @theme inline {
@@ -45,17 +49,19 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Flat geometry: max 4px (0.25rem) at all scale points */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
+  --radius-4xl: 4px;
 }
 
 :root {
   color-scheme: light;
+  /* Enterprise light palette — pure white canvas, slate surfaces */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -79,7 +85,8 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  /* Flat geometry lock: 4px maximum border-radius */
+  --radius: 0.25rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);

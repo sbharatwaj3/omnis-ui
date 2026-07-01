@@ -176,7 +176,7 @@ function DashboardSkeleton() {
     <>
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="border-zinc-200 shadow-sm">
+          <Card key={i} className="border-zinc-200">
             <CardHeader className="pb-2">
               <div className="h-3 w-24 animate-pulse rounded bg-zinc-200" />
             </CardHeader>
@@ -186,7 +186,7 @@ function DashboardSkeleton() {
           </Card>
         ))}
       </div>
-      <div className="h-64 animate-pulse rounded-xl bg-zinc-100" />
+      <div className="h-64 animate-pulse rounded bg-zinc-100" />
     </>
   );
 }
@@ -230,16 +230,16 @@ async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped
     <>
       {/* ── Primary Action Cards ──────────────────────────────────────── */}
       <div className={`mb-6 grid grid-cols-1 gap-4 ${userRole === "admin" ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
-        {/* Card 1: Compliance Matrix — Emerald/Teal accent */}
+        {/* Card 1: Compliance Matrix */}
         <Link
           href="/readiness"
-          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-emerald-200 hover:bg-emerald-50/30"
+          className="group flex flex-col gap-2 rounded border border-zinc-200 bg-white px-5 py-5 transition-all hover:border-zinc-300 hover:bg-zinc-50"
         >
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 group-hover:bg-emerald-100 transition-colors">
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-emerald-50 group-hover:bg-emerald-100 transition-colors">
               <Table2 className="h-4 w-4 text-emerald-600" strokeWidth={1.75} />
             </div>
-            <span className="text-sm font-semibold text-zinc-900">Compliance Matrix</span>
+            <span className="text-sm font-medium text-zinc-900">Compliance Matrix</span>
           </div>
           <p className="text-xs text-zinc-400 leading-relaxed">
             Generate and export traceability reports
@@ -249,29 +249,29 @@ async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped
         {/* Card 2: Requirements — Blue/Indigo accent */}
         <Link
           href="/dashboard/requirements"
-          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-indigo-200 hover:bg-indigo-50/30"
+          className="group flex flex-col gap-2 rounded border border-zinc-200 bg-white px-5 py-5 transition-all hover:border-zinc-300 hover:bg-zinc-50"
         >
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 group-hover:bg-indigo-100 transition-colors">
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-50 group-hover:bg-indigo-100 transition-colors">
               <ClipboardList className="h-4 w-4 text-indigo-600" strokeWidth={1.75} />
             </div>
-            <span className="text-sm font-semibold text-zinc-900">Requirements</span>
+            <span className="text-sm font-medium text-zinc-900">Requirements</span>
           </div>
           <p className="text-xs text-zinc-400 leading-relaxed">
             Map SRS/SDS to regulatory codes
           </p>
         </Link>
 
-        {/* Card 3: Triage Inbox — Amber/Yellow accent (unchanged) */}
+        {/* Card 3: Triage Inbox — Amber accent */}
         <Link
           href="/dashboard/triage"
-          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-amber-200 hover:bg-amber-50/30"
+          className="group flex flex-col gap-2 rounded border border-zinc-200 bg-white px-5 py-5 transition-all hover:border-zinc-300 hover:bg-zinc-50"
         >
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 group-hover:bg-amber-100 transition-colors">
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-amber-50 group-hover:bg-amber-100 transition-colors">
               <Brain className="h-4 w-4 text-amber-600" strokeWidth={1.75} />
             </div>
-            <span className="text-sm font-semibold text-zinc-900">Triage Inbox</span>
+            <span className="text-sm font-medium text-zinc-900">Triage Inbox</span>
           </div>
           <p className="text-xs text-zinc-400 leading-relaxed">
             Review AI-flagged compliance discrepancies
@@ -282,13 +282,13 @@ async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped
         {userRole === "admin" && (
         <Link
           href="/dashboard/usage"
-          className="group flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-5 shadow-sm transition-all hover:shadow-md hover:border-violet-200 hover:bg-violet-50/30"
+          className="group flex flex-col gap-2 rounded border border-zinc-200 bg-white px-5 py-5 transition-all hover:border-zinc-300 hover:bg-zinc-50"
         >
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-50 group-hover:bg-violet-100 transition-colors">
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-violet-50 group-hover:bg-violet-100 transition-colors">
               <BarChart2 className="h-4 w-4 text-violet-600" strokeWidth={1.75} />
             </div>
-            <span className="text-sm font-semibold text-zinc-900">Team Usage</span>
+            <span className="text-sm font-medium text-zinc-900">Team Usage</span>
           </div>
           <p className="text-xs text-zinc-400 leading-relaxed">
             Monitor AI token consumption and CLI activity.
@@ -322,7 +322,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         centerSlot={
           <Link
             href="/dashboard/audit-logs"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+            className="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-white px-4 py-1.5 text-sm font-medium text-zinc-800 transition-colors hover:border-zinc-300 hover:bg-zinc-50"
           >
             <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
             Audit Logs
@@ -331,7 +331,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         mobileBar={
           <Link
             href="/dashboard/audit-logs"
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-100"
           >
             <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
             Audit

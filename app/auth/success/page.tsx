@@ -1,4 +1,4 @@
-﻿// omnis-ui/app/auth/success/page.tsx
+// omnis-ui/app/auth/success/page.tsx
 // Email Confirmation Success — static terminal page.
 //
 // The Supabase email-confirmation flow (/auth/callback) routes the user here
@@ -22,7 +22,7 @@ export default function AuthSuccessPage() {
       <div className="w-full max-w-md text-center">
         {/* Brand mark */}
         <div className="mb-8 flex items-center justify-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30">
+          <div className="flex h-9 w-9 items-center justify-center rounded bg-emerald-500/10 ring-1 ring-emerald-500/30">
             <ShieldCheck className="h-5 w-5 text-emerald-500" strokeWidth={1.75} />
           </div>
           <div className="text-left leading-none">
@@ -36,7 +36,7 @@ export default function AuthSuccessPage() {
         </div>
 
         {/* Success mark */}
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded bg-emerald-50 ring-1 ring-emerald-200">
           <CheckCircle2 className="h-8 w-8 text-emerald-500" strokeWidth={1.75} />
         </div>
 

@@ -65,7 +65,7 @@ export function RoleBadge() {
     <span
       title={tooltip}
       aria-label={tooltip}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold select-none cursor-default ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-xs font-medium select-none cursor-default ${className}`}
     >
       <Icon className="h-3 w-3 shrink-0" strokeWidth={2} />
       {label}

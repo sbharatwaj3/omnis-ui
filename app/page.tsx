@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 // omnis-ui/app/page.tsx
 // Omnis MedTech Corp — Public Marketing Landing Page
 //
@@ -79,7 +79,7 @@ function Header({ isAuthenticated, userEmail }: { isAuthenticated: boolean; user
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
         <Link href="/" className="flex shrink-0 items-center gap-2.5 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg ring-1 ring-slate-200 group-hover:ring-emerald-400 transition-all duration-200">
+          <div className="flex h-8 w-8 items-center justify-center rounded ring-1 ring-slate-200 group-hover:ring-emerald-400 transition-all duration-200">
             <ShieldCheck className="h-4 w-4 text-slate-800" strokeWidth={1.75} />
           </div>
           <div className="leading-none">
@@ -104,18 +104,18 @@ function Header({ isAuthenticated, userEmail }: { isAuthenticated: boolean; user
                 {userEmail}
               </span>
             )}
-            <Link href="/pricing" className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-600">
+            <Link href="/pricing" className="inline-flex items-center gap-1.5 rounded bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-emerald-600">
               Go to Dashboard
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         ) : (
           <div className="flex shrink-0 items-center gap-2">
-            <Link href="/login" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50">
+            <Link href="/login" className="inline-flex items-center gap-1.5 rounded border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition-all hover:border-slate-400 hover:bg-slate-50">
               Sign In
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-            <Link href="/signup" className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-800">
+            <Link href="/signup" className="hidden sm:inline-flex items-center gap-1.5 rounded bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-slate-800">
               Get Started
             </Link>
           </div>
@@ -140,12 +140,12 @@ function HeroSection() {
       {/* Glow */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-96 w-[800px] rounded-full bg-emerald-400/10 blur-3xl"
+        className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-96 w-[800px] rounded bg-emerald-400/10 blur-3xl"
       />
 
       <div className="relative mx-auto max-w-5xl px-6 py-28 text-center md:py-36">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        <div className="mb-6 inline-flex items-center gap-2 rounded border border-emerald-200 bg-emerald-50 px-3.5 py-1.5">
+          <span className="h-1.5 w-1.5 rounded bg-emerald-500 animate-pulse" />
           <span className="text-xs font-semibold tracking-wide text-emerald-700">
             FDA eSTAR · IEC 62304 · 21 CFR Part 11
           </span>
@@ -163,7 +163,7 @@ function HeroSection() {
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           {trustBadges.map((badge) => (
-            <span key={badge} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+            <span key={badge} className="inline-flex items-center gap-1.5 rounded border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
               <CheckCircle className="h-3 w-3 text-emerald-500" />
               {badge}
             </span>
@@ -198,9 +198,9 @@ function HowItWorksSection() {
             const Icon = step.icon;
             return (
               <div key={step.step} className="group relative flex flex-col items-center text-center">
-                <div className="relative mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow group-hover:shadow-md">
+                <div className="relative mb-5 flex h-20 w-20 items-center justify-center rounded border border-slate-200 bg-white transition-shadow group-hover:">
                   <Icon className="h-8 w-8 text-slate-700" strokeWidth={1.5} />
-                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow-sm">
+                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded bg-emerald-500 text-[10px] font-bold text-white">
                     {step.step}
                   </span>
                 </div>
@@ -236,13 +236,13 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
           </p>
         </div>
 
-        <div className="mx-auto max-w-5xl overflow-hidden rounded-2xl border border-slate-200 shadow-2xl shadow-slate-200/60">
+        <div className="mx-auto max-w-5xl overflow-hidden rounded border border-slate-200 shadow-slate-200/60">
           {/* Browser chrome top bar */}
           <div className="flex items-center gap-2 border-b border-slate-200 bg-slate-100 px-4 py-3">
-            <span className="h-3 w-3 rounded-full bg-red-400" />
-            <span className="h-3 w-3 rounded-full bg-amber-400" />
-            <span className="h-3 w-3 rounded-full bg-emerald-400" />
-            <div className="ml-3 flex h-6 flex-1 items-center rounded-md border border-slate-200 bg-white px-3">
+            <span className="h-3 w-3 rounded bg-red-400" />
+            <span className="h-3 w-3 rounded bg-amber-400" />
+            <span className="h-3 w-3 rounded bg-emerald-400" />
+            <div className="ml-3 flex h-6 flex-1 items-center rounded border border-slate-200 bg-white px-3">
               <span className="text-[11px] text-slate-400">omnis-regops.app / dashboard</span>
             </div>
           </div>
@@ -251,8 +251,8 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
           <div className="flex items-center gap-2 border-b border-slate-100 bg-white px-5 py-3">
             <ShieldCheck className="h-4 w-4 text-slate-700" strokeWidth={1.75} />
             <span className="text-xs font-semibold text-slate-700">Qavro</span>
-            <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="ml-auto inline-flex items-center gap-1.5 rounded border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+              <span className="h-1.5 w-1.5 rounded bg-emerald-500 animate-pulse" />
               Live · IEC 62304 · 21 CFR Part 11
             </span>
           </div>
@@ -267,7 +267,7 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
               </div>
               <div className="space-y-2">
                 {mockMatrixRows.map((row) => (
-                  <div key={row.clause} className="flex items-center gap-3 rounded-lg border border-slate-100 bg-white px-3 py-2.5">
+                  <div key={row.clause} className="flex items-center gap-3 rounded border border-slate-100 bg-white px-3 py-2.5">
                     {row.compliant
                       ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
                       : <Circle className="h-4 w-4 shrink-0 text-amber-400" />
@@ -287,7 +287,7 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
                   </div>
                 ))}
               </div>
-              <div className="mt-3 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+              <div className="mt-3 flex items-center justify-between rounded border border-emerald-200 bg-emerald-50 px-3 py-2">
                 <span className="text-[11px] font-semibold text-emerald-700">Submission Readiness</span>
                 <span className="text-sm font-bold tabular-nums text-emerald-700">75.0%</span>
               </div>
@@ -303,9 +303,9 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
               </div>
               <div className="space-y-2">
                 {mockActivityFeed.map((entry, i) => (
-                  <div key={i} className="rounded-lg border border-slate-100 bg-white px-3 py-2.5">
+                  <div key={i} className="rounded border border-slate-100 bg-white px-3 py-2.5">
                     <div className="flex items-start gap-2">
-                      <span className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${entry.status === "success" ? "bg-emerald-500" : "bg-amber-400"}`} />
+                      <span className={`mt-0.5 h-2 w-2 shrink-0 rounded ${entry.status === "success" ? "bg-emerald-500" : "bg-amber-400"}`} />
                       <div className="min-w-0 flex-1">
                         <p className="text-[11px] font-medium leading-snug text-slate-700">{entry.message}</p>
                         <div className="mt-0.5 flex items-center gap-2">
@@ -345,8 +345,8 @@ function BottomCTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <section className="border-t border-slate-200 bg-slate-50 py-24">
       <div className="mx-auto max-w-3xl px-6 text-center">
-        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        <div className="mb-5 inline-flex items-center gap-2 rounded border border-emerald-200 bg-emerald-50 px-3.5 py-1.5">
+          <span className="h-1.5 w-1.5 rounded bg-emerald-500 animate-pulse" />
           <span className="text-xs font-semibold tracking-wide text-emerald-700">Get Started Today</span>
         </div>
 
@@ -360,7 +360,7 @@ function BottomCTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
         <div className="mt-8">
           <Link
             href={ctaTarget}
-            className="inline-flex items-center gap-2.5 rounded-xl bg-slate-900 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-slate-900/20 transition-all hover:bg-slate-800"
+            className="inline-flex items-center gap-2.5 rounded bg-slate-900 px-8 py-4 text-sm font-bold text-white shadow-slate-900/20 transition-all hover:bg-slate-800"
           >
             {isAuthenticated ? "Go to Dashboard" : "Get Started"}
             <ArrowRight className="h-4 w-4" />

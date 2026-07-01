@@ -72,14 +72,14 @@ function TriageRow({ item, onResolve }: TriageRowProps) {
   }
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white shadow-sm transition-all">
+    <div className="rounded border border-zinc-200 bg-white transition-all">
       {/* Header row */}
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-4">
 
         {/* Log ID */}
         <div className="min-w-0 flex-1">
           <div className="mb-2.5 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5">
+            <span className="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-zinc-50 px-2 py-0.5">
               <FileText className="h-3 w-3 text-zinc-400" strokeWidth={1.75} />
               <span className="font-mono text-[11px] font-medium text-zinc-500">
                 Log ID
@@ -102,7 +102,7 @@ function TriageRow({ item, onResolve }: TriageRowProps) {
           {/* Tag comparison */}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {/* Developer's tag */}
-            <div className="flex flex-col gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-2.5">
+            <div className="flex flex-col gap-1 rounded border border-zinc-200 bg-zinc-50 p-2.5">
               <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
                 <Tag className="h-3 w-3" strokeWidth={2} />
                 Developer Tagged
@@ -113,7 +113,7 @@ function TriageRow({ item, onResolve }: TriageRowProps) {
             </div>
 
             {/* AI suggestion */}
-            <div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-2.5">
+            <div className="flex flex-col gap-1 rounded border border-amber-200 bg-amber-50 p-2.5">
               <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-amber-500">
                 <Brain className="h-3 w-3" strokeWidth={2} />
                 AI Suggests
@@ -125,7 +125,7 @@ function TriageRow({ item, onResolve }: TriageRowProps) {
           </div>
 
           {/* AI Reasoning */}
-          <div className="mt-2.5 flex gap-2 rounded-lg border border-zinc-100 bg-zinc-50 p-2.5">
+          <div className="mt-2.5 flex gap-2 rounded border border-zinc-100 bg-zinc-50 p-2.5">
             <Lightbulb
               className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-400"
               strokeWidth={1.75}
@@ -143,7 +143,7 @@ function TriageRow({ item, onResolve }: TriageRowProps) {
             onClick={() => handleAction("approved")}
             disabled={!!pending}
             aria-label="Approve AI fix — update evidence log tag to AI suggestion"
-            className="inline-flex min-w-[130px] items-center justify-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 transition-colors hover:border-emerald-400 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-w-[130px] items-center justify-center gap-1.5 rounded border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 transition-colors hover:border-emerald-400 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {pending === "approving" ? (
               <>
@@ -163,7 +163,7 @@ function TriageRow({ item, onResolve }: TriageRowProps) {
             onClick={() => handleAction("rejected")}
             disabled={!!pending}
             aria-label="Reject AI suggestion — keep developer's original tag"
-            className="inline-flex min-w-[130px] items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-600 transition-colors hover:border-zinc-300 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-w-[130px] items-center justify-center gap-1.5 rounded border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-600 transition-colors hover:border-zinc-300 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {pending === "rejecting" ? (
               <>
@@ -245,7 +245,7 @@ export function TriageQueueClient({ initialItems }: TriageQueueClientProps) {
           <div
             key={t.id}
             role="status"
-            className={`flex items-start gap-2.5 rounded-xl border px-4 py-3 shadow-lg text-sm font-medium transition-all ${
+            className={`flex items-start gap-2.5 rounded border px-4 py-3 text-sm font-medium transition-all ${
               t.type === "success"
                 ? "border-emerald-200 bg-emerald-50 text-emerald-800"
                 : "border-red-200 bg-red-50 text-red-800"
@@ -270,7 +270,7 @@ export function TriageQueueClient({ initialItems }: TriageQueueClientProps) {
 
       {/* Queue list */}
       {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-zinc-200 bg-white py-16 text-center shadow-sm">
+        <div className="flex flex-col items-center justify-center rounded border border-zinc-200 bg-white py-10 text-center">
           <Inbox className="mb-3 h-10 w-10 text-zinc-300" strokeWidth={1.25} />
           <p className="text-sm font-semibold text-zinc-600">
             Triage inbox is clear

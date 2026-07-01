@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 // omnis-ui/components/CheckoutButton.tsx
 // Client Component — Stripe Checkout initiator button.
 //
@@ -78,7 +78,7 @@ export function CheckoutButton({
         aria-disabled={isLoading}
         className={
           className ??
-          "inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-slate-900 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 hover:shadow-slate-900/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+          "inline-flex w-full items-center justify-center gap-2.5 rounded bg-slate-900 px-6 py-3.5 text-sm font-bold text-white shadow-slate-900/20 transition-all hover:bg-slate-800 hover:shadow-slate-900/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         }
       >
         {isLoading ? (

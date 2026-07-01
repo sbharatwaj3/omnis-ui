@@ -317,14 +317,14 @@ export function ExportProgressModal({
       onKeyDown={handleKeyDown}
     >
       {/* Modal panel */}
-      <div className="relative w-full max-w-md mx-4 rounded-2xl border border-zinc-200 bg-white shadow-2xl p-6 flex flex-col gap-5">
+      <div className="relative w-full max-w-md mx-4 rounded border border-zinc-200 bg-white p-6 flex flex-col gap-5">
 
         {/* Close button — only enabled once complete or errored */}
         {(isComplete || apiState === "error") && (
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="absolute top-4 right-4 rounded-md p-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
+            className="absolute top-4 right-4 rounded p-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -351,10 +351,10 @@ export function ExportProgressModal({
               {Math.round(progressPercent)}%
             </span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
+          <div className="h-2 w-full overflow-hidden rounded bg-zinc-100">
             <div
               className={[
-                "h-full rounded-full transition-all duration-150 ease-linear",
+                "h-full rounded transition-all duration-150 ease-linear",
                 apiState === "error"
                   ? "bg-red-500"
                   : isComplete
@@ -385,7 +385,7 @@ export function ExportProgressModal({
                     {!isLast && (
                       <div
                         className={[
-                          "mt-1 w-px flex-1 min-h-[20px] rounded-full transition-colors duration-300",
+                          "mt-1 w-px flex-1 min-h-[20px] rounded transition-colors duration-300",
                           status === "completed"
                             ? "bg-emerald-400"
                             : "bg-zinc-200",
@@ -425,7 +425,7 @@ export function ExportProgressModal({
 
         {/* Error panel */}
         {apiState === "error" && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
+          <div className="rounded border border-red-200 bg-red-50 p-4 space-y-3">
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
               <div>

@@ -77,14 +77,14 @@ const ROLE_CONFIG: Record<
 function RoleChip({ role }: { role: InviteRole | null }) {
   if (!role) {
     return (
-      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-zinc-100 text-zinc-400 border border-zinc-200">
+      <span className="inline-flex items-center rounded px-2 py-0.5 text-[11px] font-medium bg-zinc-100 text-zinc-400 border border-zinc-200">
         Pending
       </span>
     );
   }
   const { label, className } = ROLE_CONFIG[role];
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${className}`}>
+    <span className={`inline-flex items-center rounded px-2 py-0.5 text-[11px] font-medium ${className}`}>
       {label}
     </span>
   );
@@ -224,7 +224,7 @@ export function TeamClient({
             </p>
           </div>
 
-          <Card className="border-zinc-200 shadow-sm">
+          <Card className="border-zinc-200">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-800">
                 <Crown className="h-4 w-4 text-violet-500" strokeWidth={1.75} />
@@ -236,7 +236,7 @@ export function TeamClient({
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
-                <code className="flex-1 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-xs text-zinc-700 select-all overflow-x-auto">
+                <code className="flex-1 rounded border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-xs text-zinc-700 select-all overflow-x-auto">
                   {orgId}
                 </code>
                 <Button
@@ -279,27 +279,27 @@ export function TeamClient({
           </p>
         </div>
 
-        <Card className="border-zinc-200 shadow-sm">
+        <Card className="border-zinc-200">
           <CardContent className="pt-4">
             {membersError && (
-              <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 mb-4">
+              <div className="flex items-center gap-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 mb-4">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />{membersError}
               </div>
             )}
             {removeError && (
-              <div role="alert" className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 mb-4">
+              <div role="alert" className="flex items-center gap-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 mb-4">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />{removeError}
               </div>
             )}
 
             {members.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-200 bg-zinc-50/60 py-10 text-center">
+              <div className="flex flex-col items-center justify-center gap-2 rounded border border-dashed border-zinc-200 bg-zinc-50/60 py-10 text-center">
                 <Users className="h-6 w-6 text-zinc-300" strokeWidth={1.5} />
                 <p className="text-sm font-medium text-zinc-500">No members found</p>
                 <p className="text-xs text-zinc-400">Invite your first teammate below.</p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-lg border border-zinc-200">
+              <div className="overflow-hidden rounded border border-zinc-200">
                 <table className="w-full text-sm" aria-label="Team members">
                   <thead>
                     <tr className="border-b border-zinc-200 bg-zinc-50">
@@ -318,7 +318,7 @@ export function TeamClient({
                       <tr key={member.user_id} className="transition-colors hover:bg-zinc-50/80">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100">
+                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-zinc-100">
                               <span className="text-xs font-semibold text-zinc-500 uppercase">
                                 {member.developer_email.charAt(0)}
                               </span>
@@ -343,7 +343,7 @@ export function TeamClient({
                                 onClick={() => handleRemove(member.user_id, member.developer_email)}
                                 disabled={removingId === member.user_id}
                                 aria-label={`Remove ${member.developer_email} from organization`}
-                                className="inline-flex items-center justify-center rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="inline-flex items-center justify-center rounded p-1.5 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                                 title={`Remove ${member.developer_email}`}
                               >
                                 {removingId === member.user_id
@@ -381,10 +381,10 @@ export function TeamClient({
         </div>
 
         {!isAdmin ? (
-          <Card className="border-zinc-200 shadow-sm">
+          <Card className="border-zinc-200">
             <CardContent className="py-8">
               <div className="flex flex-col items-center gap-3 text-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100">
+                <div className="flex h-10 w-10 items-center justify-center rounded bg-zinc-100">
                   <Lock className="h-5 w-5 text-zinc-400" />
                 </div>
                 <p className="text-sm font-medium text-zinc-600">Permission Required</p>
@@ -395,7 +395,7 @@ export function TeamClient({
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-zinc-200 shadow-sm">
+          <Card className="border-zinc-200">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-800">
                 <UserPlus className="h-4 w-4 text-zinc-500" strokeWidth={1.75} />
@@ -435,7 +435,7 @@ export function TeamClient({
                     value={role}
                     onChange={(e) => setRole(e.target.value as InviteRole)}
                     disabled={isInviting}
-                    className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 py-0 text-sm text-zinc-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-9 w-full rounded border border-zinc-200 bg-white px-3 py-0 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
                     aria-label="Select role for the new member"
                   >
                     <option value="admin">Admin — Full access, manage team</option>
@@ -452,12 +452,12 @@ export function TeamClient({
                 </div>
 
                 {inviteSuccess && (
-                  <div role="status" aria-live="polite" className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
+                  <div role="status" aria-live="polite" className="flex items-start gap-2.5 rounded border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
                     <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />{inviteSuccess}
                   </div>
                 )}
                 {inviteError && (
-                  <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700">
+                  <div role="alert" className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700">
                     <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{inviteError}
                   </div>
                 )}
@@ -506,7 +506,7 @@ function RoleDescriptionTile({ active, icon, label, desc, colorClass }: RoleDesc
   }[colorClass];
 
   return (
-    <div aria-hidden="true" className={`rounded-lg border p-2.5 transition-all ${active ? activeBg : inactiveBg}`}>
+    <div aria-hidden="true" className={`rounded border p-2.5 transition-all ${active ? activeBg : inactiveBg}`}>
       <div className={`flex items-center gap-1.5 mb-1 ${active ? activeText : "text-zinc-400"}`}>
         {icon}
         <span className="text-[11px] font-semibold">{label}</span>

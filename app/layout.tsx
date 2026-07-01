@@ -1,5 +1,5 @@
 ﻿import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -10,18 +10,26 @@ import { cn } from "@/lib/utils";
 // no ThemeProvider, no `next-themes` dependency, and no runtime theme switch.
 // The `<html>` tag is locked to className="light" with style colorScheme:"light"
 // so that OS-level dark preferences cannot override the application palette.
+//
+// TYPOGRAPHY:
+//   Inter          → all structural UI: navigation, buttons, body copy
+//   JetBrains Mono → all FDA telemetry: log IDs, timestamps, CFR refs, hashes
+//                    exposed via --font-geist-mono so all downstream font-mono
+//                    classes continue to resolve without a sweep.
 // ---------------------------------------------------------------------------
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
+  // Weight range covering the data display weights we actually use
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -40,9 +48,8 @@ export default function RootLayout({
       lang="en"
       className={cn(
         "light h-full antialiased font-sans",
-        geistSans.variable,
-        geistMono.variable,
         inter.variable,
+        jetbrainsMono.variable,
       )}
       style={{ colorScheme: "light" }}
     >
