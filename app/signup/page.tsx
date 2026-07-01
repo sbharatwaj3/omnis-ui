@@ -23,6 +23,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
+import OAuthButtons from "@/components/auth/OAuthButtons";
 
 // ---------------------------------------------------------------------------
 // Trust signals
@@ -233,6 +234,8 @@ function SignUpForm() {
             Account creation is cryptographically logged.
           </p>
         </div>
+
+        <OAuthButtons />
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">

@@ -19,8 +19,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  ShieldCheck,
-  Activity,
   ClipboardList,
   Brain,
   ShieldAlert,
@@ -29,8 +27,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
-import { SettingsMenu } from "@/components/settings-menu";
-import { RoleBadge } from "@/components/role-badge";
+import { DashboardHeader } from "@/components/dashboard-header";
 import { DashboardClient, type DashboardRow } from "@/components/dashboard-client";
 
 // ---------------------------------------------------------------------------
@@ -320,48 +317,18 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-screen-2xl w-full items-center px-6 py-4 md:px-8 md:py-5">
-          {/* Left: logo */}
-          <Link href="/dashboard" className="flex items-center gap-2 group shrink-0">
-            <ShieldCheck
-              className="h-5 w-5 md:h-6 md:w-6 text-zinc-800"
-              strokeWidth={1.75}
-            />
-            <div>
-              <h1 className="text-base md:text-lg font-semibold tracking-tight text-zinc-900">
-                Qavro
-              </h1>
-              <p className="hidden sm:block text-xs text-zinc-400">FDA Assurance Dashboard · Live</p>
-            </div>
+      <DashboardHeader
+        subtitle="FDA Assurance Dashboard · Live"
+        centerSlot={
+          <Link
+            href="/dashboard/audit-logs"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+          >
+            <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            Audit Logs
           </Link>
-
-          {/* Centre: primary nav CTAs — hidden on small phones, shown on sm+ */}
-          <div className="hidden sm:flex flex-1 justify-center items-center gap-2">
-            <Link
-              href="/dashboard/audit-logs"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-800 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50"
-            >
-              <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              Audit Logs
-            </Link>
-          </div>
-
-          {/* Right: informational badge (hidden on mobile) + role badge + settings */}
-          <div className="flex items-center gap-2 ml-auto sm:ml-0 shrink-0">
-            <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none">
-              <Activity className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-xs font-medium text-zinc-600">
-                IEC 62304 · 21 CFR Part 11
-              </span>
-            </span>
-            <RoleBadge />
-            <SettingsMenu />
-          </div>
-        </div>
-
-        {/* Mobile-only sub-bar: primary nav links */}
-        <div className="flex sm:hidden border-t border-zinc-100 px-4 py-2 gap-2">
+        }
+        mobileBar={
           <Link
             href="/dashboard/audit-logs"
             className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
@@ -369,8 +336,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
             Audit
           </Link>
-        </div>
-      </header>
+        }
+      />
 
       <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
         <Suspense fallback={<DashboardSkeleton />}>

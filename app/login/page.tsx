@@ -23,6 +23,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
+import OAuthButtons from "@/components/auth/OAuthButtons";
 
 // ---------------------------------------------------------------------------
 // Trust signals
@@ -175,6 +176,8 @@ function AuthForm() {
             This session will be cryptographically logged.
           </p>
         </div>
+
+        <OAuthButtons />
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
