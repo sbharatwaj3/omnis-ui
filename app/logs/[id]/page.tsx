@@ -231,9 +231,9 @@ function ConfidenceMeter({ score }: { score: number | null }) {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="h-2 w-32 overflow-hidden rounded-full bg-zinc-100">
+      <div className="h-2 w-32 overflow-hidden rounded-none bg-zinc-100">
         <div
-          className={`h-full rounded-full ${color} transition-all`}
+          className={`h-full ${color} transition-all`}
           style={{ width: `${score}%` }}
         />
       </div>
@@ -311,7 +311,7 @@ async function ForensicContent({ id, backHref }: { id: string; backHref: string 
         </p>
         <Link
           href={backHref}
-          className="mt-6 inline-flex items-center rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50"
+          className="mt-6 inline-flex items-center rounded border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
         >
           Back to Dashboard
         </Link>
@@ -401,7 +401,7 @@ async function ForensicContent({ id, backHref }: { id: string; backHref: string 
                 {log.event_source}
               </span>
               <span
-                className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${
+                className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${
                   ["SUCCESS", "PASS"].includes(log.execution_status?.toUpperCase())
                     ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                     : "border-orange-200 bg-orange-50 text-orange-700"
@@ -423,7 +423,7 @@ async function ForensicContent({ id, backHref }: { id: string; backHref: string 
             />
             <Link
               href="/readiness"
-              className="hidden sm:inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 shadow-sm transition-colors hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-800"
+              className="hidden sm:inline-flex items-center gap-2 rounded border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-800"
             >
               <LayoutList className="h-3.5 w-3.5" />
               View Traceability Matrix
@@ -440,7 +440,7 @@ async function ForensicContent({ id, backHref }: { id: string; backHref: string 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* AI COMPLIANCE PANEL — spans 2 columns */}
         <Card
-          className={`lg:col-span-2 border-zinc-200 shadow-sm ${
+          className={`lg:col-span-2 border-zinc-200 ${
             severity === "Critical" ? "border-red-200 bg-red-50/20" : ""
           }`}
         >
@@ -512,7 +512,7 @@ async function ForensicContent({ id, backHref }: { id: string; backHref: string 
         </Card>
 
         {/* LOG METADATA — spans 1 column */}
-        <Card className="border-zinc-200 shadow-sm">
+        <Card className="border-zinc-200">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-zinc-800">
               Log Metadata
@@ -598,7 +598,7 @@ async function ForensicContent({ id, backHref }: { id: string; backHref: string 
       {/* ------------------------------------------------------------------ */}
       {/* RAW PAYLOADS ENGINE — Tabs                                           */}
       {/* ------------------------------------------------------------------ */}
-      <Card className="border-zinc-200 shadow-sm">
+      <Card className="border-zinc-200">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Terminal className="h-4 w-4 text-zinc-500" />
@@ -699,7 +699,7 @@ function ForensicSkeleton() {
           <div className="h-4 w-40 animate-pulse rounded bg-zinc-200" />
         </CardHeader>
         <CardContent>
-          <div className="h-64 animate-pulse rounded-lg bg-zinc-100" />
+          <div className="h-64 animate-pulse rounded bg-zinc-100" />
         </CardContent>
       </Card>
     </div>

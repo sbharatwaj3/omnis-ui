@@ -51,7 +51,7 @@ export function ApproveLogButton({
 
     return (
       <div className="flex flex-col items-end gap-1">
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 shadow-sm">
+        <div className="flex items-center gap-2 rounded border border-emerald-300 bg-emerald-50 px-3 py-2">
           <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" />
           <div className="flex flex-col">
             <span className="text-xs font-semibold text-emerald-700">
@@ -76,7 +76,7 @@ export function ApproveLogButton({
       <div className="flex flex-col items-end gap-1">
         <div
           title="Role: Viewer or Developer — only QA Managers and Admins can approve logs"
-          className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 opacity-60 cursor-not-allowed"
+          className="flex items-center gap-2 rounded border border-zinc-200 bg-zinc-50 px-3 py-2 opacity-60 cursor-not-allowed"
         >
           <Lock className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
           <span className="text-xs font-medium text-zinc-500">

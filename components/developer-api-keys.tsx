@@ -183,7 +183,7 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
   return (
     <>
       {/* ── Developer APIs card ─────────────────────────────────────────── */}
-      <Card className="border-zinc-200 shadow-sm">
+      <Card className="border-zinc-200">
         <CardHeader className="pb-4">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -208,7 +208,7 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
             ) : (
               <div
                 title="Role: Viewer — only QA Managers and Developers can generate API keys"
-                className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 opacity-60 cursor-not-allowed shrink-0"
+                className="flex items-center gap-1.5 rounded border border-zinc-200 bg-zinc-50 px-3 py-1.5 opacity-60 cursor-not-allowed shrink-0"
               >
                 <Lock className="h-3.5 w-3.5 text-zinc-400" />
                 <span className="text-xs font-medium text-zinc-500">Generate New Key</span>
@@ -218,7 +218,7 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
 
           {/* Viewer notice */}
           {role === "viewer" && (
-            <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
+            <div className="mt-3 flex items-start gap-2 rounded border border-amber-200 bg-amber-50 px-3 py-2.5">
               <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
               <p className="text-xs text-amber-700">
                 <span className="font-semibold">Read-only access.</span> Your Viewer
@@ -232,7 +232,7 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
         <CardContent className="pt-0">
           {/* Error banner for revoke failures */}
           {revokeError && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+            <div className="mb-4 flex items-center gap-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
               <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
               {revokeError}
             </div>
@@ -240,7 +240,7 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
 
           {/* Key table */}
           {keys.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-200 bg-zinc-50/60 py-10 text-center">
+            <div className="flex flex-col items-center justify-center gap-2 rounded border border-dashed border-zinc-200 bg-zinc-50/60 py-10 text-center">
               <Terminal className="h-6 w-6 text-zinc-300" strokeWidth={1.5} />
               <p className="text-sm font-medium text-zinc-500">
                 No API keys yet
@@ -250,7 +250,7 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
               </p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-lg border border-zinc-200">
+            <div className="overflow-hidden rounded border border-zinc-200">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-zinc-200 bg-zinc-50">
@@ -295,7 +295,7 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
                             onClick={() => handleRevoke(key.id)}
                             disabled={revokingId === key.id}
                             aria-label={`Revoke key ${key.name}`}
-                            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
                           >
                             {revokingId === key.id ? (
                               <Loader2 className="h-3 w-3 animate-spin" />
@@ -339,18 +339,18 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
           />
 
           {/* Panel */}
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl">
+          <div className="relative z-10 w-full max-w-md rounded border border-zinc-200 bg-white p-6">
             {/* Close button */}
             <button
               onClick={closeGenerateModal}
               aria-label="Close"
-              className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+              className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
             >
               <X className="h-4 w-4" strokeWidth={1.75} />
             </button>
 
             <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-zinc-200 bg-zinc-50">
                 <Key className="h-4 w-4 text-zinc-600" strokeWidth={1.75} />
               </div>
               <div>
@@ -406,7 +406,7 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
 
             {/* Server error */}
             {generateError && (
-              <div className="mt-3 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              <div className="mt-3 flex items-center gap-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 {generateError}
               </div>
@@ -459,9 +459,9 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
           />
 
           {/* Panel */}
-          <div className="relative z-10 w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl">
+          <div className="relative z-10 w-full max-w-lg rounded border border-zinc-200 bg-white p-6">
             {/* Warning banner */}
-            <div className="mb-5 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+            <div className="mb-5 flex items-start gap-3 rounded border border-amber-300 bg-amber-50 px-4 py-3">
               <AlertTriangle
                 className="mt-0.5 h-4 w-4 shrink-0 text-amber-600"
                 strokeWidth={2}
@@ -486,7 +486,7 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
             </h2>
 
             {/* Key display */}
-            <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+            <div className="flex items-center gap-2 rounded border border-zinc-200 bg-zinc-50 p-3">
               <code
                 id="omnis-raw-key-display"
                 className="flex-1 select-all overflow-x-auto whitespace-nowrap font-mono text-sm text-zinc-800"
@@ -497,7 +497,7 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
               <button
                 onClick={handleCopy}
                 aria-label={copied ? "Copied" : "Copy to clipboard"}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-zinc-200 bg-white text-zinc-500 transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800"
               >
                 {copied ? (
                   <Check className="h-3.5 w-3.5 text-emerald-500" strokeWidth={2.5} />

@@ -70,7 +70,7 @@ export function DashboardHeader({
     centerSlot === undefined ? (
       <Link
         href={backHref}
-        className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
+        className="inline-flex items-center rounded border border-zinc-200 bg-white px-4 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
       >
         Back to Dashboard
       </Link>
@@ -83,7 +83,7 @@ export function DashboardHeader({
     mobileBar === undefined ? (
       <Link
         href={backHref}
-        className="flex-1 text-center rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-100"
+        className="flex-1 text-center rounded border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-100"
       >
         Back to Dashboard
       </Link>
@@ -139,7 +139,7 @@ export function DashboardHeader({
 
           {/* ── Column 3 (right): compliance + role + settings ──────────── */}
           <div className="justify-self-end flex items-center gap-x-2">
-            <span className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none">
+            <span className="hidden md:flex items-center gap-2 rounded border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none">
               <Activity className="h-3.5 w-3.5 text-emerald-500" />
               <span className="text-xs font-medium text-zinc-600">
                 {complianceText}
@@ -152,7 +152,7 @@ export function DashboardHeader({
               <Link
                 href="/dashboard/settings"
                 aria-label="Settings"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
+                className="flex h-8 w-8 items-center justify-center rounded border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
               >
                 <Settings className="h-4 w-4" strokeWidth={1.75} />
               </Link>

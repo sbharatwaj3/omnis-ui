@@ -1,4 +1,4 @@
-﻿// omnis-ui/app/dashboard/audit-logs/page.tsx
+// omnis-ui/app/dashboard/audit-logs/page.tsx
 // 21 CFR Part 11 Audit Trail — Read-Only Ledger View
 //
 // IMMUTABILITY MANDATE (21 CFR Part 11.10(e)):
@@ -27,7 +27,7 @@ import { getAuditLogs } from "@/app/dashboard/requirements/actions";
 
 function AuditSkeleton() {
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded border border-zinc-200 bg-white">
       <div className="border-b border-zinc-100 bg-zinc-50 px-4 py-2.5">
         <div className="h-3 w-72 animate-pulse rounded bg-zinc-200" />
       </div>
@@ -56,7 +56,7 @@ function AuditSkeleton() {
 
 function AuditAccessDenied({ reason }: { reason: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 py-16 text-center">
+    <div className="flex flex-col items-center justify-center rounded border border-red-200 bg-red-50 py-16 text-center">
       <ShieldAlert
         className="mb-4 h-10 w-10 text-red-300"
         strokeWidth={1.25}
@@ -117,7 +117,7 @@ export default function AuditLogsPage() {
       <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
         {/* Page heading */}
         <div className="mb-5 flex items-start gap-3">
-          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white shadow-sm">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded border border-zinc-200 bg-white">
             <ShieldAlert className="h-4.5 w-4.5 text-zinc-600" strokeWidth={1.75} />
           </div>
           <div>
@@ -132,7 +132,7 @@ export default function AuditLogsPage() {
         </div>
 
         {/* Compliance callout */}
-        <div className="mb-5 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+        <div className="mb-5 rounded border border-blue-200 bg-blue-50 px-4 py-3">
           <p className="text-xs leading-relaxed text-blue-700">
             <span className="font-semibold">21 CFR Part 11.10(e):</span> This
             audit trail captures the date, time, and identity of every operator

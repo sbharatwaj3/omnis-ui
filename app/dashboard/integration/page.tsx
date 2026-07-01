@@ -1,4 +1,4 @@
-﻿// omnis-ui/app/dashboard/integration/page.tsx
+// omnis-ui/app/dashboard/integration/page.tsx
 // CLI Setup & Integration Guide — Step-by-step onboarding for connecting
 // an external CI/CD pipeline to the Omnis RegOps platform.
 //
@@ -64,7 +64,7 @@ const PLATFORMS: Platform[] = [
 
 function StepBadge({ n }: { n: number }) {
   return (
-    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white">
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-zinc-900 text-xs font-bold text-white">
       {n}
     </span>
   );
@@ -77,10 +77,10 @@ function StepBadge({ n }: { n: number }) {
 export default function IntegrationPage() {
   return (
     <div className="min-h-screen bg-zinc-50">
-      {/* ── Header ──────────────────────────────────────────────────────── */}
+      {/* -- Header -------------------------------------------------------- */}
       <DashboardHeader subtitle="CLI Integration" showRoleBadge={false} />
 
-      {/* ── Main ────────────────────────────────────────────────────────── */}
+      {/* -- Main ---------------------------------------------------------- */}
       <main className="mx-auto max-w-7xl w-full px-6 py-8 md:px-8 md:py-12">
         {/* Page title */}
         <div className="mb-8 flex items-center gap-3">
@@ -97,7 +97,7 @@ export default function IntegrationPage() {
 
         <Separator className="mb-10 bg-zinc-200" />
 
-        {/* ── Step 1: Download ─────────────────────────────────────────── */}
+        {/* -- Step 1: Download ------------------------------------------- */}
         <section aria-labelledby="step1-heading" className="mb-10">
           <div className="mb-5 flex items-center gap-3">
             <StepBadge n={1} />
@@ -122,11 +122,11 @@ export default function IntegrationPage() {
                 key={p.label}
                 href={p.href}
                 aria-label={`Download Omnis CLI for ${p.label}`}
-                className="group flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:border-zinc-300 hover:shadow-md"
+                className="group flex flex-col gap-3 rounded border border-zinc-200 bg-white p-4 transition-all hover:border-zinc-300 hover:"
               >
                 {/* Icon + badge */}
                 <div className="flex items-start justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 group-hover:border-zinc-300 group-hover:text-zinc-900">
+                  <div className="flex h-10 w-10 items-center justify-center rounded border border-zinc-200 bg-zinc-50 text-zinc-600 group-hover:border-zinc-300 group-hover:text-zinc-900">
                     {p.icon}
                   </div>
                   {p.badge && (
@@ -167,7 +167,7 @@ export default function IntegrationPage() {
 
         <Separator className="mb-10 bg-zinc-200" />
 
-        {/* ── Step 2: Authenticate ─────────────────────────────────────── */}
+        {/* -- Step 2: Authenticate --------------------------------------- */}
         <section aria-labelledby="step2-heading" className="mb-10">
           <div className="mb-5 flex items-center gap-3">
             <StepBadge n={2} />
@@ -187,7 +187,7 @@ export default function IntegrationPage() {
           </div>
 
           {/* Instruction card */}
-          <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="rounded border border-zinc-200 bg-white p-5">
             <p className="mb-3 text-sm font-medium text-zinc-700">
               Export your API key as an environment variable:
             </p>
@@ -224,7 +224,7 @@ export default function IntegrationPage() {
             </div>
 
             {/* Key generation CTA */}
-            <div className="mt-4 flex items-start gap-3 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
+            <div className="mt-4 flex items-start gap-3 rounded border border-zinc-100 bg-zinc-50 px-4 py-3">
               <KeyRound
                 className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400"
                 strokeWidth={1.75}
@@ -235,7 +235,7 @@ export default function IntegrationPage() {
                   href="/dashboard/settings"
                   className="font-semibold text-zinc-800 underline underline-offset-2 hover:text-zinc-600"
                 >
-                  Generate one in Settings →
+                  Generate one in Settings ?
                 </Link>
               </p>
             </div>
@@ -244,7 +244,7 @@ export default function IntegrationPage() {
 
         <Separator className="mb-10 bg-zinc-200" />
 
-        {/* ── Step 3: Execute ──────────────────────────────────────────── */}
+        {/* -- Step 3: Execute -------------------------------------------- */}
         <section aria-labelledby="step3-heading" className="mb-10">
           <div className="mb-5 flex items-center gap-3">
             <StepBadge n={3} />
@@ -288,8 +288,8 @@ export default function IntegrationPage() {
           </div>
         </section>
 
-        {/* ── Done CTA ────────────────────────────────────────────────── */}
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+        {/* -- Done CTA -------------------------------------------------- */}
+        <div className="rounded border border-emerald-200 bg-emerald-50 px-5 py-4">
           <div className="flex items-start gap-3">
             <ShieldCheck
               className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600"
@@ -308,7 +308,7 @@ export default function IntegrationPage() {
                 href="/dashboard"
                 className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-600"
               >
-                View Evidence Dashboard →
+                View Evidence Dashboard ?
               </Link>
             </div>
           </div>

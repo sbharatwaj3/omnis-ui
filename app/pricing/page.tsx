@@ -1,14 +1,14 @@
-﻿// omnis-ui/app/pricing/page.tsx
-// Omnis RegOps — SaaS Pricing Page
+// omnis-ui/app/pricing/page.tsx
+// Omnis RegOps � SaaS Pricing Page
 //
 // Three-tier pricing designed around Bedrock token consumption:
-//   Starter  $499/mo   — 500 token-units    (teams getting started)
-//   Growth   $899/mo   — 1,200 token-units  (active MedTech teams; 10% vs raw cost)
-//   Scale    $1,399/mo — 2,500 token-units  (high-volume; $500 cheaper than overage)
+//   Starter  $499/mo   � 500 token-units    (teams getting started)
+//   Growth   $899/mo   � 1,200 token-units  (active MedTech teams; 10% vs raw cost)
+//   Scale    $1,399/mo � 2,500 token-units  (high-volume; $500 cheaper than overage)
 //
 // The Growth tier is highlighted as "Most Popular".
 // CheckoutButton is embedded in each card; orgId is read from Supabase session.
-// Page is a Server Component — auth check is done here, orgId passed to client.
+// Page is a Server Component � auth check is done here, orgId passed to client.
 
 import { cookies } from "next/headers";
 import Link from "next/link";
@@ -74,14 +74,14 @@ const tiers: PricingTier[] = [
     tagline: "For active teams running multiple concurrent device pipelines.",
     highlight: true,
     badge: "Most Popular",
-    valueNote: "1,200 units at $0.75/unit — vs $1,000+ raw cost. Save 10%.",
+    valueNote: "1,200 units at $0.75/unit � vs $1,000+ raw cost. Save 10%.",
     features: [
       { icon: ShieldCheck, text: "Everything in Starter" },
       { icon: GitBranch,  text: "Unlimited CLI Ingestions (< 200ms)" },
       { icon: Brain,      text: "Priority AWS Bedrock AI pipeline" },
       { icon: BarChart3,  text: "Advanced Traceability & Diff Reports" },
       { icon: Users,      text: "Up to 10 team members" },
-      { icon: Lock,       text: "eSTAR PDF Export · Audit-Ready Package" },
+      { icon: Lock,       text: "eSTAR PDF Export � Audit-Ready Package" },
     ],
     ctaLabel: "Start Growing",
   },
@@ -93,14 +93,14 @@ const tiers: PricingTier[] = [
     tokenUnits: "2,500 token-units / mo",
     tagline: "For enterprise MedTech teams with high-volume submission cycles.",
     highlight: false,
-    valueNote: "2,500 units for $1,399 — upgrading saves ~$500 vs Growth + overage.",
+    valueNote: "2,500 units for $1,399 � upgrading saves ~$500 vs Growth + overage.",
     features: [
       { icon: ShieldCheck, text: "Everything in Growth" },
       { icon: GitBranch,  text: "Unlimited CLI Ingestions (< 200ms)" },
       { icon: Brain,      text: "Dedicated Bedrock inference budget" },
       { icon: BarChart3,  text: "Multi-org Dashboard & Rollup Reports" },
       { icon: Users,      text: "Unlimited team members + SSO" },
-      { icon: Lock,       text: "SLA Support · Custom Regulatory Mapping" },
+      { icon: Lock,       text: "SLA Support � Custom Regulatory Mapping" },
     ],
     ctaLabel: "Scale Up",
   },
@@ -114,7 +114,7 @@ const complianceBadges = [
 ];
 
 // ---------------------------------------------------------------------------
-// Header — matches the landing page header
+// Header � matches the landing page header
 // ---------------------------------------------------------------------------
 
 interface PricingHeaderProps {
@@ -127,7 +127,7 @@ function PricingHeader({ userEmail }: PricingHeaderProps) {
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg ring-1 ring-slate-200 group-hover:ring-emerald-400 transition-all duration-200">
+          <div className="flex h-8 w-8 items-center justify-center rounded ring-1 ring-slate-200 group-hover:ring-emerald-400 transition-all duration-200">
             <ShieldCheck className="h-4 w-4 text-slate-800" strokeWidth={1.75} />
           </div>
           <div className="leading-none">
@@ -149,7 +149,7 @@ function PricingHeader({ userEmail }: PricingHeaderProps) {
           // Unauthenticated: standard Sign In link.
           <Link
             href="/login"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50"
+            className="inline-flex items-center gap-1.5 rounded border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition-all hover:border-slate-400 hover:bg-slate-50"
           >
             Sign In
             <ArrowRight className="h-3.5 w-3.5" />
@@ -175,11 +175,11 @@ function PricingHero() {
       {/* Emerald glow */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-72 w-[700px] rounded-full bg-emerald-400/10 blur-3xl"
+        className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-72 w-[700px] rounded bg-emerald-400/10 blur-3xl"
       />
       <div className="relative mx-auto max-w-4xl px-6 py-20 text-center md:py-28">
         {/* Eyebrow */}
-        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5">
+        <div className="mb-5 inline-flex items-center gap-2 rounded border border-emerald-200 bg-emerald-50 px-3.5 py-1.5">
           <Zap className="h-3.5 w-3.5 text-emerald-500" />
           <span className="text-xs font-semibold tracking-wide text-emerald-700">
             Simple, usage-based pricing
@@ -194,7 +194,7 @@ function PricingHero() {
           {complianceBadges.map((badge) => (
             <span
               key={badge}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600"
+              className="inline-flex items-center gap-1.5 rounded border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600"
             >
               <CheckCircle2 className="h-3 w-3 text-emerald-500" />
               {badge}
@@ -216,10 +216,10 @@ function PricingCards({ orgId }: { orgId: string | null }) {
       <div className="mx-auto max-w-7xl px-6">
 
         {/* Token-unit explanation callout */}
-        <div className="mx-auto mb-12 max-w-2xl rounded-xl border border-slate-200 bg-white px-5 py-4 text-center">
+        <div className="mx-auto mb-12 max-w-2xl rounded border border-slate-200 bg-white px-5 py-4 text-center">
           <p className="text-sm text-slate-600">
             <span className="font-semibold text-slate-800">What&apos;s a token-unit?</span>
-            {" "}One unit equals one AWS Bedrock inference call through the Omnis pipeline —
+            {" "}One unit equals one AWS Bedrock inference call through the Omnis pipeline �
             an AI document analysis, a semantic regulatory match, or a compliance summary.
             Unused units don&apos;t roll over; overage is billed at the next tier&apos;s rate.
           </p>
@@ -231,16 +231,16 @@ function PricingCards({ orgId }: { orgId: string | null }) {
             <div
               key={tier.id}
               className={[
-                "relative flex flex-col rounded-2xl border bg-white p-7 shadow-sm transition-shadow",
+                "relative flex flex-col rounded border bg-white p-7 transition-shadow",
                 tier.highlight
                   ? "border-emerald-400 shadow-emerald-100 ring-2 ring-emerald-400"
-                  : "border-slate-200 hover:shadow-md",
+                  : "border-slate-200 hover:",
               ].join(" ")}
             >
               {/* Popular badge */}
               {tier.badge && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-500 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm">
+                  <span className="inline-flex items-center gap-1.5 rounded border border-emerald-300 bg-emerald-500 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
                     <Zap className="h-3 w-3" aria-hidden="true" />
                     {tier.badge}
                   </span>
@@ -261,7 +261,7 @@ function PricingCards({ orgId }: { orgId: string | null }) {
                   </span>
                 </div>
                 {/* Token allocation */}
-                <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5">
+                <div className="mt-1.5 inline-flex items-center gap-1.5 rounded border border-slate-200 bg-slate-50 px-2.5 py-0.5">
                   <Brain className="h-3 w-3 text-emerald-500" aria-hidden="true" />
                   <span className="text-[11px] font-semibold text-slate-600">
                     {tier.tokenUnits}
@@ -298,7 +298,7 @@ function PricingCards({ orgId }: { orgId: string | null }) {
                   orgId={orgId}
                   label={tier.ctaLabel}
                   className={[
-                    "inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
+                    "inline-flex w-full items-center justify-center gap-2 rounded px-6 py-3.5 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
                     tier.highlight
                       ? "bg-emerald-500 text-white shadow-emerald-200 hover:bg-emerald-600 focus-visible:ring-emerald-500"
                       : "bg-slate-900 text-white shadow-slate-200/60 hover:bg-slate-800 focus-visible:ring-slate-900",
@@ -308,7 +308,7 @@ function PricingCards({ orgId }: { orgId: string | null }) {
                 <Link
                   href={`/signup?tier=${tier.id}`}
                   className={[
-                    "inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold shadow-sm transition-all",
+                    "inline-flex w-full items-center justify-center gap-2 rounded px-6 py-3.5 text-sm font-bold transition-all",
                     tier.highlight
                       ? "bg-emerald-500 text-white hover:bg-emerald-600"
                       : "bg-slate-900 text-white hover:bg-slate-800",
@@ -324,7 +324,7 @@ function PricingCards({ orgId }: { orgId: string | null }) {
 
         {/* Bottom micro-copy */}
         <p className="mt-8 text-center text-xs text-slate-400">
-          30-day free trial · Cancel anytime · No setup fees
+          30-day free trial � Cancel anytime � No setup fees
         </p>
       </div>
     </section>
@@ -341,10 +341,10 @@ function TokenComparisonTable() {
     { label: "Cost per token-unit",        starter: "$1.00",   growth: "$0.75",   scale: "$0.56" },
     { label: "Overage rate (next tier)",   starter: "$0.75",   growth: "$0.56",   scale: "Contact us" },
     { label: "Team members",               starter: "Up to 3", growth: "Up to 10", scale: "Unlimited" },
-    { label: "eSTAR PDF export",           starter: "✓",       growth: "✓",       scale: "✓" },
-    { label: "HMAC-signed evidence ledger",starter: "✓",       growth: "✓",       scale: "✓" },
-    { label: "SSO / SAML",                 starter: "—",       growth: "—",       scale: "✓" },
-    { label: "SLA support",                starter: "—",       growth: "Email",   scale: "Priority" },
+    { label: "eSTAR PDF export",           starter: "?",       growth: "?",       scale: "?" },
+    { label: "HMAC-signed evidence ledger",starter: "?",       growth: "?",       scale: "?" },
+    { label: "SSO / SAML",                 starter: "�",       growth: "�",       scale: "?" },
+    { label: "SLA support",                starter: "�",       growth: "Email",   scale: "Priority" },
   ];
 
   return (
@@ -359,7 +359,7 @@ function TokenComparisonTable() {
           </h2>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <div className="overflow-x-auto rounded border border-slate-200">
           <table className="w-full text-sm" aria-label="Plan feature comparison">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
@@ -410,7 +410,7 @@ function TokenComparisonTable() {
 }
 
 // ---------------------------------------------------------------------------
-// Bottom CTA — rendered between TokenComparisonTable and Footer
+// Bottom CTA � rendered between TokenComparisonTable and Footer
 // ---------------------------------------------------------------------------
 
 function BottomCTA({ orgId }: { orgId: string | null }) {
@@ -424,12 +424,12 @@ function BottomCTA({ orgId }: { orgId: string | null }) {
           <CheckoutButton
             orgId={orgId}
             label="Start 30-Day Free Trial"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-sm shadow-emerald-200 transition-all hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-emerald-200 transition-all hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           />
         ) : (
           <Link
             href="/signup"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-sm shadow-emerald-200 transition-all hover:bg-emerald-600"
+            className="inline-flex items-center justify-center gap-2 rounded bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-emerald-200 transition-all hover:bg-emerald-600"
           >
             Start 30-Day Free Trial
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -441,7 +441,7 @@ function BottomCTA({ orgId }: { orgId: string | null }) {
 }
 
 // ---------------------------------------------------------------------------
-// Footer — identical to landing page
+// Footer � identical to landing page
 // ---------------------------------------------------------------------------
 
 function Footer() {
@@ -451,11 +451,11 @@ function Footer() {
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
           <span className="text-xs font-medium text-slate-500">
-            © 2026 Qavro. All rights reserved.
+            � 2026 Qavro. All rights reserved.
           </span>
         </div>
         <p className="text-xs text-slate-400">
-          IEC 62304 · 21 CFR Part 11 · FDA eSTAR Compliant Pipeline
+          IEC 62304 � 21 CFR Part 11 � FDA eSTAR Compliant Pipeline
         </p>
       </div>
     </footer>
@@ -463,7 +463,7 @@ function Footer() {
 }
 
 // ---------------------------------------------------------------------------
-// Page — Server Component
+// Page � Server Component
 // ---------------------------------------------------------------------------
 
 export default async function PricingPage() {

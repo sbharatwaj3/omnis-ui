@@ -102,7 +102,7 @@ export default function OAuthButtons() {
         onClick={() => handleOAuthSignIn("google")}
         disabled={isDisabled}
         aria-label="Continue with Google"
-        className="w-full flex items-center justify-center gap-3 border border-gray-200 rounded-md shadow-sm bg-white text-gray-800 font-medium py-2.5 transition-colors hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-3 border border-gray-200 rounded bg-white text-gray-800 font-medium py-2.5 transition-colors hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {loadingProvider === "google" ? (
           <Loader2 className="h-5 w-5 animate-spin shrink-0 text-gray-500" />
@@ -118,7 +118,7 @@ export default function OAuthButtons() {
         onClick={() => handleOAuthSignIn("github")}
         disabled={isDisabled}
         aria-label="Continue with GitHub"
-        className="w-full flex items-center justify-center gap-3 border border-gray-200 rounded-md shadow-sm bg-white text-gray-800 font-medium py-2.5 transition-colors hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-3 border border-gray-200 rounded bg-white text-gray-800 font-medium py-2.5 transition-colors hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {loadingProvider === "github" ? (
           <Loader2 className="h-5 w-5 animate-spin shrink-0 text-gray-500" />
@@ -130,7 +130,7 @@ export default function OAuthButtons() {
 
       {/* ── Inline error alert ── */}
       {error && (
-        <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3">
+        <div className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3.5 py-3">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
           <p className="text-xs leading-relaxed text-red-700">{error}</p>
         </div>

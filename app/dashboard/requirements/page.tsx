@@ -1,4 +1,4 @@
-﻿// omnis-ui/app/dashboard/requirements/page.tsx
+// omnis-ui/app/dashboard/requirements/page.tsx
 // Requirements Management Page — SRS/SDS traceability artefact registry.
 //
 // RSC (React Server Component). Fetches requirements and regulatory clauses
@@ -79,13 +79,13 @@ async function RequirementsContent() {
 
 function RequirementsSkeleton() {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+    <div className="rounded border border-zinc-200 bg-white overflow-hidden">
       <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
         <div className="space-y-1.5">
           <div className="h-4 w-40 animate-pulse rounded bg-zinc-200" />
           <div className="h-3 w-56 animate-pulse rounded bg-zinc-100" />
         </div>
-        <div className="h-9 w-36 animate-pulse rounded-lg bg-zinc-200" />
+        <div className="h-9 w-36 animate-pulse rounded bg-zinc-200" />
       </div>
       <div className="divide-y divide-zinc-100">
         {[1, 2, 3, 4].map((i) => (
@@ -117,7 +117,7 @@ export default function RequirementsPage() {
       <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
         {/* Page heading */}
         <div className="mb-6 flex items-start gap-3">
-          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white shadow-sm">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded border border-zinc-200 bg-white">
             <ClipboardList className="h-4.5 w-4.5 text-zinc-600" />
           </div>
           <div>

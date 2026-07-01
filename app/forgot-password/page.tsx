@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 // omnis-ui/app/forgot-password/page.tsx
 // Omnis RegOps — Forgot Password
 //
@@ -31,7 +31,7 @@ function BrandPanel() {
   return (
     <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col justify-between bg-slate-900 px-12 py-12">
       <Link href="/" className="flex items-center gap-3 group">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-200">
+        <div className="flex h-9 w-9 items-center justify-center rounded bg-emerald-500/10 ring-1 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-200">
           <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="leading-none">
@@ -41,8 +41,8 @@ function BrandPanel() {
       </Link>
 
       <div className="max-w-md">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-800 bg-emerald-950/60 px-3 py-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="mb-4 inline-flex items-center gap-2 rounded border border-emerald-800 bg-emerald-950/60 px-3 py-1">
+          <span className="h-1.5 w-1.5 rounded bg-emerald-400 animate-pulse" />
           <span className="text-xs font-semibold text-emerald-300">Account Recovery</span>
         </div>
         <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white xl:text-4xl">
@@ -53,7 +53,7 @@ function BrandPanel() {
           Enter the email address associated with your compliance workspace. A secure reset link will be sent to your inbox.
         </p>
         <div className="mt-8 flex items-start gap-3">
-          <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 ring-1 ring-slate-700">
+          <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded bg-slate-800 ring-1 ring-slate-700">
             <Mail className="h-3.5 w-3.5 text-emerald-400" strokeWidth={1.75} />
           </div>
           <div>
@@ -101,7 +101,7 @@ function ForgotPasswordForm() {
       {
         // Redirect to the password update page after clicking the link.
         // This must also be configured as an allowed redirect URL in the
-        // Supabase Auth dashboard under "URL Configuration → Redirect URLs".
+        // Supabase Auth dashboard under "URL Configuration ? Redirect URLs".
         redirectTo: `${window.location.origin}/update-password`,
       },
     );
@@ -119,12 +119,12 @@ function ForgotPasswordForm() {
     setSent(true);
   }
 
-  // ── Success state ─────────────────────────────────────────────────────────
+  // -- Success state ---------------------------------------------------------
   if (sent) {
     return (
       <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white">
         <div className="w-full max-w-sm text-center">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded bg-emerald-50 ring-1 ring-emerald-200">
             <CheckCircle2 className="h-7 w-7 text-emerald-500" strokeWidth={1.75} />
           </div>
           <h2 className="text-xl font-bold tracking-tight text-slate-900">Check your email</h2>
@@ -144,12 +144,12 @@ function ForgotPasswordForm() {
     );
   }
 
-  // ── Main form ──────────────────────────────────────────────────────────────
+  // -- Main form --------------------------------------------------------------
   return (
     <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white">
       {/* Mobile logo */}
       <Link href="/" className="mb-8 flex flex-col items-center gap-3 lg:hidden group">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg group-hover:ring-2 group-hover:ring-emerald-400 transition-all">
+        <div className="flex h-12 w-12 items-center justify-center rounded bg-slate-900 group-hover:ring-2 group-hover:ring-emerald-400 transition-all">
           <ShieldCheck className="h-6 w-6 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="text-center">
@@ -185,7 +185,7 @@ function ForgotPasswordForm() {
           </div>
 
           {error && (
-            <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3">
+            <div className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3.5 py-3">
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
               <p className="text-xs leading-relaxed text-red-700">{error}</p>
             </div>
@@ -194,7 +194,7 @@ function ForgotPasswordForm() {
           <Button
             type="submit"
             disabled={loading}
-            className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
+            className="h-11 w-full rounded bg-slate-900 text-sm font-bold text-white transition-all hover:bg-slate-800 disabled:opacity-50"
           >
             {loading ? (
               <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Sending reset link…</span>

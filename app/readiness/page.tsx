@@ -1,8 +1,8 @@
-﻿// omnis-ui/app/readiness/page.tsx
-// FDA Submission Readiness — Traceability Matrix & Gap Analysis
+// omnis-ui/app/readiness/page.tsx
+// FDA Submission Readiness � Traceability Matrix & Gap Analysis
 //
 // =============================================================================
-// CACHE-LEAK ROOT CAUSE & STRUCTURAL FIX (Constitution §II — defence in depth)
+// CACHE-LEAK ROOT CAUSE & STRUCTURAL FIX (Constitution �II � defence in depth)
 // =============================================================================
 // Previous attempts (force-dynamic, noStore(), revalidate=0, .eq embed filter,
 // JS tripwire) did NOT fix the cross-tenant leak because they targeted the
@@ -22,11 +22,11 @@
 //
 // THE FIX:
 // Replace the single embedded query with TWO EXPLICIT, FLAT queries:
-//   1. SELECT regulatory_rules     — global table, no RLS needed
+//   1. SELECT regulatory_rules     � global table, no RLS needed
 //   2. SELECT evidence_logs WHERE org_id = userOrgId
 // Then merge them in JavaScript. A flat .eq() on a flat select is unambiguous
 // and not subject to embed semantics. RLS still applies as the primary control;
-// the explicit filter is the secondary control mandated by Constitution §II.
+// the explicit filter is the secondary control mandated by Constitution �II.
 //
 // A FINAL TRIPWIRE rejects the entire render with a thrown error if any log's
 // org_id does not match the caller's. Cross-tenant leakage is now structurally
@@ -71,7 +71,7 @@ import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
 
 // ---------------------------------------------------------------------------
-// Types — strictly match the Constitution's DDL schema
+// Types � strictly match the Constitution's DDL schema
 // ---------------------------------------------------------------------------
 
 interface EvidenceLogRow {
@@ -148,7 +148,7 @@ function classifyRule(
 }
 
 // ---------------------------------------------------------------------------
-// DATA FETCHING — TWO EXPLICIT QUERIES, NO POSTGREST EMBED
+// DATA FETCHING � TWO EXPLICIT QUERIES, NO POSTGREST EMBED
 // ---------------------------------------------------------------------------
 async function fetchReadinessData(): Promise<ReadinessPayload> {
   // Belt-and-suspenders: opt out of every cache layer Next.js exposes.
@@ -160,7 +160,7 @@ async function fetchReadinessData(): Promise<ReadinessPayload> {
   const supabase = await createClient();
 
   // -------------------------------------------------------------------------
-  // STEP 1 — Resolve the authenticated caller from the session cookie.
+  // STEP 1 � Resolve the authenticated caller from the session cookie.
   // -------------------------------------------------------------------------
   const {
     data: { user },
@@ -174,7 +174,7 @@ async function fetchReadinessData(): Promise<ReadinessPayload> {
   }
 
   // -------------------------------------------------------------------------
-  // STEP 2 — Resolve the caller's org_id and org name from public.users
+  // STEP 2 � Resolve the caller's org_id and org name from public.users
   // joined to public.organizations. RLS on public.users restricts this to the
   // caller's own row only, which is also what private.get_auth_org_id() uses.
   // -------------------------------------------------------------------------
@@ -217,7 +217,7 @@ async function fetchReadinessData(): Promise<ReadinessPayload> {
   });
 
   // -------------------------------------------------------------------------
-  // STEP 3 — Fetch the global regulatory_rules table.
+  // STEP 3 � Fetch the global regulatory_rules table.
   // No tenant filter; this table is shared across all orgs.
   // -------------------------------------------------------------------------
   const { data: ruleRows, error: rulesError } = await adminClient
@@ -237,7 +237,7 @@ async function fetchReadinessData(): Promise<ReadinessPayload> {
   const rules: RegulatoryRuleRow[] = (ruleRows ?? []) as RegulatoryRuleRow[];
 
   // -------------------------------------------------------------------------
-  // STEP 4 — Pending-onboarding short-circuit.
+  // STEP 4 � Pending-onboarding short-circuit.
   // A user with no org assignment must never see another org's evidence.
   // -------------------------------------------------------------------------
   if (!userOrgId) {
@@ -252,11 +252,11 @@ async function fetchReadinessData(): Promise<ReadinessPayload> {
   }
 
   // -------------------------------------------------------------------------
-  // STEP 5 — Fetch evidence_logs for THIS ORG ONLY, as a flat query.
+  // STEP 5 � Fetch evidence_logs for THIS ORG ONLY, as a flat query.
   //
   // RLS on evidence_logs already enforces org_id = private.get_auth_org_id().
   // The explicit .eq("org_id", userOrgId) filter is the application-layer
-  // backstop required by Constitution §II. Both controls are unambiguous on
+  // backstop required by Constitution �II. Both controls are unambiguous on
   // a flat (non-embedded) select.
   //
   // We also page through results in case an org accumulates more than the
@@ -288,7 +288,7 @@ async function fetchReadinessData(): Promise<ReadinessPayload> {
   }
 
   // -------------------------------------------------------------------------
-  // STEP 6 — HARD TRIPWIRE.
+  // STEP 6 � HARD TRIPWIRE.
   // If a single returned row has the wrong org_id, refuse to render.
   // This makes cross-tenant leakage impossible at the application layer
   // even if RLS, the FK schema, or PostgREST behaviour were ever to drift.
@@ -296,7 +296,7 @@ async function fetchReadinessData(): Promise<ReadinessPayload> {
   const leakedRows = allLogs.filter((l) => l.org_id !== userOrgId);
   if (leakedRows.length > 0) {
     console.error(
-      "[readiness] CROSS-TENANT LEAKAGE DETECTED — refusing to render.",
+      "[readiness] CROSS-TENANT LEAKAGE DETECTED � refusing to render.",
       {
         user_id: tenant.userId,
         user_org_id: userOrgId,
@@ -318,7 +318,7 @@ async function fetchReadinessData(): Promise<ReadinessPayload> {
   });
 
   // -------------------------------------------------------------------------
-  // STEP 7 — Group logs by req_id and classify each rule.
+  // STEP 7 � Group logs by req_id and classify each rule.
   // -------------------------------------------------------------------------
   const logsByRule = new Map<string, EvidenceLogRow[]>();
   for (const log of allLogs) {
@@ -342,26 +342,26 @@ function StateBadge({ state }: { state: ComplianceState }) {
   if (state === "Compliant") {
     return (
       <Badge className="border border-emerald-200 bg-emerald-100 font-semibold text-emerald-800 hover:bg-emerald-100">
-        ● Compliant
+        ? Compliant
       </Badge>
     );
   }
   if (state === "Pending Approval") {
     return (
       <Badge className="border border-amber-200 bg-amber-100 font-medium text-amber-800 hover:bg-amber-100">
-        ● Pending Approval
+        ? Pending Approval
       </Badge>
     );
   }
   return (
     <Badge className="border border-red-200 bg-red-100 font-semibold text-red-700 hover:bg-red-100">
-      ● Missing
+      ? Missing
     </Badge>
   );
 }
 
 // ---------------------------------------------------------------------------
-// TENANT BANNER — surfaces the org context so cross-tenant confusion is
+// TENANT BANNER � surfaces the org context so cross-tenant confusion is
 // immediately visible to the operator.
 // ---------------------------------------------------------------------------
 
@@ -373,7 +373,7 @@ function TenantBanner({
   totalLogsForOrg: number;
 }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-xs">
+    <div className="rounded border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-xs">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-zinc-600">
         <span className="flex items-center gap-1.5">
           <Building2 className="h-3.5 w-3.5 text-zinc-400" />
@@ -382,7 +382,7 @@ function TenantBanner({
           </span>
         </span>
         {/* SECURITY: the raw org_id UUID is intentionally NOT rendered here.
-            It is the enterprise join code — exposing it in the header would
+            It is the enterprise join code � exposing it in the header would
             leak it to unauthorized internal roles. Only the Company Name is
             shown for tenant context. */}
         <span className="text-zinc-400">
@@ -429,11 +429,11 @@ function RuleRow({ rule }: { rule: ParsedRule }) {
         <p className="mt-1 text-[10px] text-zinc-400">
           {rule.logCount} evidence log{rule.logCount !== 1 ? "s" : ""}
           {rule.approvedCount > 0
-            ? ` · ${rule.approvedCount} approved`
+            ? ` � ${rule.approvedCount} approved`
             : rule.logCount > 0
-              ? " · none approved"
+              ? " � none approved"
               : ""}
-          {" · "}
+          {" � "}
           <span className="text-zinc-400">{rule.rule_source}</span>
         </p>
       </div>
@@ -490,7 +490,7 @@ async function ReadinessContent() {
             Traceability Matrix
           </h2>
           <p className="mt-1 text-sm text-zinc-400">
-            {compliant} of {total} requirements satisfied ·{" "}
+            {compliant} of {total} requirements satisfied �{" "}
             {completionPercent.toFixed(1)}% submission-ready
           </p>
         </div>
@@ -498,7 +498,7 @@ async function ReadinessContent() {
       </div>
 
       {/* PROGRESS CARD */}
-      <Card className="border-zinc-200 shadow-sm">
+      <Card className="border-zinc-200">
         <CardContent className="pt-6 pb-5">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
@@ -546,7 +546,7 @@ async function ReadinessContent() {
         {missingRules.length > 0 && (
           <AccordionItem
             value="missing"
-            className="rounded-xl border border-red-200 bg-white shadow-sm overflow-hidden"
+            className="rounded border border-red-200 bg-white overflow-hidden"
           >
             <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-red-50/40 [&[data-state=open]]:bg-red-50/40">
               <div className="flex items-center gap-3">
@@ -554,7 +554,7 @@ async function ReadinessContent() {
                 <span className="text-sm font-semibold text-zinc-800">
                   Missing Evidence
                 </span>
-                <span className="rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                <span className="rounded border border-red-200 bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
                   {missingRules.length}
                 </span>
               </div>
@@ -575,7 +575,7 @@ async function ReadinessContent() {
         {pendingRules.length > 0 && (
           <AccordionItem
             value="pending"
-            className="rounded-xl border border-amber-200 bg-white shadow-sm overflow-hidden"
+            className="rounded border border-amber-200 bg-white overflow-hidden"
           >
             <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-amber-50/40 [&[data-state=open]]:bg-amber-50/40">
               <div className="flex items-center gap-3">
@@ -583,7 +583,7 @@ async function ReadinessContent() {
                 <span className="text-sm font-semibold text-zinc-800">
                   Pending Approval
                 </span>
-                <span className="rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                <span className="rounded border border-amber-200 bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
                   {pendingRules.length}
                 </span>
               </div>
@@ -604,7 +604,7 @@ async function ReadinessContent() {
         {compliantRules.length > 0 && (
           <AccordionItem
             value="compliant"
-            className="rounded-xl border border-emerald-200 bg-white shadow-sm overflow-hidden"
+            className="rounded border border-emerald-200 bg-white overflow-hidden"
           >
             <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-emerald-50/30 [&[data-state=open]]:bg-emerald-50/30">
               <div className="flex items-center gap-3">
@@ -612,7 +612,7 @@ async function ReadinessContent() {
                 <span className="text-sm font-semibold text-zinc-800">
                   Compliant
                 </span>
-                <span className="rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                <span className="rounded border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                   {compliantRules.length}
                 </span>
               </div>
@@ -646,7 +646,7 @@ function ReadinessSkeleton() {
           <div className="h-6 w-48 animate-pulse rounded bg-zinc-200" />
           <div className="h-3 w-64 animate-pulse rounded bg-zinc-100" />
         </div>
-        <div className="h-9 w-48 animate-pulse rounded-lg bg-zinc-200" />
+        <div className="h-9 w-48 animate-pulse rounded bg-zinc-200" />
       </div>
       <Card className="border-zinc-200">
         <CardContent className="pt-6 pb-5">
@@ -654,11 +654,11 @@ function ReadinessSkeleton() {
             <div className="h-3 w-40 animate-pulse rounded bg-zinc-200" />
             <div className="h-6 w-16 animate-pulse rounded bg-zinc-200" />
           </div>
-          <div className="h-3 animate-pulse rounded-full bg-zinc-100" />
+          <div className="h-3 animate-pulse rounded bg-zinc-100" />
         </CardContent>
       </Card>
       {[1, 2, 3].map((i) => (
-        <div key={i} className="h-16 animate-pulse rounded-xl bg-zinc-100" />
+        <div key={i} className="h-16 animate-pulse rounded bg-zinc-100" />
       ))}
     </div>
   );

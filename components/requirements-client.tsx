@@ -184,14 +184,14 @@ function RuleMultiSelect({ rules, selected, onToggle }: RuleMultiSelectProps) {
 
   if (rules.length === 0) {
     return (
-      <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs text-zinc-400">
+      <p className="rounded border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs text-zinc-400">
         No regulatory rules found in the database.
       </p>
     );
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white">
+    <div className="rounded border border-zinc-200 bg-white">
       {/* Sticky search bar */}
       <div className="sticky top-0 z-10 border-b border-zinc-100 bg-white px-2 py-2">
         <div className="relative">
@@ -212,7 +212,7 @@ function RuleMultiSelect({ rules, selected, onToggle }: RuleMultiSelectProps) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search regulatory codes or descriptions…"
             aria-label="Filter regulatory rules"
-            className="w-full rounded-md border border-zinc-200 bg-white py-1.5 pl-8 pr-3 text-xs text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
+            className="w-full rounded border border-zinc-200 bg-white py-1.5 pl-8 pr-3 text-xs text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
           />
           {query && (
             <button
@@ -257,7 +257,7 @@ function RuleMultiSelect({ rules, selected, onToggle }: RuleMultiSelectProps) {
                   <span className="text-xs font-semibold text-zinc-700">{source}</span>
                   <div className="flex items-center gap-2">
                     {selectedInGroup > 0 && (
-                      <span className="rounded-full border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600">
+                      <span className="rounded border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600">
                         {selectedInGroup}
                       </span>
                     )}
@@ -392,7 +392,7 @@ function AddRequirementModal({ rules, onClose, onSuccess }: AddRequirementModalP
           aria-modal="true"
           aria-labelledby="add-req-modal-title"
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-lg rounded-2xl border border-zinc-200 bg-white shadow-2xl"
+          className="relative w-full max-w-lg rounded border border-zinc-200 bg-white"
         >
           <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
             <div>
@@ -406,7 +406,7 @@ function AddRequirementModal({ rules, onClose, onSuccess }: AddRequirementModalP
               onClick={() => !isPending && onClose()}
               aria-label="Close modal"
               disabled={isPending}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-7 w-7 items-center justify-center rounded text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <X className="h-4 w-4" />
             </button>
@@ -459,14 +459,14 @@ function AddRequirementModal({ rules, onClose, onSuccess }: AddRequirementModalP
                   onChange={(e) => setDescription(e.target.value)}
                   disabled={isPending || succeeded}
                   rows={3}
-                  className="w-full resize-none rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full resize-none rounded border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
                   Regulatory Mapping
                   {selectedRules.size > 0 && (
-                    <span className="ml-2 rounded-full border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 font-normal normal-case text-[10px] text-zinc-600">
+                    <span className="ml-2 rounded border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 font-normal normal-case text-[10px] text-zinc-600">
                       {selectedRules.size} selected
                     </span>
                   )}
@@ -474,13 +474,13 @@ function AddRequirementModal({ rules, onClose, onSuccess }: AddRequirementModalP
                 <RuleMultiSelect rules={rules} selected={selectedRules} onToggle={toggleRule} />
               </div>
               {error && (
-                <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                <div role="alert" className="flex items-start gap-2 rounded border border-red-200 bg-red-50 px-4 py-3">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
                   <p className="text-sm text-red-700">{error}</p>
                 </div>
               )}
               {succeeded && (
-                <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+                <div className="flex items-center gap-2 rounded border border-emerald-200 bg-emerald-50 px-4 py-3">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
                   <p className="text-sm font-medium text-emerald-700">Requirement created.</p>
                 </div>
@@ -538,7 +538,7 @@ function Toast({ variant, title, body, onDismiss }: ToastProps) {
       role="status"
       aria-live="polite"
       className={[
-        "fixed bottom-5 right-5 z-[100] flex w-80 max-w-[calc(100vw-2.5rem)] items-start gap-3 rounded-xl border px-4 py-3 shadow-lg",
+        "fixed bottom-5 right-5 z-[100] flex w-80 max-w-[calc(100vw-2.5rem)] items-start gap-3 rounded border px-4 py-3",
         isSuccess ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50",
       ].join(" ")}
     >
@@ -727,7 +727,7 @@ function ImportCSVModal({ onClose, onSuccess }: ImportCSVModalProps) {
           aria-modal="true"
           aria-labelledby="import-csv-modal-title"
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-lg rounded-2xl border border-zinc-200 bg-white shadow-2xl"
+          className="relative w-full max-w-lg rounded border border-zinc-200 bg-white"
         >
           <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
             <div>
@@ -741,13 +741,13 @@ function ImportCSVModal({ onClose, onSuccess }: ImportCSVModalProps) {
               onClick={() => !isPending && onClose()}
               aria-label="Close modal"
               disabled={isPending}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-7 w-7 items-center justify-center rounded text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
           <div className="space-y-5 px-6 py-5">
-            <div className="rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
+            <div className="rounded border border-zinc-100 bg-zinc-50 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">Required CSV format</p>
               <pre className="overflow-x-auto rounded bg-white border border-zinc-200 px-3 py-2 font-mono text-[11px] text-zinc-700 leading-relaxed">
 {`requirement_id,title,description
@@ -767,7 +767,7 @@ SRS-002,Audit Logging,All events must be timestamped and immutable`}
               <label
                 htmlFor="csv-file-input"
                 className={[
-                  "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-8 transition-colors",
+                  "flex cursor-pointer flex-col items-center justify-center gap-2 rounded border-2 border-dashed px-6 py-8 transition-colors",
                   isPending
                     ? "cursor-not-allowed border-zinc-200 bg-zinc-50 opacity-60"
                     : parsedRows
@@ -806,7 +806,7 @@ SRS-002,Audit Logging,All events must be timestamped and immutable`}
               />
             </div>
             {parseError && (
-              <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+              <div role="alert" className="flex items-start gap-2 rounded border border-red-200 bg-red-50 px-4 py-3">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
                 <p className="text-sm text-red-700">{parseError}</p>
               </div>
@@ -882,7 +882,7 @@ export function RequirementsClient({
 
   return (
     <>
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded border border-zinc-200 bg-white overflow-hidden">
         {/* Toolbar */}
         <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-4 md:px-6">
           <div>

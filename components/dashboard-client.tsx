@@ -298,7 +298,7 @@ function StatusBadge({ status }: { status: string }) {
   const isSuccess = normalized === "SUCCESS" || normalized === "PASS";
   return (
     <span
-      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
+      className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${
         isSuccess
           ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
           : "bg-orange-50 text-orange-700 border border-orange-200"
@@ -316,7 +316,7 @@ function StatusBadge({ status }: { status: string }) {
 function SuiteIssuePill({ criticalCount, failedCount }: { criticalCount: number; failedCount: number }) {
   if (criticalCount > 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+      <span className="inline-flex items-center gap-1 rounded border border-red-200 bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
         <AlertTriangle className="h-2.5 w-2.5" />
         {criticalCount} critical
       </span>
@@ -324,13 +324,13 @@ function SuiteIssuePill({ criticalCount, failedCount }: { criticalCount: number;
   }
   if (failedCount > 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+      <span className="inline-flex items-center gap-1 rounded border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
         {failedCount} failed
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+    <span className="inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
       <CheckCircle2 className="h-2.5 w-2.5" />
       all clear
     </span>
@@ -348,7 +348,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
 
   return (
     <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-      <Card className="border-zinc-200 shadow-sm">
+      <Card className="border-zinc-200">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
             Total Executions
@@ -364,7 +364,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
       </Card>
 
       <Card
-        className={`border-zinc-200 shadow-sm ${
+        className={`border-zinc-200 ${
           criticalCount > 0 ? "border-red-200 bg-red-50/40" : ""
         }`}
       >
@@ -389,7 +389,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
       </Card>
 
       <Card
-        className={`border-zinc-200 shadow-sm ${
+        className={`border-zinc-200 ${
           parseFloat(failureRate) > 0 ? "border-orange-200 bg-orange-50/30" : ""
         }`}
       >
@@ -527,19 +527,19 @@ function SuiteAccordionItem({
             <Table className="w-full table-fixed">
               <TableHeader>
                 <TableRow className="bg-slate-100 hover:bg-slate-100 border-b border-slate-200">
-                  <TableHead className="py-2 pl-4 md:pl-6 w-[35%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  <TableHead className="py-2 pl-4 md:pl-6 w-[35%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Log Name
                   </TableHead>
-                  <TableHead className="py-2 w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  <TableHead className="py-2 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Status
                   </TableHead>
-                  <TableHead className="py-2 w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  <TableHead className="py-2 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                     AI Risk
                   </TableHead>
-                  <TableHead className="py-2 w-[26%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  <TableHead className="py-2 w-[26%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Execution Time
                   </TableHead>
-                  <TableHead className="py-2 pr-4 md:pr-6 w-[15%] text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  <TableHead className="py-2 pr-4 md:pr-6 w-[15%] text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Log ID
                   </TableHead>
                 </TableRow>
@@ -570,7 +570,7 @@ function SuiteAccordionItem({
                     <TableCell className="py-2">
                       <SeverityBadge severity={row.severity} />
                     </TableCell>
-                    <TableCell className="py-2 text-xs text-slate-500 whitespace-nowrap">
+                    <TableCell className="py-2 text-xs font-mono text-slate-500 whitespace-nowrap">
                       {row.executionTime}
                     </TableCell>
                     <TableCell className="py-2 pr-4 md:pr-6 text-right font-mono text-xs text-slate-400">
@@ -734,7 +734,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
     <>
       <TelemetryCards rows={filteredRows} />
 
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded border border-zinc-200 bg-white overflow-hidden">
         {/* Table header with filter controls */}
         <div className="flex flex-col gap-3 border-b border-zinc-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
           <div>
@@ -762,13 +762,13 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
           {/* Filter controls */}
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             {/* View mode toggle — Grouped | List */}
-            <div className="flex items-center rounded-lg border border-zinc-200 bg-zinc-50 p-0.5">
+            <div className="flex items-center rounded border border-zinc-200 bg-zinc-50 p-0.5">
               <button
                 onClick={() => { setViewModeAndSync("grouped"); setCurrentPage(1); }}
                 className={[
-                  "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all",
+                  "inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all",
                   viewMode === "grouped"
-                    ? "bg-zinc-100 text-zinc-900 shadow-sm"
+                    ? "bg-white text-zinc-900 border border-zinc-200"
                     : "text-zinc-500 hover:text-zinc-700",
                 ].join(" ")}
                 aria-pressed={viewMode === "grouped"}
@@ -780,9 +780,9 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
               <button
                 onClick={() => { setViewModeAndSync("flat"); setFlatPage(1); }}
                 className={[
-                  "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all",
+                  "inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all",
                   viewMode === "flat"
-                    ? "bg-zinc-100 text-zinc-900 shadow-sm"
+                    ? "bg-white text-zinc-900 border border-zinc-200"
                     : "text-zinc-500 hover:text-zinc-700",
                 ].join(" ")}
                 aria-pressed={viewMode === "flat"}
@@ -794,15 +794,15 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
             </div>
 
             {/* Timeframe quick-select — scrollable on mobile */}
-            <div className="flex items-center overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 max-w-full">
+            <div className="flex items-center overflow-x-auto rounded border border-zinc-200 bg-zinc-50 p-0.5 max-w-full">
               {(["today", "week", "month", "year", "all"] as Timeframe[]).map((tf) => (
                 <button
                   key={tf}
                   onClick={() => setTimeframeAndReset(tf)}
                   className={[
-                    "shrink-0 rounded-md px-2.5 py-1 text-xs font-medium transition-all",
+                    "shrink-0 rounded px-2.5 py-1 text-xs font-medium transition-all",
                     timeframe === tf && timeframe !== "custom"
-                      ? "bg-white text-zinc-900 shadow-sm"
+                      ? "bg-white text-zinc-900 border border-zinc-200"
                       : "text-zinc-500 hover:text-zinc-700",
                   ].join(" ")}
                 >
@@ -811,13 +811,13 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
               ))}
             </div>
 
-            {/* Custom date range + clear pill */}
+            {/* Custom date range + clear chip */}
             <div className="flex items-center gap-2">
               <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <button
                     className={[
-                      "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all",
+                      "inline-flex items-center gap-1.5 rounded border px-3 py-1.5 text-xs font-medium transition-all",
                       timeframe === "custom"
                         ? "border-zinc-800 bg-zinc-900 text-white"
                         : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50",
@@ -830,7 +830,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                 <PopoverContent
                   align="end"
                   sideOffset={6}
-                  className="w-auto p-0 border-zinc-200 shadow-lg"
+                  className="w-auto p-0 border-zinc-200"
                 >
                   <div className="p-3">
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
@@ -869,7 +869,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
               {timeframe === "custom" && customRange?.from && (
                 <button
                   onClick={clearCustomRange}
-                  className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 hover:bg-zinc-200"
+                  className="inline-flex items-center gap-1 rounded border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 hover:bg-zinc-200"
                 >
                   <X className="h-3 w-3" />
                   Clear filter
@@ -890,7 +890,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
           </div>
         ) : viewMode === "grouped" ? (
           // ── Grouped accordion view (existing, untouched) ───────────────────
-          <div className="border border-slate-200 rounded-md overflow-hidden mx-4 my-4 md:mx-6 md:my-5">
+          <div className="border border-slate-200 rounded overflow-hidden mx-4 my-4 md:mx-6 md:my-5">
             {pageGroups.map((group, idx) => (
               <SuiteAccordionItem
                 key={group.suiteKey}
@@ -905,7 +905,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
           </div>
         ) : (
           // ── Flat list view — reuses exact same row styling as accordion body ─
-          <div className="border border-slate-200 rounded-md overflow-hidden mx-4 my-4 md:mx-6 md:my-5 bg-slate-50">
+          <div className="border border-slate-200 rounded overflow-hidden mx-4 my-4 md:mx-6 md:my-5 bg-slate-50">
             {/* Mobile card list */}
             <div className="flex flex-col divide-y divide-slate-100 md:hidden">
               {pageFlatRows.map((row) => (
@@ -942,19 +942,19 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
               <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow className="bg-slate-100 hover:bg-slate-100 border-b border-slate-200">
-                    <TableHead className="py-2 pl-4 md:pl-6 w-[35%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="py-2 pl-4 md:pl-6 w-[35%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Test Suite
                     </TableHead>
-                    <TableHead className="py-2 w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="py-2 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Status
                     </TableHead>
-                    <TableHead className="py-2 w-[12%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="py-2 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                       AI Risk
                     </TableHead>
-                    <TableHead className="py-2 w-[26%] text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="py-2 w-[26%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Execution Time
                     </TableHead>
-                    <TableHead className="py-2 pr-4 md:pr-6 w-[15%] text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="py-2 pr-4 md:pr-6 w-[15%] text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Log ID
                     </TableHead>
                   </TableRow>
@@ -1011,7 +1011,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={safePage === 1}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex h-7 w-7 items-center justify-center rounded border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Previous page"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
@@ -1045,7 +1045,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                       key={item}
                       onClick={() => setCurrentPage(item as number)}
                       className={[
-                        "flex h-7 min-w-[28px] items-center justify-center rounded-md px-1.5 text-xs font-medium transition-colors",
+                        "flex h-7 min-w-[28px] items-center justify-center rounded px-1.5 text-xs font-medium transition-colors",
                         safePage === item
                           ? "bg-zinc-900 text-white"
                           : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50",
@@ -1059,7 +1059,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={safePage === totalPages}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex h-7 w-7 items-center justify-center rounded border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Next page"
               >
                 <ChevronRight className="h-3.5 w-3.5" />
@@ -1080,7 +1080,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
               <button
                 onClick={() => setFlatPage((p) => Math.max(1, p - 1))}
                 disabled={safeFlatPage === 1}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex h-7 w-7 items-center justify-center rounded border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Previous page"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
@@ -1114,7 +1114,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                       key={item}
                       onClick={() => setFlatPage(item as number)}
                       className={[
-                        "flex h-7 min-w-[28px] items-center justify-center rounded-md px-1.5 text-xs font-medium transition-colors",
+                        "flex h-7 min-w-[28px] items-center justify-center rounded px-1.5 text-xs font-medium transition-colors",
                         safeFlatPage === item
                           ? "bg-zinc-900 text-white"
                           : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50",
@@ -1128,7 +1128,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
               <button
                 onClick={() => setFlatPage((p) => Math.min(flatTotalPages, p + 1))}
                 disabled={safeFlatPage === flatTotalPages}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex h-7 w-7 items-center justify-center rounded border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Next page"
               >
                 <ChevronRight className="h-3.5 w-3.5" />

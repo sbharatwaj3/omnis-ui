@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 // omnis-ui/app/onboarding/page.tsx
 // Omnis RegOps — Organization Onboarding
 //
@@ -7,10 +7,10 @@
 // with a resolved org_id can land here (they are redirected to /dashboard).
 //
 // Two flows:
-//   1. Create New Organization — input a company name → creates an org row
+//   1. Create New Organization — input a company name ? creates an org row
 //      and assigns it to the current user.
 //   2. Join Existing Organization — input an Enterprise Code (org_id UUID)
-//      → verifies the org exists and assigns it to the current user.
+//      ? verifies the org exists and assigns it to the current user.
 //
 // On success both flows server-redirect to /dashboard.
 
@@ -48,7 +48,7 @@ function BrandPanel() {
   return (
     <div className="hidden lg:flex lg:w-[48%] xl:w-[45%] flex-col justify-between bg-slate-900 px-12 py-12">
       <Link href="/" className="flex items-center gap-3 group">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-200">
+        <div className="flex h-9 w-9 items-center justify-center rounded bg-emerald-500/10 ring-1 ring-emerald-500/30 group-hover:ring-emerald-400 transition-all duration-200">
           <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="leading-none">
@@ -62,8 +62,8 @@ function BrandPanel() {
       </Link>
 
       <div className="max-w-sm">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-800 bg-emerald-950/60 px-3 py-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="mb-4 inline-flex items-center gap-2 rounded border border-emerald-800 bg-emerald-950/60 px-3 py-1">
+          <span className="h-1.5 w-1.5 rounded bg-emerald-400 animate-pulse" />
           <span className="text-xs font-semibold text-emerald-300">
             Organization Setup — Step 1 of 1
           </span>
@@ -118,7 +118,7 @@ function FeaturePoint({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 ring-1 ring-slate-700">
+      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded bg-slate-800 ring-1 ring-slate-700">
         <Icon className="h-3.5 w-3.5 text-emerald-400" strokeWidth={1.75} />
       </div>
       <div>
@@ -151,11 +151,11 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={`
-        flex flex-1 flex-col items-start gap-1.5 rounded-xl border p-4 text-left
+        flex flex-1 flex-col items-start gap-1.5 rounded border p-4 text-left
         transition-all duration-150
         ${
           active
-            ? "border-slate-900 bg-slate-900 text-white shadow-sm"
+            ? "border-slate-900 bg-slate-900 text-white"
             : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
         }
       `}
@@ -184,7 +184,7 @@ function TabButton({
 
 function ErrorBanner({ message }: { message: string }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3">
+    <div className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3.5 py-3">
       <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
       <p className="text-xs leading-relaxed text-red-700">
         {message}
@@ -244,7 +244,7 @@ function RoleSelector({
           onClick={() => setOpen((o) => !o)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="flex h-11 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-11 w-full items-center justify-between rounded border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span className={selected ? "text-slate-900" : "text-slate-400"}>
             {selected ? selected.label : "Select a role…"}
@@ -256,7 +256,7 @@ function RoleSelector({
           <ul
             role="listbox"
             aria-label="Role selection"
-            className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+            className="absolute z-10 mt-1 w-full overflow-hidden rounded border border-slate-200 bg-white"
           >
             {ROLE_OPTIONS.map((opt) => (
               <li
@@ -274,7 +274,7 @@ function RoleSelector({
                 <p className="text-sm font-semibold text-slate-900">
                   {opt.label}
                   {value === opt.value && (
-                    <span className="ml-2 text-xs font-normal text-emerald-500">✓ selected</span>
+                    <span className="ml-2 text-xs font-normal text-emerald-500">? selected</span>
                   )}
                 </p>
                 <p className="mt-0.5 text-xs text-slate-400">{opt.description}</p>
@@ -339,7 +339,7 @@ function CreateOrgForm() {
       </div>
 
       {/* Role notice for org creators */}
-      <div className="flex items-start gap-2.5 rounded-lg border border-violet-200 bg-violet-50 px-3.5 py-3">
+      <div className="flex items-start gap-2.5 rounded border border-violet-200 bg-violet-50 px-3.5 py-3">
         <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-600" />
         <div>
           <p className="text-xs font-semibold text-violet-800">
@@ -357,7 +357,7 @@ function CreateOrgForm() {
       <Button
         type="submit"
         disabled={isPending}
-        className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
+        className="h-11 w-full rounded bg-slate-900 text-sm font-bold text-white transition-all hover:bg-slate-800 disabled:opacity-50"
       >
         {isPending ? (
           <span className="flex items-center gap-2">
@@ -431,7 +431,7 @@ function JoinOrgForm() {
       <Button
         type="submit"
         disabled={isPending || !role}
-        className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
+        className="h-11 w-full rounded bg-slate-900 text-sm font-bold text-white transition-all hover:bg-slate-800 disabled:opacity-50"
       >
         {isPending ? (
           <span className="flex items-center gap-2">
@@ -472,7 +472,7 @@ function OnboardingCard() {
         href="/"
         className="mb-8 flex flex-col items-center gap-3 lg:hidden group"
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-lg group-hover:ring-2 group-hover:ring-emerald-400 transition-all">
+        <div className="flex h-12 w-12 items-center justify-center rounded bg-slate-900 group-hover:ring-2 group-hover:ring-emerald-400 transition-all">
           <ShieldCheck
             className="h-6 w-6 text-emerald-400"
             strokeWidth={1.75}
@@ -491,15 +491,15 @@ function OnboardingCard() {
       <div className="w-full max-w-md">
         {/* Progress indicator */}
         <div className="mb-6 flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500">
+          <div className="flex h-6 w-6 items-center justify-center rounded bg-emerald-500">
             <CheckCircle2 className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
           </div>
           <div className="h-px flex-1 bg-slate-200" />
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-white text-xs font-bold">
+          <div className="flex h-6 w-6 items-center justify-center rounded bg-slate-900 text-white text-xs font-bold">
             2
           </div>
           <div className="h-px flex-1 bg-slate-200" />
-          <div className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 text-slate-400 text-xs font-bold">
+          <div className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 text-slate-400 text-xs font-bold">
             3
           </div>
         </div>
@@ -516,7 +516,7 @@ function OnboardingCard() {
         </div>
 
         {/* Compliance pill */}
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5">
+        <div className="mb-6 flex items-center gap-2 rounded border border-slate-200 bg-slate-50 px-3.5 py-2.5">
           <ShieldCheck
             className="h-3.5 w-3.5 shrink-0 text-emerald-500"
             strokeWidth={2}
