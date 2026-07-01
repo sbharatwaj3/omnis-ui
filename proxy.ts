@@ -15,7 +15,7 @@
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { getAdminClient } from "@/utils/supabase/admin";
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -127,20 +127,24 @@ export async function proxy(request: NextRequest) {
         pathname.startsWith("/dashboard/integration/");
 
       if (!isSetupExempt) {
-        // Resolve role and log count using the service-role client to bypass
-        // RBAC-gated RLS. The org_id scope ensures we only read this user's org.
-        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-        if (!serviceRoleKey || !supabaseUrl) {
+        // Resolve role and log count using the service-role admin client to
+        // bypass RBAC-gated RLS. getAdminClient() from utils/supabase/admin
+        // reads env vars at call time (never at module load), includes the
+        // no-store cache bypass, and throws loudly if env vars are absent —
+        // consistent with every other admin client usage in the codebase.
+        // MEDIUM-02 fix: replaced inline createSupabaseClient() construction.
+        let adminSupabase;
+        try {
+          adminSupabase = getAdminClient();
+        } catch (err) {
           console.error(
-            "[proxy] FATAL: SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL is not set. " +
-            "Cannot perform setup gate check — bypassing to prevent false redirect."
+            "[proxy] FATAL: getAdminClient() threw — SUPABASE_SERVICE_ROLE_KEY " +
+            "or NEXT_PUBLIC_SUPABASE_URL is not set. " +
+            "Cannot perform setup gate check — bypassing to prevent false redirect.",
+            err
           );
-        } else {
-          const adminSupabase = createSupabaseClient(supabaseUrl, serviceRoleKey, {
-            auth: { autoRefreshToken: false, persistSession: false },
-          });
+          return supabaseResponse;
+        }
 
           // Step 1: Fetch the user's role in their org.
           const { data: roleRow } = await adminSupabase
@@ -183,7 +187,6 @@ export async function proxy(request: NextRequest) {
               return NextResponse.redirect(setupUrl);
             }
           }
-        }
       }
     }
 

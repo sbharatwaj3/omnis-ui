@@ -38,11 +38,9 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
 // after() keeps the serverless function alive until the registered promise
 // resolves, AFTER the response has already been sent to the client.
-// This is the ONLY correct way to do fire-and-forget work in Vercel
-// serverless functions — a bare floating fetch() gets frozen and silently
-// dropped the moment the response is returned.  Stabilised in Next.js 15.
 import { after } from "next/server";
 import { adminClient } from "@/utils/supabase/admin";
+import { ingestPayloadSchema } from "@/lib/schemas";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -82,23 +80,6 @@ function digestsMatch(candidateHex: string, storedHex: string): boolean {
     Buffer.from(candidateHex, "utf8"),
     Buffer.from(storedHex, "utf8"),
   );
-}
-
-// ---------------------------------------------------------------------------
-// Payload shape (what the CLI / PowerShell test sends)
-// ---------------------------------------------------------------------------
-
-interface IngestPayload {
-  /** Nested test results object — required. */
-  results: unknown;
-  /** Optional SemVer string, e.g. "v1.0.0". */
-  build_version?: string;
-  /** Optional regulatory requirement ID, e.g. "FDA-820.30g". */
-  req_id?: string;
-  /** Optional execution status. Defaults to "PASS". */
-  execution_status?: string;
-  /** Optional email of the developer who triggered this test run. Sent by CLI. */
-  developer_email?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -150,21 +131,24 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // ── Step 2: Parse request body BEFORE hitting the DB ───────────────────
-  // Moved earlier so a malformed body is caught before we make DB calls.
-  let payload: IngestPayload;
+  // ── Step 2: Parse and validate request body with Zod ──────────────────
+  // Security Standard §III.1: all payloads must pass through Zod before use.
+  // .strip() removes unknown fields so they never reach the DB.
+  let payload: ReturnType<typeof ingestPayloadSchema.parse>;
   try {
-    payload = (await request.json()) as IngestPayload;
+    const rawJson = await request.json();
+    const result = ingestPayloadSchema.safeParse(rawJson);
+    if (!result.success) {
+      const firstError = result.error.errors[0];
+      return NextResponse.json(
+        { error: `Bad Request: ${firstError?.message ?? "Invalid payload."}` },
+        { status: 400 },
+      );
+    }
+    payload = result.data;
   } catch {
     return NextResponse.json(
       { error: "Bad Request: request body must be valid JSON." },
-      { status: 400 },
-    );
-  }
-
-  if (!payload.results) {
-    return NextResponse.json(
-      { error: "Bad Request: 'results' field is required in the JSON body." },
       { status: 400 },
     );
   }
@@ -184,10 +168,18 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // ── Step 4: Fetch all API key rows and find a timing-safe match ─────────
+  // ── Step 4: Fetch candidate API key rows by prefix, then timing-safe match ─
+  // LOW-02 fix: pre-filter by key_prefix before loading key_hash rows.
+  // This reduces the DB scan from O(all keys across all orgs) to O(1–2 rows)
+  // because the key_prefix (first 8 chars: "omn_" + 4 hex chars) uniquely
+  // identifies a very small set of candidates. We still do the full
+  // timing-safe hash comparison on the filtered set to prevent timing attacks.
+  const keyPrefix = rawKey.slice(0, 8); // "omn_XXXX"
+
   const { data: keyRows, error: keyFetchError } = await adminClient
     .from("organization_api_keys")
-    .select("id, org_id, key_hash");
+    .select("id, org_id, key_hash")
+    .eq("key_prefix", keyPrefix);
 
   if (keyFetchError) {
     console.error(
