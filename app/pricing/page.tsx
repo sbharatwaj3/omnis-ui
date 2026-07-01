@@ -1,14 +1,14 @@
-// omnis-ui/app/pricing/page.tsx
-// Omnis RegOps � SaaS Pricing Page
+﻿// omnis-ui/app/pricing/page.tsx
+// Omnis RegOps - SaaS Pricing Page
 //
 // Three-tier pricing designed around Bedrock token consumption:
-//   Starter  $499/mo   � 500 token-units    (teams getting started)
-//   Growth   $899/mo   � 1,200 token-units  (active MedTech teams; 10% vs raw cost)
-//   Scale    $1,399/mo � 2,500 token-units  (high-volume; $500 cheaper than overage)
+//   Starter  $499/mo   - 500 token-units    (teams getting started)
+//   Growth   $899/mo   - 1,200 token-units  (active MedTech teams; 10% vs raw cost)
+//   Scale    $1,399/mo - 2,500 token-units  (high-volume; $500 cheaper than overage)
 //
 // The Growth tier is highlighted as "Most Popular".
 // CheckoutButton is embedded in each card; orgId is read from Supabase session.
-// Page is a Server Component � auth check is done here, orgId passed to client.
+// Page is a Server Component - auth check is done here, orgId passed to client.
 
 import { cookies } from "next/headers";
 import Link from "next/link";
@@ -74,14 +74,14 @@ const tiers: PricingTier[] = [
     tagline: "For active teams running multiple concurrent device pipelines.",
     highlight: true,
     badge: "Most Popular",
-    valueNote: "1,200 units at $0.75/unit � vs $1,000+ raw cost. Save 10%.",
+    valueNote: "1,200 units at $0.75/unit — vs $1,000+ raw cost. Save 10%.",
     features: [
       { icon: ShieldCheck, text: "Everything in Starter" },
       { icon: GitBranch,  text: "Unlimited CLI Ingestions (< 200ms)" },
       { icon: Brain,      text: "Priority AWS Bedrock AI pipeline" },
       { icon: BarChart3,  text: "Advanced Traceability & Diff Reports" },
       { icon: Users,      text: "Up to 10 team members" },
-      { icon: Lock,       text: "eSTAR PDF Export � Audit-Ready Package" },
+      { icon: Lock,       text: "eSTAR PDF Export — Audit-Ready Package" },
     ],
     ctaLabel: "Start Growing",
   },
@@ -93,14 +93,14 @@ const tiers: PricingTier[] = [
     tokenUnits: "2,500 token-units / mo",
     tagline: "For enterprise MedTech teams with high-volume submission cycles.",
     highlight: false,
-    valueNote: "2,500 units for $1,399 � upgrading saves ~$500 vs Growth + overage.",
+    valueNote: "2,500 units for $1,399 — upgrading saves ~$500 vs Growth + overage.",
     features: [
       { icon: ShieldCheck, text: "Everything in Growth" },
       { icon: GitBranch,  text: "Unlimited CLI Ingestions (< 200ms)" },
       { icon: Brain,      text: "Dedicated Bedrock inference budget" },
       { icon: BarChart3,  text: "Multi-org Dashboard & Rollup Reports" },
       { icon: Users,      text: "Unlimited team members + SSO" },
-      { icon: Lock,       text: "SLA Support � Custom Regulatory Mapping" },
+      { icon: Lock,       text: "SLA Support — Custom Regulatory Mapping" },
     ],
     ctaLabel: "Scale Up",
   },
@@ -114,7 +114,7 @@ const complianceBadges = [
 ];
 
 // ---------------------------------------------------------------------------
-// Header � matches the landing page header
+// Header - matches the landing page header
 // ---------------------------------------------------------------------------
 
 interface PricingHeaderProps {
@@ -219,7 +219,7 @@ function PricingCards({ orgId }: { orgId: string | null }) {
         <div className="mx-auto mb-12 max-w-2xl rounded border border-slate-200 bg-white px-5 py-4 text-center">
           <p className="text-sm text-slate-600">
             <span className="font-semibold text-slate-800">What&apos;s a token-unit?</span>
-            {" "}One unit equals one AWS Bedrock inference call through the Omnis pipeline �
+            {" "}One unit equals one AWS Bedrock inference call through the Omnis pipeline —
             an AI document analysis, a semantic regulatory match, or a compliance summary.
             Unused units don&apos;t roll over; overage is billed at the next tier&apos;s rate.
           </p>
@@ -324,7 +324,7 @@ function PricingCards({ orgId }: { orgId: string | null }) {
 
         {/* Bottom micro-copy */}
         <p className="mt-8 text-center text-xs text-slate-400">
-          30-day free trial � Cancel anytime � No setup fees
+          30-day free trial &middot; Cancel anytime &middot; No setup fees
         </p>
       </div>
     </section>
@@ -337,14 +337,14 @@ function PricingCards({ orgId }: { orgId: string | null }) {
 
 function TokenComparisonTable() {
   const rows = [
-    { label: "Monthly token-units",       starter: "500",     growth: "1,200",   scale: "2,500" },
-    { label: "Cost per token-unit",        starter: "$1.00",   growth: "$0.75",   scale: "$0.56" },
-    { label: "Overage rate (next tier)",   starter: "$0.75",   growth: "$0.56",   scale: "Contact us" },
-    { label: "Team members",               starter: "Up to 3", growth: "Up to 10", scale: "Unlimited" },
-    { label: "eSTAR PDF export",           starter: "?",       growth: "?",       scale: "?" },
-    { label: "HMAC-signed evidence ledger",starter: "?",       growth: "?",       scale: "?" },
-    { label: "SSO / SAML",                 starter: "�",       growth: "�",       scale: "?" },
-    { label: "SLA support",                starter: "�",       growth: "Email",   scale: "Priority" },
+    { label: "Monthly token-units",        starter: "500",     growth: "1,200",   scale: "2,500" },
+    { label: "Cost per token-unit",         starter: "$1.00",   growth: "$0.75",   scale: "$0.56" },
+    { label: "Overage rate (next tier)",    starter: "$0.75",   growth: "$0.56",   scale: "Contact us" },
+    { label: "Team members",                starter: "Up to 3", growth: "Up to 10", scale: "Unlimited" },
+    { label: "eSTAR PDF export",            starter: "Yes",     growth: "Yes",     scale: "Yes" },
+    { label: "HMAC-signed evidence ledger", starter: "Yes",     growth: "Yes",     scale: "Yes" },
+    { label: "SSO / SAML",                  starter: "—",       growth: "—",       scale: "Yes" },
+    { label: "SLA support",                 starter: "—",       growth: "Email",   scale: "Priority" },
   ];
 
   return (
@@ -410,7 +410,7 @@ function TokenComparisonTable() {
 }
 
 // ---------------------------------------------------------------------------
-// Bottom CTA � rendered between TokenComparisonTable and Footer
+// Bottom CTA - rendered between TokenComparisonTable and Footer
 // ---------------------------------------------------------------------------
 
 function BottomCTA({ orgId }: { orgId: string | null }) {
@@ -441,7 +441,7 @@ function BottomCTA({ orgId }: { orgId: string | null }) {
 }
 
 // ---------------------------------------------------------------------------
-// Footer � identical to landing page
+// Footer - identical to landing page
 // ---------------------------------------------------------------------------
 
 function Footer() {
@@ -451,11 +451,11 @@ function Footer() {
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
           <span className="text-xs font-medium text-slate-500">
-            � 2026 Qavro. All rights reserved.
+            &copy; 2026 Qavro. All rights reserved.
           </span>
         </div>
         <p className="text-xs text-slate-400">
-          IEC 62304 � 21 CFR Part 11 � FDA eSTAR Compliant Pipeline
+          IEC 62304 &middot; 21 CFR Part 11 &middot; FDA eSTAR Compliant Pipeline
         </p>
       </div>
     </footer>
@@ -463,7 +463,7 @@ function Footer() {
 }
 
 // ---------------------------------------------------------------------------
-// Page � Server Component
+// Page - Server Component
 // ---------------------------------------------------------------------------
 
 export default async function PricingPage() {
