@@ -10,60 +10,54 @@
 //   - All secrets loaded via process.env; nothing hardcoded.
 //
 // IEC 62304 / 21 CFR PART 11:
-//   - This action reads evidence_logs for the caller's org only.
-//   - No mutation — pure aggregation query. No audit trail entry required.
+//   - This module reads evidence_logs / organizations for the caller's org only.
+//   - No mutation — pure aggregation queries. No audit trail entry required.
+//   - Errors surface loudly as structured ActionResult.error objects; raw
+//     Supabase error text is logged server-side only and never forwarded to
+//     the client (Req 9.1, 9.3).
 
 import "server-only";
 
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
+import {
+  normaliseEmail,
+  deriveQuotaData,
+  getWindowStart,
+  buildLeaderboard,
+  developerUsageInputSchema,
+} from "./lib/usage-logic";
+import type {
+  TimeFilter,
+  QuotaData,
+  DeveloperUsageRow,
+  ActionResult,
+} from "./lib/usage-logic";
 
 // ---------------------------------------------------------------------------
-// Types
+// Re-export types from lib/usage-logic (single source of truth).
+// Type-only exports are permitted in "use server" files because they are
+// erased at compile time and never appear as runtime values.
 // ---------------------------------------------------------------------------
-
-export interface DeveloperUsageRow {
-  /** Display label — never null in the output */
-  developer_email: string;
-  total_logs_uploaded: number;
-  total_tokens_consumed: number;
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Canonical "unknown" sentinel values that get grouped under one label. */
-const UNKNOWN_LABEL = "Unknown Developer";
-
-function normaliseEmail(raw: string | null | undefined): string {
-  if (!raw || raw.trim() === "" || raw.trim() === "unknown_developer") {
-    return UNKNOWN_LABEL;
-  }
-  return raw.trim();
-}
+export type {
+  TimeFilter,
+  QuotaData,
+  DeveloperUsageRow,
+  ActionResult,
+} from "./lib/usage-logic";
 
 // ---------------------------------------------------------------------------
-// Action: getDeveloperUsage
+// Action 1: getOrgQuota
 // ---------------------------------------------------------------------------
-// Fetches ALL evidence_logs rows for the caller's org, groups them by
-// developer_email, and returns a leaderboard sorted DESCENDING by
-// total_tokens_consumed.
+// Reads organizations.token_units_used and organizations.token_units_limit
+// for the caller's org and returns a structured QuotaData snapshot.
 //
-// Pagination: rows are fetched in batches of 1000 to stay within the
-// Supabase default range limit (same pattern as fetchAllLogs on the main
-// dashboard).
-//
-// Access: admin role only.
+// Access: admin | qa_manager (Req 1.6).
+// Auth pattern: 5-step (same as getDeveloperUsage below).
 // ---------------------------------------------------------------------------
 
-export async function getDeveloperUsage(): Promise<{
-  rows: DeveloperUsageRow[];
-  error?: string;
-}> {
+export async function getOrgQuota(): Promise<ActionResult<QuotaData>> {
   // Step 1: Verify the authenticated session via the session client.
-  // auth.getUser() validates the JWT cryptographically server-side —
-  // the resolved user.id is the only trusted identity source.
   const supabase = await createClient();
   const {
     data: { user },
@@ -71,121 +65,218 @@ export async function getDeveloperUsage(): Promise<{
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { rows: [], error: "Unauthorized." };
+    return { error: { message: "Unauthorized." } };
   }
 
-  // Step 2: Resolve org_id via adminClient to bypass any RLS evaluation
-  // that could silently return null for certain RBAC configurations.
-  // The user.id here comes from the verified JWT above — never client-supplied.
-  let orgId: string;
-  try {
-    const { data: profile, error: profileError } = await adminClient
-      .from("users")
-      .select("org_id")
-      .eq("user_id", user.id)
-      .single();
+  // Step 2: Resolve org_id via adminClient (bypasses RBAC-gated RLS).
+  // user.id is from the verified JWT — never client-supplied.
+  const { data: profile, error: profileError } = await adminClient
+    .from("users")
+    .select("org_id")
+    .eq("user_id", user.id)
+    .single();
 
-    if (profileError || !profile?.org_id) {
-      console.error(
-        "[getDeveloperUsage] Could not resolve org_id for user:",
-        user.id,
-        profileError?.message,
-      );
-      return { rows: [], error: "Unauthorized." };
-    }
-
-    orgId = profile.org_id as string;
-  } catch (err) {
-    console.error("[getDeveloperUsage] Unexpected error resolving org_id:", err);
-    return { rows: [], error: "Failed to resolve organisation." };
+  if (profileError || !profile?.org_id) {
+    console.error(
+      "[getOrgQuota] Could not resolve org_id for user:",
+      user.id,
+      profileError?.message,
+    );
+    return { error: { message: "Unauthorized." } };
   }
 
-  // Step 3: Resolve role. adminClient bypasses user_roles RLS — safe because
-  // we scope the query to the exact (user_id, org_id) pair resolved above.
-  const { data: roleRow } = await adminClient
+  const orgId: string = profile.org_id as string;
+
+  // Step 3: Resolve role via adminClient.
+  const { data: roleRow, error: roleError } = await adminClient
     .from("user_roles")
     .select("role")
     .eq("user_id", user.id)
     .eq("org_id", orgId)
     .single();
 
-  const role: string | null = roleRow?.role ?? null;
+  if (roleError || !roleRow) {
+    console.error(
+      "[getOrgQuota] Could not resolve role for user:",
+      user.id,
+      roleError?.message,
+    );
+    return { error: { message: "Unauthorized." } };
+  }
 
-  if (role !== "admin") {
+  const role: string = roleRow.role as string;
+
+  // Step 4: Gate — admin | qa_manager only (Req 1.6).
+  if (role !== "admin" && role !== "qa_manager") {
     return {
-      rows: [],
-      error: "Forbidden: only Admins may access token usage telemetry.",
+      error: {
+        message:
+          "Forbidden: only Admins and QA Managers may access token usage telemetry.",
+      },
     };
   }
 
-  // Step 4: Fetch ALL evidence_logs rows for this org in batches of 1000.
-  // We only need developer_email and ai_tokens_used to minimise data transfer.
-  interface RawLogRow {
-    developer_email: string | null;
-    ai_tokens_used: number | null;
+  // Step 5: Query organizations for this org's quota columns only (Req 8.4).
+  const { data: orgRow, error: orgError } = await adminClient
+    .from("organizations")
+    .select("token_units_used, token_units_limit")
+    .eq("org_id", orgId)
+    .single();
+
+  if (orgError || !orgRow) {
+    // Req 9.6: a success response with zero rows is a data integrity violation.
+    console.error(
+      "[getOrgQuota] No organizations row for org_id:",
+      orgId,
+      orgError?.message,
+    );
+    return {
+      error: {
+        message: "Quota data is unavailable. Contact your administrator.",
+      },
+    };
   }
 
-  let allRows: RawLogRow[] = [];
+  // Step 6: Derive QuotaData, guarding against limit === 0 (Req 2.9).
+  const derived = deriveQuotaData(
+    orgRow.token_units_used as number,
+    orgRow.token_units_limit as number,
+  );
+
+  if ("error" in derived) {
+    return { error: { message: "Quota not configured." } };
+  }
+
+  return { data: derived };
+}
+
+// ---------------------------------------------------------------------------
+// Action 2: getDeveloperUsage
+// ---------------------------------------------------------------------------
+// Fetches ALL evidence_logs rows for the caller's org (optionally scoped to
+// a time window), groups them by developer_email, and returns a leaderboard
+// sorted DESCENDING by total_tokens_consumed with developer_email ASC as the
+// tiebreaker (Req 3.3).
+//
+// Access: admin | qa_manager (Req 1.6, 3.11).
+// Input: Zod-validated rawInput; parse failure returns error immediately
+//        without executing any DB query (Req 6.5).
+// Pagination: batches of 1000 rows; any mid-loop error halts immediately and
+//             discards partial data (Req 8.2, 8.6).
+// ---------------------------------------------------------------------------
+
+export async function getDeveloperUsage(
+  rawInput: unknown,
+): Promise<ActionResult<DeveloperUsageRow[]>> {
+  // ── Input validation (Req 6.5) ──────────────────────────────────────────
+  // Parse before any DB call. .strip() discards unknown keys.
+  const parsed = developerUsageInputSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return { error: { message: "Invalid input." } };
+  }
+  const { timeFilter } = parsed.data;
+
+  // ── Step 1: Verify JWT ───────────────────────────────────────────────────
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { error: { message: "Unauthorized." } };
+  }
+
+  // ── Step 2: Resolve org_id ───────────────────────────────────────────────
+  // user.id comes from the cryptographically-verified JWT — never trusted from
+  // client input.
+  const { data: profile, error: profileError } = await adminClient
+    .from("users")
+    .select("org_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (profileError || !profile?.org_id) {
+    console.error(
+      "[getDeveloperUsage] Could not resolve org_id for user:",
+      user.id,
+      profileError?.message,
+    );
+    return { error: { message: "Unauthorized." } };
+  }
+
+  const orgId: string = profile.org_id as string;
+
+  // ── Step 3: Resolve role ─────────────────────────────────────────────────
+  const { data: roleRow, error: roleError } = await adminClient
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("org_id", orgId)
+    .single();
+
+  if (roleError || !roleRow) {
+    console.error(
+      "[getDeveloperUsage] Could not resolve role for user:",
+      user.id,
+      roleError?.message,
+    );
+    return { error: { message: "Unauthorized." } };
+  }
+
+  const role: string = roleRow.role as string;
+
+  // ── Step 4: Gate — admin | qa_manager only (Req 1.6, 3.11) ─────────────
+  if (role !== "admin" && role !== "qa_manager") {
+    return {
+      error: {
+        message:
+          "Forbidden: only Admins and QA Managers may access token usage telemetry.",
+      },
+    };
+  }
+
+  // ── Step 5: Paginated query of evidence_logs ─────────────────────────────
+  // Only developer_email and ai_tokens_used are selected (Req 8.3).
+  // Predicate order: org_id first, execution_timestamp second (Req 8.5).
+  // Any mid-loop error halts immediately and discards partial data (Req 8.6).
+
+  const windowStart = getWindowStart(timeFilter);
+
   let from = 0;
-  const batchSize = 1000;
+  const pageSize = 1000;
+  const allRows: Array<{ developer_email: string | null; ai_tokens_used: number | null }> = [];
 
-  try {
-    while (true) {
-      const { data: batch, error: fetchError } = await adminClient
-        .from("evidence_logs")
-        .select("developer_email, ai_tokens_used")
-        .eq("org_id", orgId)
-        .range(from, from + batchSize - 1);
+  while (true) {
+    let query = adminClient
+      .from("evidence_logs")
+      .select("developer_email, ai_tokens_used")
+      .eq("org_id", orgId)
+      .range(from, from + pageSize - 1);
 
-      if (fetchError) {
-        console.error(
-          "[getDeveloperUsage] Supabase error fetching evidence_logs:",
-          fetchError.message,
-        );
-        return { rows: [], error: "Failed to load usage data." };
-      }
-
-      if (!batch || batch.length === 0) break;
-      allRows = allRows.concat(batch as RawLogRow[]);
-      if (batch.length < batchSize) break;
-      from += batchSize;
+    // Apply time-range predicate second, after org_id, per Req 8.5.
+    if (windowStart) {
+      query = query.gte("execution_timestamp", windowStart);
     }
-  } catch (err) {
-    console.error("[getDeveloperUsage] Unexpected error during fetch:", err);
-    return { rows: [], error: "Failed to load usage data." };
+
+    const { data: page, error: pageError } = await query;
+
+    if (pageError) {
+      console.error("[getDeveloperUsage] Supabase error:", pageError.message);
+      return {
+        error: { message: "Failed to load usage data. Please try again." },
+      };
+    }
+
+    if (!page || page.length === 0) break;
+    allRows.push(...page);
+    if (page.length < pageSize) break;
+    from += pageSize;
   }
 
-  // Step 5: Group rows in TypeScript by normalised developer_email.
-  // Any null / empty / "unknown_developer" values are bucketed under
-  // the display label "Unknown Developer".
-  const groupMap = new Map<
-    string,
-    { total_logs_uploaded: number; total_tokens_consumed: number }
-  >();
+  // ── Step 6 & 7: Group by normalised email, sum tokens, sort ─────────────
+  // Delegated to buildLeaderboard() from lib/usage-logic (Req 3.3, 3.5, 3.6).
+  const sorted = buildLeaderboard(allRows);
 
-  for (const row of allRows) {
-    const label = normaliseEmail(row.developer_email);
-    const existing = groupMap.get(label);
-    const tokens = row.ai_tokens_used ?? 0;
-
-    if (existing) {
-      existing.total_logs_uploaded += 1;
-      existing.total_tokens_consumed += tokens;
-    } else {
-      groupMap.set(label, {
-        total_logs_uploaded: 1,
-        total_tokens_consumed: tokens,
-      });
-    }
-  }
-
-  // Step 6: Convert to array and sort DESCENDING by total_tokens_consumed.
-  const sorted: DeveloperUsageRow[] = Array.from(groupMap.entries())
-    .map(([developer_email, stats]) => ({
-      developer_email,
-      ...stats,
-    }))
-    .sort((a, b) => b.total_tokens_consumed - a.total_tokens_consumed);
-
-  return { rows: sorted };
+  return { data: sorted };
 }
