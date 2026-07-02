@@ -35,7 +35,7 @@ const cardVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.25, ease: "easeOut" },
+    transition: { duration: 0.25, ease: "easeOut" as const },
   },
 };
 
@@ -44,12 +44,12 @@ const errorVariants = {
   visible: {
     opacity: 1,
     height: "auto",
-    transition: { duration: 0.2, ease: "easeOut" },
+    transition: { duration: 0.2, ease: "easeOut" as const },
   },
   exit: {
     opacity: 0,
     height: 0,
-    transition: { duration: 0.15, ease: "easeIn" },
+    transition: { duration: 0.15, ease: "easeIn" as const },
   },
 };
 
@@ -58,7 +58,7 @@ const successVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.25, ease: "easeOut" },
+    transition: { duration: 0.25, ease: "easeOut" as const },
   },
 };
 
