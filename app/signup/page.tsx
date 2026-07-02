@@ -24,6 +24,43 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import OAuthButtons from "@/components/auth/OAuthButtons";
+import { motion, AnimatePresence } from "framer-motion";
+
+// ---------------------------------------------------------------------------
+// Animation variants — institutional, zero bounce (MedTech mandate)
+// ---------------------------------------------------------------------------
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.25, ease: "easeOut" },
+  },
+};
+
+const errorVariants = {
+  hidden: { opacity: 0, height: 0 },
+  visible: {
+    opacity: 1,
+    height: "auto",
+    transition: { duration: 0.2, ease: "easeOut" },
+  },
+  exit: {
+    opacity: 0,
+    height: 0,
+    transition: { duration: 0.15, ease: "easeIn" },
+  },
+};
+
+const successVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.25, ease: "easeOut" },
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Trust signals
@@ -184,7 +221,12 @@ function SignUpForm() {
   if (success) {
     return (
       <div className="flex w-full flex-col items-center justify-center bg-white px-8 py-16 lg:w-[48%] xl:w-[45%]">
-        <div className="w-full max-w-md mx-auto text-center">
+        <motion.div
+          className="w-full max-w-md mx-auto text-center"
+          variants={successVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded bg-emerald-50 ring-1 ring-emerald-200">
             <CheckCircle2 className="h-7 w-7 text-emerald-500" strokeWidth={1.75} />
           </div>
@@ -200,7 +242,7 @@ function SignUpForm() {
               Sign in
             </Link>
           </p>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -219,7 +261,13 @@ function SignUpForm() {
         </div>
       </Link>
 
-      <div className="w-full max-w-md mx-auto">
+      {/* Animated card mount */}
+      <motion.div
+        className="w-full max-w-md mx-auto"
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Header */}
         <div className="mb-7">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Create account</h1>
@@ -299,17 +347,29 @@ function SignUpForm() {
             />
           </div>
 
-          {error && (
-            <div className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3.5 py-3">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
-              <p className="text-xs leading-relaxed text-red-700">{error}</p>
-            </div>
-          )}
+          {/* Animated error banner */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                key="signup-error"
+                variants={errorVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="overflow-hidden"
+              >
+                <div className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3.5 py-3">
+                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                  <p className="text-xs leading-relaxed text-red-700">{error}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white font-medium py-2.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -328,7 +388,7 @@ function SignUpForm() {
             Sign in
           </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

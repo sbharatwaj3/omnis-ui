@@ -23,6 +23,43 @@ import {
   CheckCircle2,
   Lock,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// ---------------------------------------------------------------------------
+// Animation variants — institutional, zero bounce (MedTech mandate)
+// ---------------------------------------------------------------------------
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.25, ease: "easeOut" },
+  },
+};
+
+const errorVariants = {
+  hidden: { opacity: 0, height: 0 },
+  visible: {
+    opacity: 1,
+    height: "auto",
+    transition: { duration: 0.2, ease: "easeOut" },
+  },
+  exit: {
+    opacity: 0,
+    height: 0,
+    transition: { duration: 0.15, ease: "easeIn" },
+  },
+};
+
+const successVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.25, ease: "easeOut" },
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Left branding panel
@@ -146,7 +183,12 @@ function UpdatePasswordForm() {
   if (success) {
     return (
       <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white">
-        <div className="w-full max-w-sm text-center">
+        <motion.div
+          className="w-full max-w-sm text-center"
+          variants={successVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded bg-emerald-50 ring-1 ring-emerald-200">
             <CheckCircle2 className="h-7 w-7 text-emerald-500" strokeWidth={1.75} />
           </div>
@@ -160,7 +202,7 @@ function UpdatePasswordForm() {
           >
             Go to Sign In
           </Link>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -171,7 +213,7 @@ function UpdatePasswordForm() {
       <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white">
         <div className="flex flex-col items-center gap-3 text-center">
           <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-        <p className="text-xs text-slate-500">Verifying your reset link...</p>
+          <p className="text-xs text-slate-500">Verifying your reset link...</p>
         </div>
       </div>
     );
@@ -191,7 +233,13 @@ function UpdatePasswordForm() {
         </div>
       </Link>
 
-      <div className="w-full max-w-sm">
+      {/* Animated card mount */}
+      <motion.div
+        className="w-full max-w-sm"
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+      >
         <div className="mb-7">
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Set new password</h2>
           <p className="mt-1.5 text-sm text-slate-500">
@@ -234,17 +282,29 @@ function UpdatePasswordForm() {
             />
           </div>
 
-          {error && (
-            <div className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3.5 py-3">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
-              <p className="text-xs leading-relaxed text-red-700">{error}</p>
-            </div>
-          )}
+          {/* Animated error banner */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                key="update-password-error"
+                variants={errorVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="overflow-hidden"
+              >
+                <div className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3.5 py-3">
+                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                  <p className="text-xs leading-relaxed text-red-700">{error}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <Button
             type="submit"
             disabled={loading}
-            className="h-11 w-full rounded bg-slate-900 text-sm font-bold text-white transition-all hover:bg-slate-800 disabled:opacity-50"
+            className="h-11 w-full rounded bg-slate-900 text-sm font-bold text-white transition-all hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? (
               <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Saving...</span>
@@ -260,7 +320,7 @@ function UpdatePasswordForm() {
             Sign in
           </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }
