@@ -278,7 +278,7 @@ async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped
           </p>
         </Link>
 
-        {/* Card 4: Team Usage — Violet accent (admin only) */}
+        {/* Card 4: Token Usage — Violet accent (admin only) */}
         {userRole === "admin" && (
         <Link
           href="/dashboard/usage"
@@ -288,7 +288,7 @@ async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped
             <div className="flex h-8 w-8 items-center justify-center rounded bg-violet-50 group-hover:bg-violet-100 transition-colors">
               <BarChart2 className="h-4 w-4 text-violet-600" strokeWidth={1.75} />
             </div>
-            <span className="text-sm font-medium text-zinc-900">Team Usage</span>
+            <span className="text-sm font-medium text-zinc-900">Token Usage</span>
           </div>
           <p className="text-xs text-zinc-400 leading-relaxed">
             Monitor AI token consumption and CLI activity.
