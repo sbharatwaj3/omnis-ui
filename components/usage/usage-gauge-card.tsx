@@ -1,4 +1,5 @@
 import type { ActionResult, QuotaData } from "@/app/dashboard/usage/actions";
+import { motion } from "framer-motion";
 
 interface UsageGaugeCardProps {
   result: ActionResult<QuotaData>;
@@ -42,16 +43,18 @@ export function UsageGaugeCard({ result }: UsageGaugeCardProps) {
         </span>
       </div>
 
-      {/* Flat progress bar — no shadow, max 4px radius */}
+      {/* Flat progress bar — animated width entrance, no shadow, max 4px radius */}
       <div className="w-full bg-muted rounded h-2 overflow-hidden">
-        <div
+        <motion.div
           role="progressbar"
           aria-valuenow={cappedPct}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label="Token quota usage"
-          className={`h-2 rounded ${barColor} transition-none`}
-          style={{ width: `${cappedPct}%` }}
+          className={`h-2 rounded ${barColor}`}
+          initial={{ width: 0 }}
+          animate={{ width: `${cappedPct}%` }}
+          transition={{ type: "tween", ease: "easeOut", duration: 0.6, delay: 0.1 }}
         />
       </div>
 

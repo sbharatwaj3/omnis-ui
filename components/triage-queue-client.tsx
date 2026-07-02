@@ -1,17 +1,7 @@
 "use client";
 // omnis-ui/components/triage-queue-client.tsx
-// AI Triage Queue — interactive client component.
-//
-// Receives the initial list of pending triage items from the Server Component
-// (app/dashboard/triage/page.tsx). All mutation is done via the
-// resolveTriageItem Server Action. The row is optimistically removed from
-// the local list immediately on click; if the server returns an error the
-// row is restored and an inline error toast is shown.
-//
-// CONSTITUTION LAW I (§VII): No auth logic lives here. All auth/role
-// enforcement is in the Server Action. This component only handles UX state.
-
 import { useState, useCallback, useTransition } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, XCircle, Loader2, Brain, Tag, Lightbulb, FileText, Inbox } from "lucide-react";
 import { resolveTriageItem } from "@/app/dashboard/triage/actions";
 import type { AiTriageQueueRow } from "@/types/supabase";
@@ -241,11 +231,16 @@ export function TriageQueueClient({ initialItems }: TriageQueueClientProps) {
         aria-label="Notifications"
         className="fixed bottom-5 right-5 z-50 flex flex-col gap-2"
       >
+        <AnimatePresence>
         {toasts.map((t) => (
-          <div
+          <motion.div
             key={t.id}
+            initial={{ opacity: 0, y: 8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}
+            transition={{ type: "tween", ease: "easeOut", duration: 0.18 }}
             role="status"
-            className={`flex items-start gap-2.5 rounded border px-4 py-3 text-sm font-medium transition-all ${
+            className={`flex items-start gap-2.5 rounded border px-4 py-3 text-sm font-medium ${
               t.type === "success"
                 ? "border-emerald-200 bg-emerald-50 text-emerald-800"
                 : "border-red-200 bg-red-50 text-red-800"
@@ -264,8 +259,9 @@ export function TriageQueueClient({ initialItems }: TriageQueueClientProps) {
             >
               ×
             </button>
-          </div>
+          </motion.div>
         ))}
+        </AnimatePresence>
       </div>
 
       {/* Queue list */}
@@ -281,13 +277,23 @@ export function TriageQueueClient({ initialItems }: TriageQueueClientProps) {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
+          <AnimatePresence initial={false}>
           {items.map((item) => (
-            <TriageRow
+            <motion.div
               key={item.id}
-              item={item}
-              onResolve={handleResolve}
-            />
+              layout
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -16, transition: { duration: 0.18, ease: "easeIn" } }}
+              transition={{ type: "tween", ease: "easeOut", duration: 0.18 }}
+            >
+              <TriageRow
+                item={item}
+                onResolve={handleResolve}
+              />
+            </motion.div>
           ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
