@@ -1,21 +1,10 @@
 "use client";
 // omnis-ui/components/audit-logs-client.tsx
 //
-// Client component for the 21 CFR Part 11 Audit Log viewer.
-//
-// IMMUTABILITY CONTRACT:
-//   This component is STRICTLY READ-ONLY. There are no edit, delete, or action
-//   buttons of any kind. The audit trail is a legally immutable ledger under
-//   21 CFR Part 11.10(e) — no UI affordance may suggest otherwise.
-//
-// Responsibilities:
-//   - Receives the initial page of audit logs from the server component.
-//   - Provides client-side text filtering across timestamp, user, action,
-//     entity type, and entity ID fields without a server round-trip.
-//   - Renders a clean read-only table with human-readable JSONB changes.
-//   - Renders a "Load More" button that calls getAuditLogs() for pagination.
+// IMMUTABILITY CONTRACT: strictly READ-ONLY — no edit/delete buttons.
 
 import { useState, useMemo, useTransition } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Shield,
@@ -297,15 +286,25 @@ export function AuditLogsClient({
                   </td>
                 </tr>
               ) : (
-                filtered.map((log) => {
+                <AnimatePresence initial={true} mode="sync">
+                {filtered.map((log, rowIndex) => {
                   const ts = formatTimestamp(log.timestamp);
                   const actionStyle =
                     ACTION_STYLES[log.action_type] ??
                     "bg-zinc-100 text-zinc-600 border border-zinc-200";
 
                   return (
-                    <tr
+                    <motion.tr
                       key={log.id}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{
+                        type: "tween",
+                        ease: "easeOut",
+                        duration: 0.15,
+                        delay: Math.min(rowIndex * 0.02, 0.4),
+                      }}
                       className="transition-colors hover:bg-zinc-50/60"
                     >
                       {/* Timestamp */}
@@ -362,9 +361,10 @@ export function AuditLogsClient({
                       <td className="px-4 py-3 align-top max-w-xs">
                         <ChangesCell changes={log.changes} />
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
-                })
+                })}
+                </AnimatePresence>
               )}
             </tbody>
           </table>

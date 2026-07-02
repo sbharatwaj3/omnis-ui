@@ -22,12 +22,13 @@ function makeMotionComponent(tag: string) {
         whileFocus,
         layout,
         layoutId,
+        custom,
         ...domProps
       } = props as Record<string, unknown>;
 
       void initial; void animate; void exit; void transition;
       void variants; void whileHover; void whileTap; void whileFocus;
-      void layout; void layoutId;
+      void layout; void layoutId; void custom;
 
       return React.createElement(tag, { ...domProps, ref } as React.HTMLAttributes<HTMLElement>, children);
     }

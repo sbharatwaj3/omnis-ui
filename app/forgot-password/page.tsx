@@ -22,6 +22,43 @@ import {
   ArrowLeft,
   Mail,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// ---------------------------------------------------------------------------
+// Animation variants — institutional, zero bounce (MedTech mandate)
+// ---------------------------------------------------------------------------
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.25, ease: "easeOut" as const },
+  },
+};
+
+const errorVariants = {
+  hidden: { opacity: 0, height: 0 },
+  visible: {
+    opacity: 1,
+    height: "auto",
+    transition: { duration: 0.2, ease: "easeOut" as const },
+  },
+  exit: {
+    opacity: 0,
+    height: 0,
+    transition: { duration: 0.15, ease: "easeIn" as const },
+  },
+};
+
+const successVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.25, ease: "easeOut" as const },
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Left branding panel
@@ -123,7 +160,12 @@ function ForgotPasswordForm() {
   if (sent) {
     return (
       <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white">
-        <div className="w-full max-w-sm text-center">
+        <motion.div
+          className="w-full max-w-sm text-center"
+          variants={successVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded bg-emerald-50 ring-1 ring-emerald-200">
             <CheckCircle2 className="h-7 w-7 text-emerald-500" strokeWidth={1.75} />
           </div>
@@ -139,7 +181,7 @@ function ForgotPasswordForm() {
               Sign in
             </Link>
           </p>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -158,7 +200,13 @@ function ForgotPasswordForm() {
         </div>
       </Link>
 
-      <div className="w-full max-w-sm">
+      {/* Animated card mount */}
+      <motion.div
+        className="w-full max-w-sm"
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+      >
         <div className="mb-7">
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Forgot password?</h2>
           <p className="mt-1.5 text-sm text-slate-500">
@@ -184,17 +232,29 @@ function ForgotPasswordForm() {
             />
           </div>
 
-          {error && (
-            <div className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3.5 py-3">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
-              <p className="text-xs leading-relaxed text-red-700">{error}</p>
-            </div>
-          )}
+          {/* Animated error banner */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                key="forgot-error"
+                variants={errorVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="overflow-hidden"
+              >
+                <div className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3.5 py-3">
+                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                  <p className="text-xs leading-relaxed text-red-700">{error}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <Button
             type="submit"
             disabled={loading}
-            className="h-11 w-full rounded bg-slate-900 text-sm font-bold text-white transition-all hover:bg-slate-800 disabled:opacity-50"
+            className="h-11 w-full rounded bg-slate-900 text-sm font-bold text-white transition-all hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? (
               <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Sending reset link…</span>
@@ -210,7 +270,7 @@ function ForgotPasswordForm() {
             Back to sign in
           </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

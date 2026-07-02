@@ -16,6 +16,7 @@
 //   - Light mode only — no dark: variants used anywhere.
 
 import { useState, useTransition, useMemo, useRef, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   createRequirement,
   bulkImportRequirements,
@@ -957,9 +958,19 @@ export function RequirementsClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {requirements.map((req) => (
-                  <TableRow
+                <AnimatePresence initial={true} mode="sync">
+                {requirements.map((req, rowIndex) => (
+                  <motion.tr
                     key={req.id}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      type: "tween",
+                      ease: "easeOut",
+                      duration: 0.15,
+                      delay: Math.min(rowIndex * 0.025, 0.35),
+                    }}
                     className="border-b border-zinc-100 last:border-b-0 hover:bg-slate-50"
                   >
                     <TableCell className="py-3 pl-4 md:pl-6">
@@ -987,8 +998,9 @@ export function RequirementsClient({
                     <TableCell className="py-3 pr-4 md:pr-6 text-right text-xs text-zinc-400 whitespace-nowrap">
                       {formatDate(req.created_at)}
                     </TableCell>
-                  </TableRow>
+                  </motion.tr>
                 ))}
+                </AnimatePresence>
               </TableBody>
             </Table>
           </div>

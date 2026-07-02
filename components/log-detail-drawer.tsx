@@ -14,6 +14,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -216,35 +217,42 @@ export function LogDetailDrawer({ logId, onClose, viewMode = "grouped" }: LogDet
   return (
     <>
       {/* Backdrop — click to close */}
-      <div
-        aria-hidden="true"
-        onClick={onClose}
-        className={[
-          "fixed inset-0 z-40 bg-zinc-900/40 backdrop-blur-[2px] transition-opacity duration-200",
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
-        ].join(" ")}
-      />
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="backdrop"
+            aria-hidden="true"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "tween", ease: "easeOut", duration: 0.15 }}
+            className="fixed inset-0 z-40 bg-zinc-900/40 backdrop-blur-[2px]"
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Centered modal — outer wrapper stops backdrop click from bubbling through */}
+      {/* Centered modal wrapper — always in DOM for focus management */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Evidence log quick view"
         className={[
-          "fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-200",
+          "fixed inset-0 z-50 flex items-center justify-center p-4",
           isOpen ? "pointer-events-auto" : "pointer-events-none",
         ].join(" ")}
-        onClick={onClose}
+        onClick={isOpen ? onClose : undefined}
       >
-        {/* Stop clicks inside the panel from reaching the backdrop handler */}
-        <div
+        <AnimatePresence>
+          {isOpen && (
+        <motion.div
+          key="modal-panel"
           onClick={(e) => e.stopPropagation()}
-          className={[
-            "relative w-full max-w-lg rounded border border-zinc-200 bg-white mx-2",
-            "",
-            "transition-all duration-200",
-            isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95",
-          ].join(" ")}
+          initial={{ opacity: 0, scale: 0.97, y: 8 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.97, y: 8 }}
+          transition={{ type: "tween", ease: "easeOut", duration: 0.18 }}
+          className="relative w-full max-w-lg rounded border border-zinc-200 bg-white mx-2"
         >
           {/* ── Modal header ─────────────────────────────────────────────── */}
           <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 sm:px-8 sm:py-5">
@@ -381,7 +389,9 @@ export function LogDetailDrawer({ logId, onClose, viewMode = "grouped" }: LogDet
               </button>
             </div>
           )}
-        </div>
+        </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

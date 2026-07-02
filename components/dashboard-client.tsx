@@ -16,6 +16,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import type { DateRange } from "react-day-picker";
 import {
   Table,
@@ -341,79 +342,93 @@ function SuiteIssuePill({ criticalCount, failedCount }: { criticalCount: number;
 // Telemetry cards — based on the *currently filtered* slice
 // ---------------------------------------------------------------------------
 
+// Animation for staggered card entrance — easeOut, zero bounce
+// Uses inline animate/transition (not variants) to avoid framer-motion v12 Easing type strictness
 function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
   const total = rows.length;
   const criticalCount = rows.filter((r) => r.severity === "Critical").length;
   const failureRate = total > 0 ? ((criticalCount / total) * 100).toFixed(1) : "0.0";
 
+  const cardMotion = (i: number) => ({
+    initial: { opacity: 0, y: 8 } as const,
+    animate: { opacity: 1, y: 0 } as const,
+    transition: { type: "tween" as const, ease: "easeOut" as const, duration: 0.2, delay: i * 0.06 },
+  });
+
   return (
     <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-      <Card className="border-zinc-200">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            Total Executions
-          </CardTitle>
-          <BarChart3 className="h-4 w-4 text-zinc-400" />
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-bold tabular-nums text-zinc-800">
-            {total}
-          </p>
-          <p className="mt-1 text-xs text-zinc-400">Evidence logs in current view</p>
-        </CardContent>
-      </Card>
+      <motion.div {...cardMotion(0)}>
+        <Card className="border-zinc-200">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              Total Executions
+            </CardTitle>
+            <BarChart3 className="h-4 w-4 text-zinc-400" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold tabular-nums text-zinc-800">
+              {total}
+            </p>
+            <p className="mt-1 text-xs text-zinc-400">Evidence logs in current view</p>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-      <Card
-        className={`border-zinc-200 ${
-          criticalCount > 0 ? "border-red-200 bg-red-50/40" : ""
-        }`}
-      >
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            Malfunction Volume
-          </CardTitle>
-          <AlertTriangle
-            className={`h-4 w-4 ${criticalCount > 0 ? "text-red-500" : "text-zinc-300"}`}
-          />
-        </CardHeader>
-        <CardContent>
-          <p
-            className={`text-3xl font-bold tabular-nums ${
-              criticalCount > 0 ? "text-red-600" : "text-zinc-800"
-            }`}
-          >
-            {criticalCount}
-          </p>
-          <p className="mt-1 text-xs text-zinc-400">Logs flagged as Critical</p>
-        </CardContent>
-      </Card>
+      <motion.div {...cardMotion(1)}>
+        <Card
+          className={`border-zinc-200 ${
+            criticalCount > 0 ? "border-red-200 bg-red-50/40" : ""
+          }`}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              Malfunction Volume
+            </CardTitle>
+            <AlertTriangle
+              className={`h-4 w-4 ${criticalCount > 0 ? "text-red-500" : "text-zinc-300"}`}
+            />
+          </CardHeader>
+          <CardContent>
+            <p
+              className={`text-3xl font-bold tabular-nums ${
+                criticalCount > 0 ? "text-red-600" : "text-zinc-800"
+              }`}
+            >
+              {criticalCount}
+            </p>
+            <p className="mt-1 text-xs text-zinc-400">Logs flagged as Critical</p>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-      <Card
-        className={`border-zinc-200 ${
-          parseFloat(failureRate) > 0 ? "border-orange-200 bg-orange-50/30" : ""
-        }`}
-      >
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            Failure Rate
-          </CardTitle>
-          <CheckCircle2
-            className={`h-4 w-4 ${
-              parseFloat(failureRate) === 0 ? "text-emerald-500" : "text-orange-500"
-            }`}
-          />
-        </CardHeader>
-        <CardContent>
-          <p
-            className={`text-3xl font-bold tabular-nums ${
-              parseFloat(failureRate) === 0 ? "text-emerald-600" : "text-orange-600"
-            }`}
-          >
-            {failureRate}%
-          </p>
-          <p className="mt-1 text-xs text-zinc-400">Critical vs total executions</p>
-        </CardContent>
-      </Card>
+      <motion.div {...cardMotion(2)}>
+        <Card
+          className={`border-zinc-200 ${
+            parseFloat(failureRate) > 0 ? "border-orange-200 bg-orange-50/30" : ""
+          }`}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              Failure Rate
+            </CardTitle>
+            <CheckCircle2
+              className={`h-4 w-4 ${
+                parseFloat(failureRate) === 0 ? "text-emerald-500" : "text-orange-500"
+              }`}
+            />
+          </CardHeader>
+          <CardContent>
+            <p
+              className={`text-3xl font-bold tabular-nums ${
+                parseFloat(failureRate) === 0 ? "text-emerald-600" : "text-orange-600"
+              }`}
+            >
+              {failureRate}%
+            </p>
+            <p className="mt-1 text-xs text-zinc-400">Critical vs total executions</p>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }
@@ -478,13 +493,17 @@ function SuiteAccordionItem({
       </button>
 
       {/* ── Expandable panel ──────────────────────────────────────────── */}
-      <div
-        className={[
-          "overflow-hidden transition-all duration-200 ease-in-out",
-          isOpen ? "max-h-[9999px] opacity-100" : "max-h-0 opacity-0",
-        ].join(" ")}
-        aria-hidden={!isOpen}
-      >
+      <AnimatePresence initial={false}>
+        {isOpen && (
+        <motion.div
+          key="accordion-panel"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ type: "tween", ease: "easeOut", duration: 0.18 }}
+          className="overflow-hidden"
+          aria-hidden={!isOpen}
+        >
         {/* Task 4: subtle tinted background separates child data from parent shell */}
         <div className="bg-slate-50 border-t border-slate-200">
 
@@ -582,7 +601,9 @@ function SuiteAccordionItem({
             </Table>
           </div>
         </div>
-      </div>
+        </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -888,9 +909,18 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
               Try a different timeframe or clear the date filter.
             </p>
           </div>
-        ) : viewMode === "grouped" ? (
-          // ── Grouped accordion view (existing, untouched) ───────────────────
-          <div className="border border-slate-200 rounded overflow-hidden mx-4 my-4 md:mx-6 md:my-5">
+        ) : (
+          <AnimatePresence mode="wait" initial={false}>
+          {viewMode === "grouped" ? (
+          // ── Grouped accordion view ─────────────────────────────────────────
+          <motion.div
+            key="grouped"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "tween", ease: "easeOut", duration: 0.12 }}
+            className="border border-slate-200 rounded overflow-hidden mx-4 my-4 md:mx-6 md:my-5"
+          >
             {pageGroups.map((group, idx) => (
               <SuiteAccordionItem
                 key={group.suiteKey}
@@ -902,10 +932,17 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                 isLast={idx === pageGroups.length - 1}
               />
             ))}
-          </div>
-        ) : (
+          </motion.div>
+          ) : (
           // ── Flat list view — reuses exact same row styling as accordion body ─
-          <div className="border border-slate-200 rounded overflow-hidden mx-4 my-4 md:mx-6 md:my-5 bg-slate-50">
+          <motion.div
+            key="flat"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "tween", ease: "easeOut", duration: 0.12 }}
+            className="border border-slate-200 rounded overflow-hidden mx-4 my-4 md:mx-6 md:my-5 bg-slate-50"
+          >
             {/* Mobile card list */}
             <div className="flex flex-col divide-y divide-slate-100 md:hidden">
               {pageFlatRows.map((row) => (
@@ -996,7 +1033,9 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                 </TableBody>
               </Table>
             </div>
-          </div>
+          </motion.div>
+          )}
+          </AnimatePresence>
         )}
 
         {/* Pagination footer — grouped mode */}

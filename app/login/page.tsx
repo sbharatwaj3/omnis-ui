@@ -24,6 +24,35 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import OAuthButtons from "@/components/auth/OAuthButtons";
+import { motion, AnimatePresence } from "framer-motion";
+
+// ---------------------------------------------------------------------------
+// Animation variants — institutional, zero bounce (MedTech mandate)
+// ---------------------------------------------------------------------------
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.25, ease: "easeOut" as const },
+  },
+};
+
+const errorVariants = {
+  hidden: { opacity: 0, height: 0, marginTop: 0 },
+  visible: {
+    opacity: 1,
+    height: "auto",
+    marginTop: 0,
+    transition: { duration: 0.2, ease: "easeOut" as const },
+  },
+  exit: {
+    opacity: 0,
+    height: 0,
+    transition: { duration: 0.15, ease: "easeIn" as const },
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Trust signals
@@ -161,7 +190,13 @@ function AuthForm() {
         </div>
       </Link>
 
-      <div className="w-full max-w-md mx-auto">
+      {/* Animated card mount */}
+      <motion.div
+        className="w-full max-w-md mx-auto"
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Header */}
         <div className="mb-7">
           <h1 className="text-3xl font-medium text-gray-900 tracking-tight">Sign in</h1>
@@ -221,17 +256,29 @@ function AuthForm() {
             />
           </div>
 
-          {error && (
-            <div className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3.5 py-3">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
-              <p className="text-xs leading-relaxed text-red-700">{error}</p>
-            </div>
-          )}
+          {/* Animated error banner */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                key="login-error"
+                variants={errorVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="overflow-hidden"
+              >
+                <div className="flex items-start gap-2.5 rounded border border-red-200 bg-red-50 px-3.5 py-3">
+                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                  <p className="text-xs leading-relaxed text-red-700">{error}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white font-medium py-2.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -256,7 +303,7 @@ function AuthForm() {
             Sign up
           </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }
