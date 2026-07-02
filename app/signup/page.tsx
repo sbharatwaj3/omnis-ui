@@ -1,10 +1,10 @@
 "use client";
 // omnis-ui/app/signup/page.tsx
-// Omnis RegOps � Account Creation Gateway
+// Omnis RegOps - Account Creation Gateway
 //
 // Design: Split-screen layout IDENTICAL to /login, fully light-mode locked.
-//   Left panel  � clean white signup card.
-//   Right panel � soft slate-50 brand / trust-signal panel.
+//   Left panel  - clean white signup card.
+//   Right panel - soft slate-50 brand / trust-signal panel.
 //
 // LIGHT-MODE LOCK: No `dark:` variants, no theme switching. The right-side
 // branding panel is hardcoded to bg-slate-50 / text-slate-900.
@@ -59,7 +59,7 @@ const trustPoints = [
 function BrandPanel() {
   return (
     <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col items-center justify-center bg-slate-50 text-slate-900 px-12 py-12 border-l border-slate-200">
-      {/* Logo � top of panel */}
+      {/* Logo — top of panel */}
       <Link href="/" className="mb-auto flex items-center gap-3 group self-start">
         <div className="flex h-9 w-9 items-center justify-center rounded bg-emerald-50 ring-1 ring-emerald-200 group-hover:ring-emerald-400 transition-all duration-200">
           <ShieldCheck className="h-5 w-5 text-emerald-600" strokeWidth={1.75} />
@@ -76,7 +76,7 @@ function BrandPanel() {
       <div className="flex flex-col items-center text-center max-w-sm py-16">
         <div className="mb-4 inline-flex items-center gap-2 rounded border border-emerald-200 bg-emerald-50 px-3 py-1">
           <span className="h-1.5 w-1.5 rounded bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-semibold text-emerald-700">Compliance Vault � Onboarding</span>
+          <span className="text-xs font-semibold text-emerald-700">Compliance Vault — Onboarding</span>
         </div>
         <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 xl:text-4xl">
           Automate Your
@@ -107,7 +107,7 @@ function BrandPanel() {
 
       {/* Footer */}
       <p className="mt-auto text-xs text-slate-500">
-        � 2026 Qavro. Access restricted to authorized personnel only.
+        — 2026 Qavro. Access restricted to authorized personnel only.
       </p>
     </div>
   );
@@ -314,7 +314,7 @@ function SignUpForm() {
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Creating account�
+                Creating account...
               </>
             ) : (
               "Create Account"
@@ -350,7 +350,7 @@ export default function SignUpPage() {
         Back
       </Link>
 
-      {/* Signup form � LEFT */}
+      {/* Signup form — LEFT */}
       <Suspense
         fallback={
           <div className="flex w-full items-center justify-center bg-white lg:w-[48%] xl:w-[45%]">
@@ -361,7 +361,7 @@ export default function SignUpPage() {
         <SignUpForm />
       </Suspense>
 
-      {/* Brand panel � RIGHT */}
+      {/* Brand panel — RIGHT */}
       <BrandPanel />
     </div>
   );

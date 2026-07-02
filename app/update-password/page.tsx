@@ -1,6 +1,6 @@
 "use client";
 // omnis-ui/app/update-password/page.tsx
-// Omnis RegOps � Password Reset Completion
+// Omnis RegOps - Password Reset Completion
 //
 // This page is reached when the user clicks the reset link in their email.
 // Supabase establishes a session via the URL hash/token before this page loads.
@@ -69,7 +69,7 @@ function BrandPanel() {
       </div>
 
       <p className="text-xs text-slate-600">
-        � 2026 Qavro. Access restricted to authorized personnel only.
+        — 2026 Qavro. Access restricted to authorized personnel only.
       </p>
     </div>
   );
@@ -136,7 +136,7 @@ function UpdatePasswordForm() {
       return;
     }
 
-    // Password updated successfully � sign out and send to login.
+    // Password updated successfully - sign out and send to login.
     await supabase.auth.signOut();
     setSuccess(true);
     setTimeout(() => router.push("/login"), 2500);
@@ -152,7 +152,7 @@ function UpdatePasswordForm() {
           </div>
           <h2 className="text-xl font-bold tracking-tight text-slate-900">Password updated</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-500">
-            Your password has been changed successfully. Redirecting you to sign in�
+            Your password has been changed successfully. Redirecting you to sign in...
           </p>
           <Link
             href="/login"
@@ -171,7 +171,7 @@ function UpdatePasswordForm() {
       <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[48%] xl:w-[45%] bg-white">
         <div className="flex flex-col items-center gap-3 text-center">
           <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-          <p className="text-sm text-slate-500">Verifying your reset link�</p>
+        <p className="text-xs text-slate-500">Verifying your reset link...</p>
         </div>
       </div>
     );
@@ -247,7 +247,7 @@ function UpdatePasswordForm() {
             className="h-11 w-full rounded bg-slate-900 text-sm font-bold text-white transition-all hover:bg-slate-800 disabled:opacity-50"
           >
             {loading ? (
-              <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Saving�</span>
+              <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Saving...</span>
             ) : (
               "Save New Password"
             )}
