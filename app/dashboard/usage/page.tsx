@@ -29,8 +29,8 @@ import { adminClient } from "@/utils/supabase/admin";
 
 function AccessDenied() {
   return (
-    <div className="bg-[#111827] border border-[#374151] rounded p-6 text-center">
-      <p className="font-['Inter'] text-sm text-[#cf202f]">
+    <div className="bg-card border border-border rounded p-6 text-center">
+      <p className="text-sm text-destructive">
         ⚠ You do not have permission to view token usage data.
       </p>
     </div>
@@ -98,7 +98,7 @@ async function UsagePageContent() {
       {/* Section: Org Quota Gauge — admin only per spec design (Req 2.1) */}
       {role === "admin" && (
         <section>
-          <h2 className="font-['Inter'] text-2xl font-medium text-[#f9fafb] mb-4">
+          <h2 className="text-2xl font-medium text-foreground mb-4">
             Organization Quota
           </h2>
           <UsageGaugeCard result={quotaResult} />
@@ -107,12 +107,12 @@ async function UsagePageContent() {
 
       {/* Section: Developer Leaderboard — admin | qa_manager (Req 3.11) */}
       <section>
-        <h2 className="font-['Inter'] text-2xl font-medium text-[#f9fafb] mb-4">
+        <h2 className="text-2xl font-medium text-foreground mb-4">
           Developer Token Usage
         </h2>
         {usageResult.error ? (
-          <div className="bg-[#111827] border border-[#374151] rounded p-6">
-            <p className="font-['Inter'] text-sm text-[#cf202f]">
+          <div className="bg-card border border-border rounded p-6">
+            <p className="text-sm text-destructive">
               ⚠ {usageResult.error.message}
             </p>
           </div>
@@ -130,7 +130,7 @@ async function UsagePageContent() {
 
 export default async function UsagePage() {
   return (
-    <div className="min-h-screen bg-[#030712]">
+    <div className="min-h-screen bg-background">
       {/* DashboardHeader always rendered regardless of data errors (Req 9.5) */}
       <DashboardHeader
         subtitle="Token Usage · AI Bedrock Telemetry"
