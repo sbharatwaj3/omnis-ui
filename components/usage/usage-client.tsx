@@ -50,12 +50,12 @@ function TimeFilterBar({ activeFilter, isPending, onSelect }: TimeFilterBarProps
             aria-pressed={isActive}
             className={[
               "px-3 py-1.5 rounded text-sm font-medium transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0052ff]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               "active:scale-[0.98]",
               "disabled:opacity-50 disabled:cursor-not-allowed",
               isActive
-                ? "border border-[#0052ff] text-[#f9fafb]"
-                : "border border-[#374151] text-[#9ca3af] hover:bg-[#1f2937]",
+                ? "border border-foreground text-foreground bg-muted"
+                : "border border-border text-muted-foreground hover:bg-muted hover:text-foreground",
             ].join(" ")}
           >
             {FILTER_LABELS[filter]}
@@ -69,8 +69,8 @@ function TimeFilterBar({ activeFilter, isPending, onSelect }: TimeFilterBarProps
 // ── ErrorState ─────────────────────────────────────────────────────────────
 function ErrorState({ message }: { message: string }) {
   return (
-    <div className="bg-[#111827] border border-[#374151] rounded p-6">
-      <p className="font-['Inter'] text-sm text-[#cf202f]">⚠ {message}</p>
+    <div className="bg-card border border-border rounded p-6">
+      <p className="text-sm text-destructive">⚠ {message}</p>
     </div>
   );
 }

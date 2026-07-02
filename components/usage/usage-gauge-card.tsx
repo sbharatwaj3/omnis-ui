@@ -7,11 +7,11 @@ interface UsageGaugeCardProps {
 export function UsageGaugeCard({ result }: UsageGaugeCardProps) {
   if (result.error) {
     return (
-      <div className="bg-[#111827] border border-[#374151] rounded p-6">
-        <h2 className="font-['Inter'] text-lg font-medium text-[#f9fafb] mb-3">
+      <div className="bg-card border border-border rounded p-6">
+        <h2 className="text-lg font-medium text-foreground mb-3">
           Token Quota
         </h2>
-        <p className="text-[#cf202f] font-['Inter'] text-sm">
+        <p className="text-destructive text-sm">
           ⚠ {result.error.message}
         </p>
       </div>
@@ -21,29 +21,29 @@ export function UsageGaugeCard({ result }: UsageGaugeCardProps) {
   const { tokenUnitsUsed, tokenUnitsLimit, usagePct, status } = result.data!;
   const barColor =
     status === "exhausted"
-      ? "bg-[#cf202f]"
+      ? "bg-destructive"
       : status === "warning"
-      ? "bg-[#f4b000]"
-      : "bg-[#05b169]";
+      ? "bg-yellow-500"
+      : "bg-green-600";
   const cappedPct = Math.min(usagePct, 100);
 
   return (
-    <div className="bg-[#111827] border border-[#374151] rounded p-6">
-      <h2 className="font-['Inter'] text-lg font-medium text-[#f9fafb] mb-4">
+    <div className="bg-card border border-border rounded p-6">
+      <h2 className="text-lg font-medium text-foreground mb-4">
         Token Quota
       </h2>
 
       <div className="flex items-baseline justify-between mb-2">
-        <span className="font-['JetBrains_Mono'] text-[13px] font-medium text-[#f9fafb]">
+        <span className="font-mono text-[13px] font-medium text-foreground">
           {tokenUnitsUsed.toLocaleString()} / {tokenUnitsLimit.toLocaleString()} tokens
         </span>
-        <span className="font-['JetBrains_Mono'] text-[13px] font-medium text-[#9ca3af]">
+        <span className="font-mono text-[13px] font-medium text-muted-foreground">
           {usagePct}%
         </span>
       </div>
 
       {/* Flat progress bar — no shadow, max 4px radius */}
-      <div className="w-full bg-[#374151] rounded h-2 overflow-hidden">
+      <div className="w-full bg-muted rounded h-2 overflow-hidden">
         <div
           role="progressbar"
           aria-valuenow={cappedPct}
@@ -57,7 +57,7 @@ export function UsageGaugeCard({ result }: UsageGaugeCardProps) {
 
       {status === "exhausted" && (
         <div className="mt-3">
-          <span className="rounded-none border border-[#cf202f] bg-transparent text-[#cf202f] text-xs font-semibold uppercase tracking-wider px-2 py-1">
+          <span className="rounded-none border border-destructive bg-transparent text-destructive text-xs font-semibold uppercase tracking-wider px-2 py-1">
             QUOTA EXHAUSTED
           </span>
         </div>
