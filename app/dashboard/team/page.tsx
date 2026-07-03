@@ -16,6 +16,7 @@ export const dynamic = "force-dynamic";
 import { Users } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { DashboardHeader } from "@/components/dashboard-header";
+import { SettingsAnimatedShell, SettingsAnimatedItem } from "@/components/settings-animated-shell";
 import { listTeamMembers } from "@/app/actions/team";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
@@ -64,30 +65,38 @@ export default async function TeamPage() {
 
       {/* ── Main ────────────────────────────────────────────────────────── */}
       <main className="mx-auto max-w-7xl w-full px-6 py-8 md:px-8 md:py-12">
-        {/* Page title */}
-        <div className="mb-8 flex items-center gap-3">
-          <Users className="h-5 w-5 text-zinc-500" strokeWidth={1.75} />
-          <div>
-            <h2 className="text-xl font-bold tracking-tight text-zinc-900">
-              Team Management
-            </h2>
-            <p className="mt-0.5 text-sm text-zinc-400">
-              View members and manage access to your organization
-            </p>
-          </div>
-        </div>
+        <SettingsAnimatedShell>
+          {/* Page title */}
+          <SettingsAnimatedItem>
+            <div className="mb-8 flex items-center gap-3">
+              <Users className="h-5 w-5 text-zinc-500" strokeWidth={1.75} />
+              <div>
+                <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+                  Team Management
+                </h2>
+                <p className="mt-0.5 text-sm text-zinc-400">
+                  View members and manage access to your organization
+                </p>
+              </div>
+            </div>
+          </SettingsAnimatedItem>
 
-        <Separator className="mb-8 bg-zinc-200" />
+          <SettingsAnimatedItem>
+            <Separator className="mb-8 bg-zinc-200" />
+          </SettingsAnimatedItem>
 
-        {/* Delegate all interactive work (invite form, remove buttons, state)
-            to a client island so this Server Component stays lean. */}
-        <TeamClient
-          initialMembers={members}
-          membersError={membersError}
-          isAdmin={isAdmin}
-          currentUserId={user.id}
-          orgId={orgId ?? ""}
-        />
+          {/* Delegate all interactive work (invite form, remove buttons, state)
+              to a client island so this Server Component stays lean. */}
+          <SettingsAnimatedItem>
+            <TeamClient
+              initialMembers={members}
+              membersError={membersError}
+              isAdmin={isAdmin}
+              currentUserId={user.id}
+              orgId={orgId ?? ""}
+            />
+          </SettingsAnimatedItem>
+        </SettingsAnimatedShell>
       </main>
     </div>
   );
