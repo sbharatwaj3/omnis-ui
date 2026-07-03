@@ -10,7 +10,7 @@
 //   - AnimatePresence not required here (no conditional unmounting)
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import {
   ShieldCheck,
   Download,
@@ -29,7 +29,7 @@ import { TerminalBlock } from "@/components/terminal-block";
 // ---------------------------------------------------------------------------
 
 /** Outer page wrapper — single fade + subtle upward translate */
-const pageVariants = {
+const pageVariants: Variants = {
   hidden: { opacity: 0, y: 4 },
   visible: {
     opacity: 1,
@@ -42,7 +42,7 @@ const pageVariants = {
  * Stagger container — each direct child gets the stepItem variant applied.
  * delayChildren gives the header time to settle before steps cascade.
  */
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: {},
   visible: {
     transition: {
@@ -53,7 +53,7 @@ const staggerContainer = {
 };
 
 /** Individual step / block — tight upward translate + fade */
-const stepItem = {
+const stepItem: Variants = {
   hidden: { opacity: 0, y: 6 },
   visible: {
     opacity: 1,
