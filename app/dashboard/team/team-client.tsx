@@ -9,6 +9,7 @@
 //   isAdmin=false (qa_manager / developer / viewer) : members table only.
 
 import { useState, useTransition, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   UserPlus,
   AlertTriangle,
@@ -205,12 +206,45 @@ export function TeamClient({
 
   // ── Render ───────────────────────────────────────────────────────────────
 
+  const sectionVariants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.1 } },
+  };
+
+  const sectionItemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "tween" as const, ease: "easeOut", duration: 0.3 },
+    },
+  };
+
+  const rowVariants = {
+    hidden: { opacity: 0, x: -4 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { type: "tween" as const, ease: "easeOut", duration: 0.25 },
+    },
+    exit: { opacity: 0, x: 4, transition: { duration: 0.2 } },
+  };
+
   return (
-    <div className="space-y-8">
+    <motion.div
+      className="space-y-8"
+      variants={sectionVariants}
+      initial="hidden"
+      animate="visible"
+    >
 
       {/* ── Enterprise Code section — admin only ────────────────────────── */}
       {isAdmin && (
-        <section aria-labelledby="enterprise-code-heading" className="space-y-4">
+        <motion.section
+          variants={sectionItemVariants}
+          aria-labelledby="enterprise-code-heading"
+          className="space-y-4"
+        >
           <div>
             <h3
               id="enterprise-code-heading"
@@ -260,12 +294,17 @@ export function TeamClient({
             </CardContent>
           </Card>
         </section>
+        </motion.section>
       )}
 
       {isAdmin && <Separator className="bg-zinc-200" />}
 
       {/* ── Current Members section ──────────────────────────────────────── */}
-      <section aria-labelledby="members-heading" className="space-y-4">
+      <motion.section
+        variants={sectionItemVariants}
+        aria-labelledby="members-heading"
+        className="space-y-4"
+      >
         <div>
           <h3
             id="members-heading"
@@ -314,8 +353,17 @@ export function TeamClient({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100">
+                    <AnimatePresence initial={false}>
                     {members.map((member) => (
-                      <tr key={member.user_id} className="transition-colors hover:bg-zinc-50/80">
+                      <motion.tr
+                        key={member.user_id}
+                        variants={rowVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        layout
+                        className="transition-colors hover:bg-zinc-50/80"
+                      >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-zinc-100">
@@ -354,20 +402,25 @@ export function TeamClient({
                             )}
                           </td>
                         )}
-                      </tr>
+                      </motion.tr>
                     ))}
+                    </AnimatePresence>
                   </tbody>
                 </table>
               </div>
             )}
           </CardContent>
         </Card>
-      </section>
+      </motion.section>
 
       <Separator className="bg-zinc-200" />
 
       {/* ── Invite Teammate section ──────────────────────────────────────── */}
-      <section aria-labelledby="invite-heading" className="space-y-4">
+      <motion.section
+        variants={sectionItemVariants}
+        aria-labelledby="invite-heading"
+        className="space-y-4"
+      >
         <div>
           <h3 id="invite-heading" className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-400">
             <UserPlus className="h-3.5 w-3.5" strokeWidth={1.75} />
@@ -471,8 +524,8 @@ export function TeamClient({
             </CardContent>
           </Card>
         )}
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 }
 

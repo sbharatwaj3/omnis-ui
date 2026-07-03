@@ -50,7 +50,6 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
   Accordion,
@@ -59,6 +58,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { GenerateReportButton } from "@/components/generate-report-button";
+import { ReadinessProgressBar } from "@/components/readiness-progress-bar";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -497,43 +497,16 @@ async function ReadinessContent() {
         <GenerateReportButton completionPercent={completionPercent} />
       </div>
 
-      {/* PROGRESS CARD */}
+      {/* PROGRESS CARD — animated segmented bar (client component) */}
       <Card className="border-zinc-200">
         <CardContent className="pt-6 pb-5">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-              FDA Submission Readiness
-            </span>
-            <span
-              className={`text-2xl font-bold tabular-nums ${
-                completionPercent === 100
-                  ? "text-emerald-600"
-                  : completionPercent >= 50
-                    ? "text-amber-600"
-                    : "text-red-600"
-              }`}
-            >
-              {completionPercent.toFixed(1)}%
-            </span>
-          </div>
-          <Progress
-            value={completionPercent}
-            className="h-3 bg-zinc-100"
+          <ReadinessProgressBar
+            compliant={compliant}
+            pending={pending}
+            missing={missing}
+            total={total}
+            completionPercent={completionPercent}
           />
-          <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-500">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-              {compliant} Compliant
-            </span>
-            <span className="flex items-center gap-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-              {pending} Pending Approval
-            </span>
-            <span className="flex items-center gap-1.5">
-              <XCircle className="h-3.5 w-3.5 text-red-500" />
-              {missing} Missing Evidence
-            </span>
-          </div>
         </CardContent>
       </Card>
 

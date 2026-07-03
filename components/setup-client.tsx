@@ -10,6 +10,7 @@
 // the initial API key and log count to avoid a blank flash on first load.
 
 import { useState, useEffect, useRef, useTransition, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
   Key,
@@ -347,14 +348,19 @@ test('authenticates user session', () => {
   return (
     <>
       {/* ── Page header ─────────────────────────────────────────────────── */}
-      <div className="mb-8 text-center">
+      <motion.div
+        className="mb-8 text-center"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "tween", ease: "easeOut", duration: 0.35, delay: 0.05 }}
+      >
         <h2 className="text-2xl font-bold tracking-tight text-zinc-900">
           Connect the CLI
         </h2>
         <p className="mt-2 text-sm text-zinc-400">
           Three steps to send your first evidence log to the Omnis platform.
         </p>
-      </div>
+      </motion.div>
 
       {initError && (
         <div className="mb-6 flex items-center gap-2 rounded border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
@@ -364,7 +370,12 @@ test('authenticates user session', () => {
       )}
 
       {/* ── Progress bar ────────────────────────────────────────────────── */}
-      <div className="mb-8 flex items-center gap-2">
+      <motion.div
+        className="mb-8 flex items-center gap-2"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "tween", ease: "easeOut", duration: 0.3, delay: 0.12 }}
+      >
         <StepBadge step={1} current={activeStep} done={step1Done} />
         <div
           className={`h-px flex-1 transition-colors duration-500 ${
@@ -378,9 +389,14 @@ test('authenticates user session', () => {
           }`}
         />
         <StepBadge step={3} current={activeStep} done={logDetected} />
-      </div>
+      </motion.div>
 
       {/* ── Step 1: API Key ──────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "tween", ease: "easeOut", duration: 0.3, delay: 0.18 }}
+      >
       <Card
         className={`mb-4 border transition-colors ${
           activeStep === 1
@@ -464,8 +480,14 @@ test('authenticates user session', () => {
           )}
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* ── Step 2: Download CLI ─────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "tween", ease: "easeOut", duration: 0.3, delay: 0.26 }}
+      >
       <Card
         className={`mb-4 border transition-colors ${
           activeStep === 2
@@ -549,8 +571,14 @@ test('authenticates user session', () => {
           )}
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* ── Step 3: Run first test ───────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "tween", ease: "easeOut", duration: 0.3, delay: 0.34 }}
+      >
       <Card
         className={`mb-8 border transition-colors ${
           activeStep === 3
@@ -711,6 +739,7 @@ test('authenticates user session', () => {
           )}
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* ── Skip link for users who already have logs ────────────────────── */}
       {!logDetected && (
