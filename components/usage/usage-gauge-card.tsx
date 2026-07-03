@@ -50,10 +50,10 @@ export function UsageGaugeCard({ result }: UsageGaugeCardProps) {
       </h2>
 
       <div className="flex items-baseline justify-between mb-2">
-        <span className="font-mono text-[13px] font-medium text-foreground">
+        <span className="font-mono text-xs font-medium text-foreground">
           {tokenUnitsUsed.toLocaleString()} / {tokenUnitsLimit.toLocaleString()} tokens
         </span>
-        <span className="font-mono text-[13px] font-medium text-muted-foreground">
+        <span className="font-mono text-xs font-medium text-muted-foreground">
           {usagePct}%
         </span>
       </div>

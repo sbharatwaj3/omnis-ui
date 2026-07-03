@@ -71,14 +71,14 @@ function TriageRow({ item, onResolve }: TriageRowProps) {
           <div className="mb-2.5 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-zinc-50 px-2 py-0.5">
               <FileText className="h-3 w-3 text-zinc-400" strokeWidth={1.75} />
-              <span className="font-mono text-[11px] font-medium text-zinc-500">
+              <span className="font-mono text-xs font-medium text-zinc-500">
                 Log ID
               </span>
-              <span className="font-mono text-[11px] text-zinc-700 truncate max-w-[180px]" title={item.evidence_log_id}>
+              <span className="font-mono text-xs text-zinc-700 truncate max-w-44" title={item.evidence_log_id}>
                 {item.evidence_log_id.slice(0, 8)}…{item.evidence_log_id.slice(-4)}
               </span>
             </span>
-            <span className="text-[11px] text-zinc-400">
+            <span className="text-xs text-zinc-400">
               {new Date(item.created_at).toLocaleString("en-US", {
                 month: "short",
                 day: "2-digit",
@@ -93,7 +93,7 @@ function TriageRow({ item, onResolve }: TriageRowProps) {
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {/* Developer's tag */}
             <div className="flex flex-col gap-1 rounded border border-zinc-200 bg-zinc-50 p-2.5">
-              <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
+              <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-400">
                 <Tag className="h-3 w-3" strokeWidth={2} />
                 Developer Tagged
               </span>
@@ -104,7 +104,7 @@ function TriageRow({ item, onResolve }: TriageRowProps) {
 
             {/* AI suggestion */}
             <div className="flex flex-col gap-1 rounded border border-amber-200 bg-amber-50 p-2.5">
-              <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-amber-500">
+              <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-amber-500">
                 <Brain className="h-3 w-3" strokeWidth={2} />
                 AI Suggests
               </span>
@@ -120,7 +120,7 @@ function TriageRow({ item, onResolve }: TriageRowProps) {
               className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-400"
               strokeWidth={1.75}
             />
-            <p className="text-[12px] leading-relaxed text-zinc-600">
+            <p className="text-xs leading-relaxed text-zinc-600">
               {item.ai_reasoning}
             </p>
           </div>
