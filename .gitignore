@@ -44,3 +44,10 @@ public/cli/
 # bun lockfiles ARE committed (signals Vercel to use Bun)
 !bun.lockb
 !bun.lock
+
+# === Added by security-skill ===
+.env
+.env.local
+.env.*
+*.key
+secrets/
