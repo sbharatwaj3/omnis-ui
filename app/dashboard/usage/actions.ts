@@ -137,11 +137,17 @@ export async function getOrgQuota(): Promise<ActionResult<QuotaData>> {
     };
   }
 
-  // Step 6: Derive QuotaData, guarding against limit === 0 (Req 2.9).
-  const derived = deriveQuotaData(
-    orgRow.token_units_used as number,
-    orgRow.token_units_limit as number,
-  );
+  // Step 6: Derive QuotaData, guarding against null columns and limit === 0 (Req 2.9).
+  // Null columns from DB must not silently produce NaN — treat as unconfigured.
+  const rawUsed = orgRow.token_units_used;
+  const rawLimit = orgRow.token_units_limit;
+
+  if (rawUsed == null || rawLimit == null) {
+    console.error("[getOrgQuota] Null quota columns for org_id:", orgId);
+    return { error: { message: "Quota not configured." } };
+  }
+
+  const derived = deriveQuotaData(rawUsed as number, rawLimit as number);
 
   if ("error" in derived) {
     return { error: { message: "Quota not configured." } };

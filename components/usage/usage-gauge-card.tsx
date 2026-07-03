@@ -1,3 +1,5 @@
+"use client";
+
 import type { ActionResult, QuotaData } from "@/app/dashboard/usage/actions";
 import { motion } from "framer-motion";
 
@@ -19,7 +21,20 @@ export function UsageGaugeCard({ result }: UsageGaugeCardProps) {
     );
   }
 
-  const { tokenUnitsUsed, tokenUnitsLimit, usagePct, status } = result.data!;
+  if (!result.data) {
+    return (
+      <div className="bg-card border border-border rounded p-6">
+        <h2 className="text-lg font-medium text-foreground mb-3">
+          Token Quota
+        </h2>
+        <p className="text-destructive text-sm">
+          ⚠ Quota data is unavailable.
+        </p>
+      </div>
+    );
+  }
+
+  const { tokenUnitsUsed, tokenUnitsLimit, usagePct, status } = result.data;
   const barColor =
     status === "exhausted"
       ? "bg-destructive"
