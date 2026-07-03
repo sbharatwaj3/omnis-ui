@@ -135,6 +135,28 @@ export async function generateApiKey(
 
   const orgId: string = profile.org_id;
 
+  // Step 2b: RBAC gate — admin, qa_manager, and developer may generate keys.
+  // Viewers are blocked server-side (the UI disables the button, but this is
+  // the authoritative gate per Constitution §VII.2).
+  const { data: roleRow } = await adminClient
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("org_id", orgId)
+    .single();
+
+  const callerRole = roleRow?.role ?? null;
+  if (
+    callerRole !== "admin" &&
+    callerRole !== "qa_manager" &&
+    callerRole !== "developer"
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: your role does not have permission to generate API keys.",
+    };
+  }
+
   // Step 3: Validate the name.
   const trimmedName = name?.trim() ?? "";
   if (trimmedName.length < 1) {
