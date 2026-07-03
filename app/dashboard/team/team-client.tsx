@@ -216,7 +216,7 @@ export function TeamClient({
     visible: {
       opacity: 1,
       y: 0,
-      transition: { type: "tween" as const, ease: "easeOut", duration: 0.3 },
+      transition: { type: "tween" as const, ease: "easeOut" as const, duration: 0.3 },
     },
   };
 
@@ -225,7 +225,7 @@ export function TeamClient({
     visible: {
       opacity: 1,
       x: 0,
-      transition: { type: "tween" as const, ease: "easeOut", duration: 0.25 },
+      transition: { type: "tween" as const, ease: "easeOut" as const, duration: 0.25 },
     },
     exit: { opacity: 0, x: 4, transition: { duration: 0.2 } },
   };
@@ -293,7 +293,6 @@ export function TeamClient({
               </p>
             </CardContent>
           </Card>
-        </section>
         </motion.section>
       )}
 
