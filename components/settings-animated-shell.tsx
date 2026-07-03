@@ -26,7 +26,7 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { type: "tween" as const, ease: "easeOut", duration: 0.3 },
+    transition: { type: "tween" as const, ease: "easeOut" as const, duration: 0.3 },
   },
 };
 
