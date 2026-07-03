@@ -56,9 +56,14 @@ export function DeveloperApiKeys({ initialKeys }: DeveloperApiKeysProps) {
   // Active key list — updated optimistically on revoke
   const [keys, setKeys] = useState<ApiKeyRow[]>(initialKeys);
 
-  // Resolve the current user's RBAC role
+  // Resolve the current user's RBAC role.
+  // admin, qa_manager, and developer can all generate and revoke keys.
+  // Admins must be able to manage keys during both active and trialing
+  // subscription phases — the subscription gate lives in the dashboard layout,
+  // not here. This component only enforces RBAC.
   const { role } = useUserRole();
-  const canManageKeys = role === "qa_manager" || role === "developer";
+  const canManageKeys =
+    role === "admin" || role === "qa_manager" || role === "developer";
 
   // ── Generate modal state ────────────────────────────────────────────────
   const [showGenerateModal, setShowGenerateModal] = useState(false);
