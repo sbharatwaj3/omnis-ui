@@ -686,7 +686,7 @@ test('authenticates user session', () => {
 
               <CodeBlock code={firstTestSnippet} />
               {revealedKey && (
-                <p className="mt-1.5 text-[11px] text-amber-600 flex items-center gap-1">
+                <p className="mt-1.5 text-xs text-amber-600 flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3 shrink-0" />
                   Your full key is shown above — copy it now. It won&apos;t be shown again after you leave this page.
                 </p>

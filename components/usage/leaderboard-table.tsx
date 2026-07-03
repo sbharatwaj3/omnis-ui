@@ -20,25 +20,25 @@ export function LeaderboardTable({ rows, activeFilterLabel }: LeaderboardTablePr
           <tr className="border-b border-border">
             <th
               scope="col"
-              className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.5px] text-muted-foreground"
+              className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground"
             >
               Rank
             </th>
             <th
               scope="col"
-              className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.5px] text-muted-foreground"
+              className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground"
             >
               Developer Email
             </th>
             <th
               scope="col"
-              className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.5px] text-muted-foreground"
+              className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground"
             >
               Logs Uploaded
             </th>
             <th
               scope="col"
-              className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.5px] text-muted-foreground"
+              className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground"
             >
               Total Tokens
             </th>
@@ -65,16 +65,16 @@ export function LeaderboardTable({ rows, activeFilterLabel }: LeaderboardTablePr
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   className="border-b border-border hover:bg-muted transition-colors"
                 >
-                  <td className="px-4 py-3 font-mono text-[13px] font-medium text-foreground">
+                  <td className="px-4 py-3 font-mono text-xs font-medium text-foreground">
                     {index + 1}
                   </td>
-                  <td className="px-4 py-3 font-mono text-[13px] font-medium text-foreground">
+                  <td className="px-4 py-3 font-mono text-xs font-medium text-foreground">
                     {row.developer_email}
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-[13px] font-medium text-foreground">
+                  <td className="px-4 py-3 text-right font-mono text-xs font-medium text-foreground">
                     {row.total_logs_uploaded.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-[13px] font-medium text-foreground">
+                  <td className="px-4 py-3 text-right font-mono text-xs font-medium text-foreground">
                     {row.total_tokens_consumed.toLocaleString()}
                   </td>
                 </motion.tr>

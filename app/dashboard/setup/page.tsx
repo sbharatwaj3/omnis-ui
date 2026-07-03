@@ -28,7 +28,7 @@ export default async function SetupPage() {
       />
 
       {/* ── Main ────────────────────────────────────────────────────────── */}
-      <main className="mx-auto max-w-7xl w-full px-6 py-10 md:px-8 md:py-16">
+      <main className="mx-auto max-w-7xl w-full px-6 py-8 md:px-8 md:py-12">
         <SetupClient
           initialFirstKey={firstKey}
           initialLogCount={logCount}

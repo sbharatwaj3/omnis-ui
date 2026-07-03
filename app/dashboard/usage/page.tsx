@@ -98,7 +98,7 @@ async function UsagePageContent() {
       {/* Section: Org Quota Gauge — admin only per spec design (Req 2.1) */}
       {role === "admin" && (
         <section>
-          <h2 className="text-2xl font-medium text-foreground mb-4">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground mb-4">
             Organization Quota
           </h2>
           <UsageGaugeCard result={quotaResult} />
@@ -107,7 +107,7 @@ async function UsagePageContent() {
 
       {/* Section: Developer Leaderboard — admin | qa_manager (Req 3.11) */}
       <section>
-        <h2 className="text-2xl font-medium text-foreground mb-4">
+        <h2 className="text-xl font-semibold tracking-tight text-foreground mb-4">
           Developer Token Usage
         </h2>
         {usageResult.error ? (
