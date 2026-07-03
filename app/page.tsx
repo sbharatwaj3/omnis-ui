@@ -44,10 +44,10 @@ const staggerContainer = (staggerChildren = 0.08, delayChildren = 0) => ({
 });
 
 /** Shared transition: fast ease-out — no spring elasticity. */
-const easeOut = { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] };
+const easeOut = { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as const };
 
 /** Slightly slower entrance for large hero text. */
-const easeOutSlow = { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] };
+const easeOutSlow = { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const };
 
 // ---------------------------------------------------------------------------
 // Static data
