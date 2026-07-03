@@ -7,9 +7,9 @@
 // fast, institutional, zero bounce.
 //
 // Colors are strictly semantic per ui-design-system.md:
-//   Compliant      → emerald  (semantic-compliant)
-//   Pending        → amber    (semantic-pending)
-//   Missing        → red      (semantic-violation)
+//   Compliant      → emerald-600  (soft institutional green)
+//   Pending        → amber-500    (muted clinical amber)
+//   Missing        → slate-400    (flat desaturated neutral — avoids neon red)
 //
 // The bar track is a plain div with overflow-hidden so the motion.divs are
 // clipped cleanly. No border radii > 4px. No box-shadow.
@@ -51,8 +51,8 @@ export function ReadinessProgressBar({
             completionPercent === 100
               ? "text-emerald-600"
               : completionPercent >= 50
-                ? "text-amber-600"
-                : "text-red-600"
+                ? "text-amber-500"
+                : "text-slate-400"
           }`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -75,10 +75,10 @@ export function ReadinessProgressBar({
         {/* The three segments sit in a row via absolute left offsets so they
             animate their widths independently from 0 without stacking issues. */}
 
-        {/* Segment 1 — Compliant (emerald) */}
+        {/* Segment 1 — Compliant (emerald-600 — soft institutional green) */}
         {compliantPct > 0 && (
           <motion.div
-            className="absolute left-0 top-0 h-full bg-emerald-500"
+            className="absolute left-0 top-0 h-full bg-emerald-600"
             style={{ left: "0%" }}
             initial={{ width: 0 }}
             animate={{ width: `${compliantPct}%` }}
@@ -91,10 +91,10 @@ export function ReadinessProgressBar({
           />
         )}
 
-        {/* Segment 2 — Pending Approval (amber) — starts right after compliant */}
+        {/* Segment 2 — Pending Approval (amber-500 — muted clinical amber) — starts right after compliant */}
         {pendingPct > 0 && (
           <motion.div
-            className="absolute top-0 h-full bg-amber-400"
+            className="absolute top-0 h-full bg-amber-500"
             style={{ left: `${compliantPct}%` }}
             initial={{ width: 0 }}
             animate={{ width: `${pendingPct}%` }}
@@ -107,10 +107,10 @@ export function ReadinessProgressBar({
           />
         )}
 
-        {/* Segment 3 — Missing Evidence (red) — starts after compliant + pending */}
+        {/* Segment 3 — Missing Evidence (slate-400 — flat desaturated neutral) — starts after compliant + pending */}
         {missingPct > 0 && (
           <motion.div
-            className="absolute top-0 h-full bg-red-500"
+            className="absolute top-0 h-full bg-slate-400"
             style={{ left: `${compliantPct + pendingPct}%` }}
             initial={{ width: 0 }}
             animate={{ width: `${missingPct}%` }}
@@ -127,7 +127,7 @@ export function ReadinessProgressBar({
       {/* ── Legend ── */}
       <div className="flex flex-wrap gap-4 text-xs text-zinc-500">
         <span className="flex items-center gap-1.5">
-          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
           {compliant} Compliant
         </span>
         <span className="flex items-center gap-1.5">
@@ -135,7 +135,7 @@ export function ReadinessProgressBar({
           {pending} Pending Approval
         </span>
         <span className="flex items-center gap-1.5">
-          <XCircle className="h-3.5 w-3.5 text-red-500" />
+          <XCircle className="h-3.5 w-3.5 text-slate-400" />
           {missing} Missing Evidence
         </span>
       </div>
