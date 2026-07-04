@@ -118,13 +118,12 @@ export async function proxy(request: NextRequest) {
       //
       // If the org has zero evidence logs AND the user is a developer AND they
       // are NOT already on /dashboard/setup, redirect to the setup page.
-      // The setup page itself, settings, and integration sub-routes are
-      // exempted so the user can generate an API key without a redirect loop.
+      // The setup page itself and settings sub-routes are exempted so the
+      // user can generate an API key without a redirect loop.
       const isSetupExempt =
         isSetupPage ||
         pathname === "/dashboard/settings" ||
-        pathname.startsWith("/dashboard/settings/") ||
-        pathname.startsWith("/dashboard/integration/");
+        pathname.startsWith("/dashboard/settings/");
 
       if (!isSetupExempt) {
         // Resolve role and log count using the service-role admin client to
