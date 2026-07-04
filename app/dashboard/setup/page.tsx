@@ -1,5 +1,6 @@
 ﻿// omnis-ui/app/dashboard/setup/page.tsx
 // CLI Integration Setup — step-by-step onboarding flow for new organizations.
+// Last updated: 2026-07-03 — Smart Ingestion Hierarchy box added to Step 3b.
 //
 // React Server Component shell. Fetches initial API key and log count at
 // request time, then delegates interactive polling and UI state to the
