@@ -77,7 +77,7 @@ export default function TriagePage() {
               </h2>
             </div>
             <p className="mt-0.5 text-sm text-zinc-500">
-              Review and resolve requirement tag discrepancies flagged by Claude
+              Review and resolve requirement tag discrepancies flagged by AWS Bedrock
               during compliance analysis.
             </p>
           </div>
@@ -87,7 +87,7 @@ export default function TriagePage() {
         <div className="mb-5 rounded border border-amber-200 bg-amber-50 px-5 py-4">
           <p className="mb-2 text-xs font-semibold text-amber-800">How this works</p>
           <p className="text-xs leading-relaxed text-amber-700">
-            When Claude&apos;s AI analysis disagrees with the regulatory tag a developer
+            When AWS Bedrock&apos;s AI analysis disagrees with the regulatory tag a developer
             applied to an evidence log, it flags the discrepancy here for human review.
           </p>
           <ul className="mt-3 space-y-2 text-xs leading-relaxed text-amber-700">
