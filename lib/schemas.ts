@@ -56,7 +56,14 @@ export const ingestPayloadSchema = z
       message: "'results' field is required in the JSON body.",
     }),
     build_version: z.string().trim().max(100).optional(),
+    // req_id: legacy field name — prefer target_requirement going forward.
+    // Both are accepted so existing integrations continue to work.
     req_id: z.string().trim().max(100).optional(),
+    // target_requirement: the canonical field name used by omnis-run and
+    // manually-crafted test payloads. Contains the developer's intended
+    // regulatory tag (e.g. "IEC-62304-5.5.3"). When present it takes
+    // precedence over req_id in the ingestion pipeline.
+    target_requirement: z.string().trim().max(100).optional(),
     execution_status: z.string().trim().max(50).optional(),
     developer_email: z.string().trim().email().max(255).optional().or(z.literal("")),
   })

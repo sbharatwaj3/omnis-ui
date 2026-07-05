@@ -288,8 +288,16 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
   }
 
   // ── Step 7: Resolve req_id ─────────────────────────────────────────────
-  // Validates the caller's req_id exists; falls back to first seeded rule.
-  const requestedReqId = payload.req_id?.trim();
+  // Preference order:
+  //   1. target_requirement  — canonical field used by omnis-run and manually
+  //      crafted test payloads (e.g. fail-test.json). This is the developer's
+  //      explicit regulatory intent and is what the AI triage comparison needs.
+  //   2. req_id              — legacy field name; kept for backwards compat.
+  //   3. resolveDefaultReqId — alphabetical fallback when neither is supplied.
+  //
+  // The resolved value is stored in evidence_logs.req_id AND forwarded to
+  // FastAPI as original_req_id so the Bedrock triage comparison is correct.
+  const requestedReqId = (payload.target_requirement ?? payload.req_id)?.trim();
   let reqId: string;
 
   if (requestedReqId) {
@@ -303,7 +311,7 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
       reqId = rule.req_id as string;
     } else {
       console.warn(
-        `[ingest] req_id "${requestedReqId}" not found in regulatory_rules. Falling back to default.`,
+        `[ingest] req_id/target_requirement "${requestedReqId}" not found in regulatory_rules. Falling back to default.`,
       );
       reqId = await resolveDefaultReqId();
     }
