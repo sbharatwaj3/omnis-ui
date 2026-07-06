@@ -435,6 +435,17 @@ async function handleIngest(request: NextRequest): Promise<NextResponse> {
         execution_timestamp: executionTimestamp,
         is_deprecated: false,
         event_source: "omnis-cli",
+        // original_req_id carries the developer's pre-fallback regulatory tag
+        // (target_requirement ?? req_id from the CLI payload) so the FastAPI
+        // AI triage comparison can detect a genuine discrepancy between what the
+        // developer tagged and what Bedrock inferred.
+        //
+        // This value is set BEFORE the resolveDefaultReqId() fallback rewrites
+        // reqId, so it always reflects the developer's actual intent even when
+        // their tag was absent from regulatory_rules and reqId was replaced with
+        // the default. A null here means the developer supplied no tag at all —
+        // the triage gate in lock_ai_insights() will correctly skip the comparison.
+        original_req_id: requestedReqId ?? null,
       };
 
       // Serialise ONCE. This string is both the HTTP body and the HMAC input.
