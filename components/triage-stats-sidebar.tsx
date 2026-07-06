@@ -5,11 +5,11 @@
 // Renders high-level system stats (pending / approved / rejected counts)
 // and a system health indicator. Server Component — no interactivity needed.
 //
-// Design system compliance (QAVRO dark-canvas):
-//   - bg-slate-800 surface, border border-slate-700 hairline
+// Light-mode palette:
+//   - bg-white surface, border-zinc-200 hairline
 //   - rounded-sm (4px max), no shadow-*
 //   - font-mono for all numeric values (21 CFR telemetry rule)
-//   - Status colors: yellow = pending, green = approved, red = rejected
+//   - Status colors: amber = pending, green = approved, red = rejected
 //   - top-6 sticky within the scrollable main column
 
 import { getTriageStats } from "@/app/dashboard/triage/actions";
@@ -27,8 +27,8 @@ interface StatRowProps {
 
 function StatRow({ label, value, valueClass }: StatRowProps) {
   return (
-    <div className="flex items-center justify-between py-2.5 border-b border-slate-700 last:border-b-0">
-      <span className="text-xs text-slate-400">{label}</span>
+    <div className="flex items-center justify-between py-2.5 border-b border-zinc-100 last:border-b-0">
+      <span className="text-xs text-zinc-500">{label}</span>
       <span className={`font-mono text-sm font-medium tabular-nums ${valueClass}`}>
         {value}
       </span>
@@ -52,23 +52,23 @@ export async function TriageStatsSidebar() {
       className="sticky top-6 flex flex-col gap-4"
     >
       {/* ── System health card ─────────────────────────────────────────── */}
-      <div className="border border-slate-700 bg-slate-800 rounded-sm p-4">
+      <div className="border border-zinc-200 bg-white rounded-sm p-4">
         <div className="flex items-center gap-2 mb-3">
           <Activity
-            className={`h-3.5 w-3.5 ${allClear ? "text-green-500" : "text-yellow-500"}`}
+            className={`h-3.5 w-3.5 ${allClear ? "text-green-500" : "text-amber-500"}`}
             strokeWidth={1.75}
             aria-hidden="true"
           />
-          <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">
+          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
             System Health
           </span>
         </div>
         <p
-          className={`text-sm font-medium ${allClear ? "text-green-400" : "text-yellow-400"}`}
+          className={`text-sm font-medium ${allClear ? "text-green-700" : "text-amber-700"}`}
         >
           {allClear ? "All Clear" : "Review Required"}
         </p>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-zinc-400 mt-0.5">
           {allClear
             ? "No items pending human review."
             : `${stats.pending} item${stats.pending === 1 ? "" : "s"} awaiting QA review.`}
@@ -76,37 +76,37 @@ export async function TriageStatsSidebar() {
       </div>
 
       {/* ── Counts card ────────────────────────────────────────────────── */}
-      <div className="border border-slate-700 bg-slate-800 rounded-sm p-4">
-        <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+      <div className="border border-zinc-200 bg-white rounded-sm p-4">
+        <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-1">
           Queue Breakdown
         </p>
-        <p className="text-xs text-slate-600 mb-3 font-mono tabular-nums">
+        <p className="text-xs text-zinc-300 mb-3 font-mono tabular-nums">
           {total} total
         </p>
 
         <StatRow
           label="Pending Triages"
           value={stats.pending}
-          valueClass={stats.pending > 0 ? "text-yellow-400" : "text-slate-400"}
+          valueClass={stats.pending > 0 ? "text-amber-600" : "text-zinc-400"}
         />
         <StatRow
           label="Approved"
           value={stats.approved}
-          valueClass="text-green-500"
+          valueClass="text-green-600"
         />
         <StatRow
           label="Rejected"
           value={stats.rejected}
-          valueClass="text-red-400"
+          valueClass="text-red-500"
         />
       </div>
 
       {/* ── Info card ──────────────────────────────────────────────────── */}
-      <div className="border border-slate-700 bg-slate-800 rounded-sm p-4">
-        <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">
+      <div className="border border-zinc-200 bg-white rounded-sm p-4">
+        <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">
           How This Works
         </p>
-        <p className="text-xs leading-relaxed text-slate-500">
+        <p className="text-xs leading-relaxed text-zinc-500">
           When AWS Bedrock disagrees with the regulatory tag a developer applied
           to an evidence log, it flags the discrepancy here for human review.
         </p>

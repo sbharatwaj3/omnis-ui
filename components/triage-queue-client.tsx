@@ -207,8 +207,8 @@ export function TriageQueueClient({
       "px-3 py-1.5 text-xs font-medium rounded-sm border transition-colors",
       "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:outline-none",
       isActive
-        ? "border-violet-500 text-violet-400 bg-violet-950"
-        : "border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300 bg-transparent",
+        ? "border-violet-500 text-violet-700 bg-violet-50"
+        : "border-zinc-300 text-zinc-500 hover:border-zinc-400 hover:text-zinc-700 bg-white",
     ].join(" ");
   }
 
@@ -221,8 +221,8 @@ export function TriageQueueClient({
       "px-3 py-1.5 text-xs font-medium rounded-sm border transition-colors",
       "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:outline-none",
       isActive
-        ? "border-slate-500 text-slate-200 bg-gray-800"
-        : "border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300 bg-transparent",
+        ? "border-zinc-400 text-zinc-800 bg-zinc-100"
+        : "border-zinc-300 text-zinc-500 hover:border-zinc-400 hover:text-zinc-700 bg-white",
     ].join(" ");
   }
 
@@ -259,8 +259,8 @@ export function TriageQueueClient({
               className={[
                 "flex items-start gap-2.5 border rounded-sm px-4 py-3 text-sm font-medium max-w-sm",
                 toast.type === "success"
-                  ? "border-green-600 bg-slate-800 text-green-400"
-                  : "border-red-700 bg-slate-800 text-red-400",
+                  ? "border-green-300 bg-green-50 text-green-800"
+                  : "border-red-300 bg-red-50 text-red-700",
               ].join(" ")}
             >
               <span className="leading-snug flex-1">{toast.message}</span>
@@ -314,7 +314,7 @@ export function TriageQueueClient({
           aria-label="Sort order"
           className="flex items-center gap-1.5"
         >
-          <span className="text-xs text-slate-500 mr-1">Sort:</span>
+          <span className="text-xs text-zinc-400 mr-1">Sort:</span>
           {(
             [
               ["oldest_first", "Oldest First"],
@@ -338,16 +338,16 @@ export function TriageQueueClient({
       {/* ---------------------------------------------------------------- */}
       {displayItems.length === 0 ? (
         /* Empty state — visible <p>, NOT aria-hidden (Req 12.4) */
-        <div className="flex flex-col items-center justify-center border border-slate-700 bg-slate-800 rounded-sm py-12 text-center">
+        <div className="flex flex-col items-center justify-center border border-zinc-200 bg-white rounded-sm py-12 text-center">
           <Inbox
-            className="mb-3 h-10 w-10 text-slate-600"
+            className="mb-3 h-10 w-10 text-zinc-300"
             strokeWidth={1.25}
             aria-hidden="true"
           />
           <p
             ref={emptyStateRef}
             tabIndex={-1}
-            className="text-sm font-medium text-slate-400"
+            className="text-sm font-medium text-zinc-500"
           >
             {statusFilter === "all"
               ? "Triage inbox is clear — no pending AI flags require review."

@@ -22,9 +22,9 @@ const STATUS_CLASSES: Record<
   "pending" | "approved" | "rejected",
   string
 > = {
-  pending: "border-yellow-500 text-yellow-500",
-  approved: "border-green-500 text-green-500",
-  rejected: "border-red-500 text-red-500",
+  pending: "border-amber-400 text-amber-600",
+  approved: "border-green-500 text-green-700",
+  rejected: "border-red-400 text-red-600",
 };
 
 interface TriageStatusBadgeProps {

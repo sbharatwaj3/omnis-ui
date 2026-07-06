@@ -77,7 +77,7 @@ export function TriageItemCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="bg-slate-800 border border-slate-700 rounded-sm hover:bg-slate-700/50 p-4 transition-colors"
+      className="bg-white border border-zinc-200 rounded-sm hover:bg-zinc-50 p-4 transition-colors"
     >
       {/* ----------------------------------------------------------------- */}
       {/* Card header — status badge + evidence log ID + timestamp           */}
@@ -90,13 +90,13 @@ export function TriageItemCard({
         {/* NOTE: item.id (ai_triage_queue.id) is intentionally NOT rendered */}
         <span
           title={item.evidence_log_id}
-          className="font-mono text-xs text-slate-400"
+          className="font-mono text-xs text-zinc-500"
         >
           {truncateUuid(item.evidence_log_id)}
         </span>
 
         {/* Timestamp (Requirements 2.5, 11.4) */}
-        <span className="font-mono text-xs text-slate-500">
+        <span className="font-mono text-xs text-zinc-400">
           {formatTimestamp(item.created_at)}
         </span>
       </div>
@@ -107,12 +107,12 @@ export function TriageItemCard({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
         {/* Developer Tag */}
         <div className="flex flex-col gap-1">
-          <span className="text-xs text-slate-500 uppercase tracking-wide font-medium">
+          <span className="text-xs text-zinc-400 uppercase tracking-wide font-medium">
             Developer Tag
           </span>
           <span
             className={`font-mono text-sm ${
-              reqIdsDiffer ? "text-yellow-400" : "text-slate-300"
+              reqIdsDiffer ? "text-amber-600" : "text-zinc-700"
             }`}
           >
             {item.original_req_id}
@@ -121,12 +121,12 @@ export function TriageItemCard({
 
         {/* AI Suggestion */}
         <div className="flex flex-col gap-1">
-          <span className="text-xs text-slate-500 uppercase tracking-wide font-medium">
+          <span className="text-xs text-zinc-400 uppercase tracking-wide font-medium">
             AI Suggestion
           </span>
           <span
             className={`font-mono text-sm ${
-              reqIdsDiffer ? "text-blue-400" : "text-slate-300"
+              reqIdsDiffer ? "text-blue-600" : "text-zinc-700"
             }`}
           >
             {item.suggested_req_id}
@@ -146,9 +146,9 @@ export function TriageItemCard({
           aria-controls={`reasoning-${item.id}`}
           className={[
             "inline-flex items-center gap-1.5 text-xs font-medium rounded-sm",
-            "text-slate-400 hover:text-slate-200 transition-colors",
+            "text-zinc-500 hover:text-zinc-800 transition-colors",
             "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2",
-            "focus-visible:ring-offset-slate-800 focus-visible:outline-none",
+            "focus-visible:ring-offset-white focus-visible:outline-none",
           ].join(" ")}
         >
           {isReasoningExpanded ? (
@@ -176,13 +176,13 @@ export function TriageItemCard({
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="overflow-hidden"
             >
-              <div className="mt-2 border border-slate-700 bg-slate-900/50 rounded-sm px-3 py-3">
+              <div className="mt-2 border border-zinc-200 bg-zinc-50 rounded-sm px-3 py-3">
                 {item.ai_reasoning ? (
-                  <p className="text-sm text-slate-300 leading-relaxed">
+                  <p className="text-sm text-zinc-700 leading-relaxed">
                     {item.ai_reasoning}
                   </p>
                 ) : (
-                  <p className="text-sm text-slate-600 italic">
+                  <p className="text-sm text-zinc-400 italic">
                     No AI reasoning provided
                   </p>
                 )}
@@ -196,10 +196,10 @@ export function TriageItemCard({
       {/* Action buttons — only rendered for pending items (Req 9.5, 15)    */}
       {/* ----------------------------------------------------------------- */}
       {item.status === "pending" && (
-        <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-700">
+        <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-zinc-200">
           {/* Viewer-owned tooltip hint (Requirement 6.4) */}
           {isViewerOwned && (
-            <span className="text-xs text-slate-500 mr-auto">
+            <span className="text-xs text-zinc-400 mr-auto">
               You cannot resolve your own submission
             </span>
           )}
@@ -212,7 +212,7 @@ export function TriageItemCard({
             aria-disabled={isDisabled}
             className={[
               "inline-flex items-center justify-center gap-1.5",
-              "border border-green-600 text-green-400 hover:bg-green-900/30",
+              "border border-green-600 text-green-700 hover:bg-green-50",
               "rounded-sm px-3 py-1.5 text-sm",
               "active:scale-95",
               "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:outline-none",
@@ -235,7 +235,7 @@ export function TriageItemCard({
             aria-disabled={isDisabled}
             className={[
               "inline-flex items-center justify-center gap-1.5",
-              "border border-red-700 text-red-400 hover:bg-red-900/30",
+              "border border-red-300 text-red-600 hover:bg-red-50",
               "rounded-sm px-3 py-1.5 text-sm",
               "active:scale-95",
               "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:outline-none",

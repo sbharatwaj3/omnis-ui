@@ -160,14 +160,19 @@ async function resolveCallerContext(): Promise<{
 }
 
 // ---------------------------------------------------------------------------
-// Action: getPendingTriageItems
+// Action: getAllTriageItems
 // ---------------------------------------------------------------------------
-// Fetches rows in ai_triage_queue where status = 'pending'.
+// Fetches ALL rows in ai_triage_queue (pending, approved, and rejected) for
+// the caller's org. This replaces the previous getPendingTriageItems which
+// only fetched status = 'pending', causing the Approved and Rejected filter
+// tabs to always render empty even when records existed.
+//
+// The client-side status filter in TriageQueueClient now works correctly
+// because the full dataset is loaded once on mount.
 //
 // Access rules by role:
-//   admin / qa_manager → all pending items for the org
+//   admin / qa_manager → all items for the org (all statuses)
 //   developer          → only items linked to their own evidence logs
-//                        (evidence_logs.user_id = caller's user_id)
 //   viewer             → Forbidden; returns empty list + error
 //
 // Both org_id and user_id are selected from the evidence_logs join to enable
@@ -175,7 +180,7 @@ async function resolveCallerContext(): Promise<{
 // client to avoid leaking internal join data.
 // ---------------------------------------------------------------------------
 
-export async function getPendingTriageItems(): Promise<GetPendingTriageResult> {
+export async function getAllTriageItems(): Promise<GetPendingTriageResult> {
   // Verify session and resolve identity.
   const { userId, orgId, role, error: ctxError } = await resolveCallerContext();
 
@@ -200,8 +205,7 @@ export async function getPendingTriageItems(): Promise<GetPendingTriageResult> {
   }
 
   // Developer path: scope results to only the developer's own evidence logs.
-  // The select includes both org_id and user_id so we can filter on both;
-  // both are stripped before returning to the client.
+  // No status filter — all statuses are returned so client-side tabs work.
   if (role === "developer") {
     const { data, error } = await adminClient
       .from("ai_triage_queue")
@@ -217,28 +221,20 @@ export async function getPendingTriageItems(): Promise<GetPendingTriageResult> {
         evidence_logs!inner ( org_id, user_id )
         `
       )
-      .eq("status", "pending")
       .eq("evidence_logs.org_id", orgId)
       .eq("evidence_logs.user_id", userId!)
       .order("created_at", { ascending: true });
 
     if (error) {
-      console.error("[getPendingTriageItems] Supabase select error (developer path):", error.message);
+      console.error("[getAllTriageItems] Supabase select error (developer path):", error.message);
       return { items: [], error: "Database error: could not load triage queue." };
     }
 
-    // Strip both org_id and user_id from the joined evidence_logs column —
-    // these are internal join fields and must not be sent to the client.
     const items = (data ?? []).map(({ evidence_logs: _join, ...rest }) => rest) as AiTriageQueueRow[];
-
     return { items };
   }
 
-  // Admin / QA Manager path: fetch all pending items for the org.
-  // The adminClient is used here so the query is not dependent on the
-  // authenticated user's RLS context — the role check above is our explicit
-  // authorisation layer.  We scope to the caller's org by joining through
-  // evidence_logs.
+  // Admin / QA Manager path: all items for the org, all statuses.
   const { data, error } = await adminClient
     .from("ai_triage_queue")
     .select(
@@ -253,20 +249,27 @@ export async function getPendingTriageItems(): Promise<GetPendingTriageResult> {
       evidence_logs!inner ( org_id, user_id )
       `
     )
-    .eq("status", "pending")
     .eq("evidence_logs.org_id", orgId)
     .order("created_at", { ascending: true });
 
   if (error) {
-    console.error("[getPendingTriageItems] Supabase select error:", error.message);
+    console.error("[getAllTriageItems] Supabase select error:", error.message);
     return { items: [], error: "Database error: could not load triage queue." };
   }
 
-  // Strip both org_id and user_id from the joined evidence_logs column —
-  // these are internal join fields and must not be sent to the client.
   const items = (data ?? []).map(({ evidence_logs: _join, ...rest }) => rest) as AiTriageQueueRow[];
-
   return { items };
+}
+
+// ---------------------------------------------------------------------------
+// Action: getPendingTriageItems (kept for backwards compatibility)
+// ---------------------------------------------------------------------------
+// Legacy alias — delegates to getAllTriageItems so existing callers are not
+// broken. New code should call getAllTriageItems directly.
+// ---------------------------------------------------------------------------
+
+export async function getPendingTriageItems(): Promise<GetPendingTriageResult> {
+  return getAllTriageItems();
 }
 
 // ---------------------------------------------------------------------------

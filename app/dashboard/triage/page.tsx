@@ -9,12 +9,8 @@
 //   - force-dynamic: every request fetches a fresh snapshot.
 //
 // Layout: two-column CSS Grid at ≥lg breakpoint.
-//   Left column  — max-w-5xl centered feed (the Triage Queue)
+//   Left column  — centered feed (the Triage Queue)
 //   Right column — sticky sidebar (TriageStatsSidebar: counts + health)
-//
-// Visual refresh (MedTech Slate):
-//   - Page canvas: bg-slate-900 (softer than pure bg-gray-950)
-//   - Cards: bg-slate-800 surface, border-slate-700 hairline
 //
 // Requirements satisfied: 1.6, 1.7, 1.8, 10.4, 10.5, 11.1, 12.5
 
@@ -57,8 +53,8 @@ async function TriageContent({
   // Timeout path — Requirement 10.5
   if (result === TIMEOUT_SENTINEL) {
     return (
-      <div className="border border-red-700 bg-slate-800 rounded-sm px-5 py-4">
-        <p className="text-sm text-red-400">
+      <div className="border border-red-200 bg-red-50 rounded-sm px-5 py-4">
+        <p className="text-sm text-red-600">
           Loading triage queue timed out. Please refresh the page.
         </p>
       </div>
@@ -70,8 +66,8 @@ async function TriageContent({
   // Database error path — Requirement 1.4
   if (error) {
     return (
-      <div className="border border-red-700 bg-slate-800 rounded-sm px-5 py-4">
-        <p className="text-sm font-medium text-red-400">Could not load triage queue</p>
+      <div className="border border-red-200 bg-red-50 rounded-sm px-5 py-4">
+        <p className="text-sm font-medium text-red-600">Could not load triage queue</p>
         <p className="mt-1 text-xs text-red-500">Please try again later.</p>
       </div>
     );
@@ -133,16 +129,16 @@ export default async function TriagePage() {
   // Two-column layout: centered feed (max-w-5xl) + sticky sidebar
   // -------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-zinc-50">
       <DashboardHeader subtitle="FDA Assurance Dashboard · Live" />
 
       <main className="mx-auto max-w-screen-xl w-full px-6 py-6 md:px-8 md:py-10">
         {/* Page header ───────────────────────────────────────────────────── */}
         {/* Requirement 12.5 — visible <h1> landmark heading */}
-        <h1 className="text-xl font-semibold text-slate-100 mb-1">
+        <h1 className="text-xl font-semibold text-zinc-900 mb-1">
           AI Triage Inbox
         </h1>
-        <p className="text-sm text-slate-500 mb-6">
+        <p className="text-sm text-zinc-500 mb-6">
           Review and resolve requirement tag discrepancies flagged by AWS Bedrock.
         </p>
 
@@ -161,10 +157,10 @@ export default async function TriagePage() {
           {/* ── Right: sticky stats sidebar ────────────────────────────── */}
           <Suspense
             fallback={
-              <div className="border border-slate-700 bg-slate-800 rounded-sm p-4 animate-pulse">
-                <div className="h-3 bg-slate-700 rounded-sm w-1/2 mb-3" />
-                <div className="h-3 bg-slate-700 rounded-sm w-full mb-2" />
-                <div className="h-3 bg-slate-700 rounded-sm w-3/4" />
+              <div className="border border-zinc-200 bg-white rounded-sm p-4 animate-pulse">
+                <div className="h-3 bg-zinc-100 rounded-sm w-1/2 mb-3" />
+                <div className="h-3 bg-zinc-100 rounded-sm w-full mb-2" />
+                <div className="h-3 bg-zinc-100 rounded-sm w-3/4" />
               </div>
             }
           >
