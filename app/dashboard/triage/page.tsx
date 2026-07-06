@@ -1,115 +1,176 @@
 // omnis-ui/app/dashboard/triage/page.tsx
+//
 // AI Triage Queue — Server Component page.
 //
-// Fetches pending triage items server-side and passes them to the client
-// component for interactive rendering. Accessible only to admin/qa_manager
-// roles (enforced in the Server Action; this page provides no auth bypass).
+// CONSTITUTION LAW (§VII):
+//   - Identity and org_id are re-derived from the Supabase server-side JWT.
+//   - Viewer role is redirected to /dashboard at the page level.
+//   - Unauthenticated users are redirected to /login?next=/dashboard/triage.
+//   - force-dynamic: every request fetches a fresh snapshot.
 //
-// force-dynamic: every request fetches a fresh snapshot so that items
-// resolved by other QA reviewers are reflected immediately.
+// Layout: two-column CSS Grid at ≥lg breakpoint.
+//   Left column  — max-w-5xl centered feed (the Triage Queue)
+//   Right column — sticky sidebar (TriageStatsSidebar: counts + health)
+//
+// Visual refresh (MedTech Slate):
+//   - Page canvas: bg-slate-900 (softer than pure bg-gray-950)
+//   - Cards: bg-slate-800 surface, border-slate-700 hairline
+//
+// Requirements satisfied: 1.6, 1.7, 1.8, 10.4, 10.5, 11.1, 12.5
 
 export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
-import { Brain } from "lucide-react";
+import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
+import { adminClient } from "@/utils/supabase/admin";
 import { getPendingTriageItems } from "@/app/dashboard/triage/actions";
 import { TriageQueueClient } from "@/components/triage-queue-client";
+import { TriageSkeleton } from "@/components/triage-skeleton";
 import { DashboardHeader } from "@/components/dashboard-header";
+import { TriageStatsSidebar } from "@/components/triage-stats-sidebar";
 
 // ---------------------------------------------------------------------------
-// Skeleton
+// Timeout sentinel — used by TriageContent to cap the fetch at 10 seconds
 // ---------------------------------------------------------------------------
 
-function TriageSkeleton() {
-  return (
-    <div className="flex flex-col gap-3">
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="h-40 animate-pulse rounded border border-zinc-200 bg-zinc-50"
-        />
-      ))}
-    </div>
+const TIMEOUT_SENTINEL = "TIMEOUT" as const;
+
+// ---------------------------------------------------------------------------
+// TriageContent — async Server Component streamed inside Suspense
+// ---------------------------------------------------------------------------
+
+async function TriageContent({
+  viewerRole,
+}: {
+  viewerRole: "qa_manager" | "admin" | "developer";
+}) {
+  const timeoutPromise = new Promise<typeof TIMEOUT_SENTINEL>((resolve) =>
+    setTimeout(() => resolve(TIMEOUT_SENTINEL), 10_000)
   );
-}
 
-// ---------------------------------------------------------------------------
-// Content — async server component streamed inside Suspense
-// ---------------------------------------------------------------------------
+  const result = await Promise.race([
+    getPendingTriageItems(),
+    timeoutPromise,
+  ]);
 
-async function TriageContent() {
-  const { items, error } = await getPendingTriageItems();
-
-  if (error) {
+  // Timeout path — Requirement 10.5
+  if (result === TIMEOUT_SENTINEL) {
     return (
-      <div className="flex flex-col items-center justify-center rounded border border-red-200 bg-red-50 py-12 text-center">
-        <Brain className="mb-3 h-8 w-8 text-red-300" strokeWidth={1.25} />
-        <p className="text-sm font-semibold text-red-700">
-          Could not load triage queue
+      <div className="border border-red-700 bg-slate-800 rounded-sm px-5 py-4">
+        <p className="text-sm text-red-400">
+          Loading triage queue timed out. Please refresh the page.
         </p>
-        <p className="mt-1 text-xs text-red-500">{error}</p>
       </div>
     );
   }
 
-  return <TriageQueueClient initialItems={items} />;
+  const { items, error } = result;
+
+  // Database error path — Requirement 1.4
+  if (error) {
+    return (
+      <div className="border border-red-700 bg-slate-800 rounded-sm px-5 py-4">
+        <p className="text-sm font-medium text-red-400">Could not load triage queue</p>
+        <p className="mt-1 text-xs text-red-500">Please try again later.</p>
+      </div>
+    );
+  }
+
+  return <TriageQueueClient initialItems={items} viewerRole={viewerRole} />;
 }
 
 // ---------------------------------------------------------------------------
-// Page export
+// TriagePage — page export
 // ---------------------------------------------------------------------------
 
-export default function TriagePage() {
+export default async function TriagePage() {
+  // -------------------------------------------------------------------------
+  // Auth: derive identity from the server-side Supabase session.
+  // Never trust client-supplied parameters for identity or org resolution.
+  // -------------------------------------------------------------------------
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Requirement 1.8 — unauthenticated → redirect to login
+  if (!user) {
+    redirect("/login?next=/dashboard/triage");
+  }
+
+  // Resolve org_id from the users table (never from client params)
+  const { data: profile } = await supabase
+    .from("users")
+    .select("org_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!profile?.org_id) {
+    redirect("/login?next=/dashboard/triage");
+  }
+
+  // Resolve RBAC role via adminClient (bypasses RLS; org guard is explicit)
+  const { data: roleRow } = await adminClient
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("org_id", profile.org_id)
+    .single();
+
+  const role = roleRow?.role ?? null;
+
+  // Requirement 1.6 — viewer → redirect to /dashboard
+  if (role === "viewer") {
+    redirect("/dashboard");
+  }
+
+  // Cast to the union type accepted by TriageQueueClient
+  const viewerRole = (role ?? "developer") as "qa_manager" | "admin" | "developer";
+
+  // -------------------------------------------------------------------------
+  // Render — MedTech Slate visual refresh (Requirement 11.1)
+  // Two-column layout: centered feed (max-w-5xl) + sticky sidebar
+  // -------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-zinc-50">
-      {/* Header */}
+    <div className="min-h-screen bg-slate-900">
       <DashboardHeader subtitle="FDA Assurance Dashboard · Live" />
 
-      {/* Main content */}
-      <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
-        {/* Page header */}
-        <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <Brain className="h-5 w-5 text-amber-500" strokeWidth={1.75} />
-              <h2 className="text-xl font-bold tracking-tight text-zinc-900">
-                AI Triage Inbox
-              </h2>
-            </div>
-            <p className="mt-0.5 text-sm text-zinc-500">
-              Review and resolve requirement tag discrepancies flagged by AWS Bedrock
-              during compliance analysis.
-            </p>
+      <main className="mx-auto max-w-screen-xl w-full px-6 py-6 md:px-8 md:py-10">
+        {/* Page header ───────────────────────────────────────────────────── */}
+        {/* Requirement 12.5 — visible <h1> landmark heading */}
+        <h1 className="text-xl font-semibold text-slate-100 mb-1">
+          AI Triage Inbox
+        </h1>
+        <p className="text-sm text-slate-500 mb-6">
+          Review and resolve requirement tag discrepancies flagged by AWS Bedrock.
+        </p>
+
+        {/* Two-column layout: feed + sidebar ─────────────────────────────── */}
+        {/* On <lg screens stacks vertically (sidebar below feed) */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
+
+          {/* ── Left: triage feed, width-constrained ───────────────────── */}
+          <div className="min-w-0">
+            {/* Triage queue — streamed inside Suspense with skeleton fallback */}
+            <Suspense fallback={<TriageSkeleton />}>
+              <TriageContent viewerRole={viewerRole} />
+            </Suspense>
           </div>
-        </div>
 
-        {/* Guidance banner */}
-        <div className="mb-5 rounded border border-amber-200 bg-amber-50 px-5 py-4">
-          <p className="mb-2 text-xs font-semibold text-amber-800">How this works</p>
-          <p className="text-xs leading-relaxed text-amber-700">
-            When AWS Bedrock&apos;s AI analysis disagrees with the regulatory tag a developer
-            applied to an evidence log, it flags the discrepancy here for human review.
-          </p>
-          <ul className="mt-3 space-y-2 text-xs leading-relaxed text-amber-700">
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 shrink-0 rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                Approve AI Fix
-              </span>
-              <span>Re-tags the original evidence log to the AI&apos;s suggested regulatory requirement.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 shrink-0 rounded bg-zinc-200 px-2 py-0.5 text-[10px] font-semibold text-zinc-600">
-                Reject / Keep Original
-              </span>
-              <span>Dismisses the flag and preserves the developer&apos;s original tag.</span>
-            </li>
-          </ul>
+          {/* ── Right: sticky stats sidebar ────────────────────────────── */}
+          <Suspense
+            fallback={
+              <div className="border border-slate-700 bg-slate-800 rounded-sm p-4 animate-pulse">
+                <div className="h-3 bg-slate-700 rounded-sm w-1/2 mb-3" />
+                <div className="h-3 bg-slate-700 rounded-sm w-full mb-2" />
+                <div className="h-3 bg-slate-700 rounded-sm w-3/4" />
+              </div>
+            }
+          >
+            <TriageStatsSidebar />
+          </Suspense>
         </div>
-
-        {/* Queue */}
-        <Suspense fallback={<TriageSkeleton />}>
-          <TriageContent />
-        </Suspense>
       </main>
     </div>
   );

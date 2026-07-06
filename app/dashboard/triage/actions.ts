@@ -37,7 +37,8 @@ import type { AiTriageQueueRow, TriageStatus } from "@/types/supabase";
 
 /**
  * Writes a single immutable record to the audit_logs table.
- * Fails loudly on error — silent audit failures violate 21 CFR Part 11.
+ * Returns { error: string | null } so the caller can detect failure.
+ * Silent audit failures violate 21 CFR Part 11 — callers must propagate errors.
  */
 async function writeAuditLog({
   userId,
@@ -55,7 +56,7 @@ async function writeAuditLog({
   entityId: string;
   before: Record<string, unknown> | null;
   after: Record<string, unknown> | null;
-}): Promise<void> {
+}): Promise<{ error: string | null }> {
   const { error } = await adminClient.from("audit_logs").insert({
     user_id: userId,
     org_id: orgId,
@@ -66,17 +67,10 @@ async function writeAuditLog({
   });
 
   if (error) {
-    console.error(
-      "[AUDIT TRAIL] CRITICAL: audit_logs insert failed. " +
-        "This is a 21 CFR Part 11 violation. Investigate immediately.",
-      {
-        action_type: actionType,
-        entity_type: entityType,
-        entity_id: entityId,
-        error: error.message,
-      },
-    );
+    return { error: error.message };
   }
+
+  return { error: null };
 }
 
 // ---------------------------------------------------------------------------
@@ -91,6 +85,10 @@ export interface GetPendingTriageResult {
 export interface ResolveTriageResult {
   success: boolean;
   error?: string;
+  /** The AI-suggested req_id that was applied (approve path) or would have been applied (reject path). */
+  suggestedReqId?: string;
+  /** The actual req_id on the evidence_log at the time of resolution (captured at call time). */
+  originalReqId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -164,36 +162,83 @@ async function resolveCallerContext(): Promise<{
 // ---------------------------------------------------------------------------
 // Action: getPendingTriageItems
 // ---------------------------------------------------------------------------
-// Fetches all rows in ai_triage_queue where status = 'pending'.
+// Fetches rows in ai_triage_queue where status = 'pending'.
 //
-// Access: admin and qa_manager only.  Developers and viewers receive a
-// permission-denied error — the queue shows organisation-wide flags, not
-// just the caller's own logs.
+// Access rules by role:
+//   admin / qa_manager → all pending items for the org
+//   developer          → only items linked to their own evidence logs
+//                        (evidence_logs.user_id = caller's user_id)
+//   viewer             → Forbidden; returns empty list + error
 //
-// The query is executed through the user-scoped Supabase client so Postgres
-// RLS policies act as a second layer of defence behind the role check here.
+// Both org_id and user_id are selected from the evidence_logs join to enable
+// filtering, but both are stripped before the items are returned to the
+// client to avoid leaking internal join data.
 // ---------------------------------------------------------------------------
 
 export async function getPendingTriageItems(): Promise<GetPendingTriageResult> {
   // Verify session and resolve identity.
-  const { orgId, role, error: ctxError } = await resolveCallerContext();
+  const { userId, orgId, role, error: ctxError } = await resolveCallerContext();
 
   if (ctxError || !orgId || !role) {
     return { items: [], error: ctxError ?? "Unauthorized." };
   }
 
-  // Gate: only admin and qa_manager may view the triage queue.
-  if (!["admin", "qa_manager"].includes(role)) {
+  // Gate: viewers have no access to the triage queue whatsoever.
+  if (role === "viewer") {
+    return {
+      items: [],
+      error: "Forbidden: viewers do not have access to the triage queue.",
+    };
+  }
+
+  // Gate: only admin, qa_manager, and developer may access the triage queue.
+  if (!["admin", "qa_manager", "developer"].includes(role)) {
     return {
       items: [],
       error: "Forbidden: only QA managers and admins can access the triage queue.",
     };
   }
 
-  // Fetch all pending items.  The adminClient is used here so the query is not
-  // dependent on the authenticated user's RLS context — the role check above
-  // is our explicit authorisation layer.  We still scope to the caller's org
-  // by joining through evidence_logs.
+  // Developer path: scope results to only the developer's own evidence logs.
+  // The select includes both org_id and user_id so we can filter on both;
+  // both are stripped before returning to the client.
+  if (role === "developer") {
+    const { data, error } = await adminClient
+      .from("ai_triage_queue")
+      .select(
+        `
+        id,
+        evidence_log_id,
+        original_req_id,
+        suggested_req_id,
+        ai_reasoning,
+        status,
+        created_at,
+        evidence_logs!inner ( org_id, user_id )
+        `
+      )
+      .eq("status", "pending")
+      .eq("evidence_logs.org_id", orgId)
+      .eq("evidence_logs.user_id", userId!)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("[getPendingTriageItems] Supabase select error (developer path):", error.message);
+      return { items: [], error: "Database error: could not load triage queue." };
+    }
+
+    // Strip both org_id and user_id from the joined evidence_logs column —
+    // these are internal join fields and must not be sent to the client.
+    const items = (data ?? []).map(({ evidence_logs: _join, ...rest }) => rest) as AiTriageQueueRow[];
+
+    return { items };
+  }
+
+  // Admin / QA Manager path: fetch all pending items for the org.
+  // The adminClient is used here so the query is not dependent on the
+  // authenticated user's RLS context — the role check above is our explicit
+  // authorisation layer.  We scope to the caller's org by joining through
+  // evidence_logs.
   const { data, error } = await adminClient
     .from("ai_triage_queue")
     .select(
@@ -205,7 +250,7 @@ export async function getPendingTriageItems(): Promise<GetPendingTriageResult> {
       ai_reasoning,
       status,
       created_at,
-      evidence_logs!inner ( org_id )
+      evidence_logs!inner ( org_id, user_id )
       `
     )
     .eq("status", "pending")
@@ -217,8 +262,8 @@ export async function getPendingTriageItems(): Promise<GetPendingTriageResult> {
     return { items: [], error: "Database error: could not load triage queue." };
   }
 
-  // Strip the joined evidence_logs column before returning to the client —
-  // it was only needed for the org scope guard.
+  // Strip both org_id and user_id from the joined evidence_logs column —
+  // these are internal join fields and must not be sent to the client.
   const items = (data ?? []).map(({ evidence_logs: _join, ...rest }) => rest) as AiTriageQueueRow[];
 
   return { items };
@@ -280,6 +325,9 @@ export async function resolveTriageItem(
   }
 
   // Step 1: Fetch the triage row to obtain evidence_log_id and suggested_req_id.
+  // We also fetch evidence_logs.req_id to capture the ACTUAL current req_id on
+  // the evidence log at call time — this is what goes into the audit before snapshot
+  // (not the cached original_req_id from when the triage item was created).
   // We scope to the caller's org by joining evidence_logs to prevent a
   // cross-tenant UUID-guessing attack.
   const { data: triageRow, error: fetchError } = await adminClient
@@ -290,7 +338,7 @@ export async function resolveTriageItem(
       evidence_log_id,
       suggested_req_id,
       status,
-      evidence_logs!inner ( org_id )
+      evidence_logs!inner ( org_id, req_id )
       `
     )
     .eq("id", id)
@@ -357,30 +405,162 @@ export async function resolveTriageItem(
 
   // Step 4: Write the 21 CFR Part 11 audit record for this triage resolution.
   // entity_id is the evidence_log_id — the EVIDENCE_LOG that was re-tagged.
-  await writeAuditLog({
+  //
+  // before.original_req_id uses evidence_logs.req_id fetched at call time (Step 1),
+  // NOT ai_triage_queue.original_req_id, ensuring the audit captures the actual
+  // state of the evidence log at the moment of resolution.
+  //
+  // The evidenceLog join result is typed as an object (from !inner join).
+  const evidenceLog = triageRow.evidence_logs as unknown as { org_id: string; req_id: string };
+
+  const auditBefore = {
+    triage_id: id,
+    status: "pending",
+    original_req_id: evidenceLog.req_id,
+  };
+
+  const auditAfter =
+    resolution === "approved"
+      ? {
+          resolution: "approved",
+          resolved_by: userId ?? "service_role",
+          req_id_updated_to: triageRow.suggested_req_id,
+        }
+      : {
+          resolution: "rejected",
+          resolved_by: userId ?? "service_role",
+          req_id_updated_to: null,
+        };
+
+  const auditResult = await writeAuditLog({
     userId: userId ?? "service_role",
     orgId,
     actionType: "TRIAGE_RESOLVE",
     entityType: "EVIDENCE_LOG",
     entityId: triageRow.evidence_log_id,
-    before: {
-      triage_id: id,
-      status: "pending",
-      original_req_id: triageRow.suggested_req_id,
-    },
-    after: {
-      triage_id: id,
-      status: resolution,
-      resolved_by: userId ?? "service_role",
-      ...(resolution === "approved"
-        ? { req_id_updated_to: triageRow.suggested_req_id }
-        : { req_id_unchanged: true }),
-    },
+    before: auditBefore,
+    after: auditAfter,
   });
 
+  if (auditResult.error) {
+    console.error(
+      "[AUDIT TRAIL] CRITICAL: audit_logs insert failed for triage item " +
+        id +
+        ". This is a 21 CFR Part 11 violation. Investigate immediately.",
+      {
+        triage_id: id,
+        action_type: "TRIAGE_RESOLVE",
+        entity_type: "EVIDENCE_LOG",
+        entity_id: triageRow.evidence_log_id,
+        error: auditResult.error,
+      },
+    );
+    return {
+      success: false,
+      error:
+        "Compliance audit record failed to write. Contact an administrator.",
+    };
+  }
+
   // Step 5: Revalidate affected pages.
+  // Revalidate both the triage inbox and the dashboard root so the layout
+  // badge count updates on next navigation.
   revalidatePath("/dashboard/triage");
+  revalidatePath("/dashboard");
   revalidatePath(`/logs/${triageRow.evidence_log_id}`);
 
-  return { success: true };
+  return {
+    success: true,
+    suggestedReqId: triageRow.suggested_req_id,
+    originalReqId: evidenceLog.req_id,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Action: getPendingCount
+// ---------------------------------------------------------------------------
+// Returns the number of pending triage items for the caller's org.
+//
+// Used by DashboardLayout during SSR to populate the navigation badge.
+// Does NOT require a QA Manager / Admin role — the caller is responsible for
+// not rendering the badge for developer/viewer roles (Requirement 8.7).
+//
+// All failure modes (unauthenticated, missing org, DB error) return
+// { count: 0 } so the badge silently hides rather than surfacing an error
+// in the navigation chrome.
+// ---------------------------------------------------------------------------
+
+export async function getPendingCount(): Promise<{ count: number; error?: string }> {
+  // Resolve the caller's org_id from the trusted server-side session.
+  // If this fails for any reason, return { count: 0 } — do NOT surface an error.
+  const { orgId, error: ctxError } = await resolveCallerContext();
+
+  if (ctxError || !orgId) {
+    return { count: 0 };
+  }
+
+  // COUNT query — { count: "exact", head: true } avoids fetching row data.
+  // Org scoping is enforced via the evidence_logs join predicate.
+  const { count, error } = await adminClient
+    .from("ai_triage_queue")
+    .select("id, evidence_logs!inner ( org_id )", { count: "exact", head: true })
+    .eq("status", "pending")
+    .eq("evidence_logs.org_id", orgId);
+
+  if (error) {
+    // DB errors are swallowed — the badge silently hides (Requirement 8.7).
+    console.error("[getPendingCount] Supabase count error:", error.message);
+    return { count: 0 };
+  }
+
+  return { count: count ?? 0 };
+}
+
+// ---------------------------------------------------------------------------
+// Action: getTriageStats
+// ---------------------------------------------------------------------------
+// Returns a breakdown of pending / approved / rejected counts for the
+// caller's org. Used by TriageStatsSidebar to display high-level system
+// health at a glance. Read-only — no mutations.
+//
+// All failure modes return zeroed counts so the sidebar renders gracefully.
+// ---------------------------------------------------------------------------
+
+export interface TriageStatsResult {
+  pending: number;
+  approved: number;
+  rejected: number;
+}
+
+export async function getTriageStats(): Promise<TriageStatsResult> {
+  const { orgId, error: ctxError } = await resolveCallerContext();
+
+  if (ctxError || !orgId) {
+    return { pending: 0, approved: 0, rejected: 0 };
+  }
+
+  // Run three COUNT queries in parallel — one per status.
+  const [pendingResult, approvedResult, rejectedResult] = await Promise.all([
+    adminClient
+      .from("ai_triage_queue")
+      .select("id, evidence_logs!inner ( org_id )", { count: "exact", head: true })
+      .eq("status", "pending")
+      .eq("evidence_logs.org_id", orgId),
+    adminClient
+      .from("ai_triage_queue")
+      .select("id, evidence_logs!inner ( org_id )", { count: "exact", head: true })
+      .eq("status", "approved")
+      .eq("evidence_logs.org_id", orgId),
+    adminClient
+      .from("ai_triage_queue")
+      .select("id, evidence_logs!inner ( org_id )", { count: "exact", head: true })
+      .eq("status", "rejected")
+      .eq("evidence_logs.org_id", orgId),
+  ]);
+
+  return {
+    pending: pendingResult.count ?? 0,
+    approved: approvedResult.count ?? 0,
+    rejected: rejectedResult.count ?? 0,
+  };
 }
