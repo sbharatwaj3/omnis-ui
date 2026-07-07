@@ -316,30 +316,36 @@ export function TriageItemCard({
                   <p id="confirm-approve-desc" className="text-sm text-zinc-700 leading-relaxed">
                     Approving this fix will perform an <span className="font-semibold">append-only correction</span>:
                   </p>
-                  <ol className="space-y-1.5 text-sm text-zinc-600 leading-relaxed list-none">
+                  <ol className="space-y-3 text-sm text-zinc-600 list-none">
                     <li className="flex items-start gap-2">
                       <span className="mt-0.5 shrink-0 font-mono text-xs text-zinc-400">1.</span>
-                      A new evidence log will be inserted with the corrected FDA code{" "}
-                      <code className="rounded bg-amber-50 border border-amber-200 px-1.5 py-0.5 font-mono text-xs text-amber-800">
-                        {item.suggested_req_id}
-                      </code>
-                      .
+                      <span className="leading-relaxed">
+                        A new evidence log will be inserted with the corrected FDA code{" "}
+                        <code className="font-mono text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-1 py-px align-baseline">
+                          {item.suggested_req_id}
+                        </code>
+                        .
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="mt-0.5 shrink-0 font-mono text-xs text-zinc-400">2.</span>
-                      The original log tagged{" "}
-                      <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-xs text-zinc-600">
-                        {item.original_req_id}
-                      </code>{" "}
-                      will be marked <span className="font-semibold">deprecated</span> and hidden from active views — it is preserved in the audit ledger.
+                      <span className="leading-relaxed">
+                        The original log tagged{" "}
+                        <code className="font-mono text-xs text-zinc-600 bg-zinc-100 rounded px-1 py-px align-baseline">
+                          {item.original_req_id}
+                        </code>{" "}
+                        will be marked <span className="font-semibold">deprecated</span> and hidden from active views — preserved in the audit ledger.
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="mt-0.5 shrink-0 font-mono text-xs text-zinc-400">3.</span>
-                      The new log will appear in the Evidence Log with a{" "}
-                      <span className="inline-flex items-center rounded border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
-                        QA Override
-                      </span>{" "}
-                      marker.
+                      <span className="leading-relaxed">
+                        The new log will appear in the Evidence Log with a{" "}
+                        <span className="font-mono text-[10px] font-semibold uppercase tracking-wide text-amber-700 border border-amber-300 bg-amber-50 rounded px-1 py-px align-baseline">
+                          QA Override
+                        </span>{" "}
+                        marker.
+                      </span>
                     </li>
                   </ol>
                   <p className="text-xs text-zinc-400 border-t border-zinc-100 pt-3">

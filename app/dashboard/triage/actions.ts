@@ -443,22 +443,31 @@ export async function resolveTriageItem(
       .digest("hex");
 
     // b. Build the corrected clone row.
+    //
+    // IMPORTANT — supersedes_log_id is intentionally omitted here.
+    // The Constitution schema defines supersedes_log_id as UNIQUE on
+    // evidence_logs. Inserting it would cause a unique constraint violation
+    // on any retry (e.g. if a previous attempt inserted the row but failed
+    // before updating the triage status). The chain provenance is already
+    // captured in previous_log_hash (= original signature_hash) and in the
+    // audit_logs record. The UNIQUE constraint makes supersedes_log_id
+    // unsuitable as a writable field from this code path.
     correctedLogId = crypto.randomUUID();
     const correctedRow = {
-      log_id:                correctedLogId,
+      log_id:                correctedLogId,              // ← brand-new UUID, never the original
       org_id:                originalLog.org_id,
       user_id:               originalLog.user_id,
       build_id:              originalLog.build_id,
-      req_id:                triageRow.suggested_req_id,        // ← corrected code
-      previous_log_hash:     originalLog.signature_hash,       // ← chain to original
-      signature_hash:        newSignatureHash,                  // ← fresh signature
+      req_id:                triageRow.suggested_req_id,  // ← corrected FDA code
+      previous_log_hash:     originalLog.signature_hash,  // ← cryptographic chain to original
+      signature_hash:        newSignatureHash,             // ← fresh signature over this payload
       raw_command:           originalLog.raw_command,
       sanitized_payload:     originalLog.sanitized_payload,
       execution_status:      originalLog.execution_status,
       execution_timestamp:   originalLog.execution_timestamp,
       is_deprecated:         false,
-      event_source:          "triage-correction",              // ← QA-corrected marker
-      supersedes_log_id:     originalLog.log_id,              // ← points to original
+      event_source:          "triage-correction",         // ← QA-corrected marker
+      // supersedes_log_id omitted — UNIQUE constraint prevents safe retry
       developer_email:       originalLog.developer_email ?? null,
       ai_tokens_used:        originalLog.ai_tokens_used ?? null,
     };
@@ -469,6 +478,9 @@ export async function resolveTriageItem(
       .insert(correctedRow);
 
     if (insertError) {
+      // Log the full Supabase error object (code, message, details, hint)
+      // so the raw PostgREST error is visible in server logs for diagnosis.
+      console.error("Supabase Insert Error:", insertError);
       console.error("[resolveTriageItem] Corrected log insert error:", insertError.message);
       return {
         success: false,
