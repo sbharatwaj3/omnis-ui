@@ -351,6 +351,7 @@ export async function resolveTriageItem(
       id,
       evidence_log_id,
       suggested_req_id,
+      ai_reasoning,
       status,
       evidence_logs!inner (
         log_id,
@@ -514,6 +515,59 @@ export async function resolveTriageItem(
         success: false,
         error: "Database error: could not insert corrected evidence log. The original log has NOT been deprecated.",
       };
+    }
+
+    // c2. Carry over the AI analysis insight to the corrected log so the UI
+    //     does not show "Pending Analysis" for a log that was just approved.
+    //
+    //     Strategy (in priority order):
+    //       1. Copy the existing ai_compliance_insights row from the original
+    //          log, pointing its log_id at the new correctedLogId.
+    //       2. If no prior insight exists (e.g. Bedrock analysis never ran),
+    //          synthesise a minimal insight from the triage ticket's own
+    //          ai_reasoning so the new log is never left in "Pending" state.
+    //
+    //     The new insight row gets a fresh id — it is a child of the corrected
+    //     log, not a mutation of the original's insight.
+    const { data: originalInsight } = await adminClient
+      .from("ai_compliance_insights")
+      .select("ai_test_suite, ai_result_summary, ai_reasoning, ai_confidence_score")
+      .eq("log_id", originalLog.log_id)
+      .maybeSingle();
+
+    const insightToInsert = originalInsight
+      ? {
+          // Clone from the original insight, re-pointed at the corrected log.
+          log_id:               correctedLogId,
+          ai_test_suite:        originalInsight.ai_test_suite,
+          ai_result_summary:    originalInsight.ai_result_summary,
+          ai_reasoning:         originalInsight.ai_reasoning,
+          ai_confidence_score:  originalInsight.ai_confidence_score,
+        }
+      : {
+          // Synthesise from the triage ticket's own reasoning so the log is
+          // never stuck in "Pending Analysis" after a QA Manager approves it.
+          log_id:               correctedLogId,
+          ai_test_suite:        "triage-correction",
+          ai_result_summary:    `QA-approved correction. req_id updated from '${originalLog.req_id}' to '${resolvedReqId}'.`,
+          ai_reasoning:         triageRow.ai_reasoning ?? null,
+          ai_confidence_score:  null,
+        };
+
+    const { error: insightInsertError } = await adminClient
+      .from("ai_compliance_insights")
+      .insert(insightToInsert);
+
+    if (insightInsertError) {
+      // Non-fatal: the corrected log was inserted successfully. The missing
+      // insight means the UI will show "Pending Analysis" but the ledger is
+      // intact. Log it as a warning rather than failing the whole action.
+      console.warn(
+        "[resolveTriageItem] WARNING: ai_compliance_insights clone failed for corrected log " +
+          correctedLogId +
+          ". The log was inserted correctly but will show 'Pending Analysis' in the UI. " +
+          "Supabase error: " + insightInsertError.message,
+      );
     }
 
     // d. Deprecate the original log.
