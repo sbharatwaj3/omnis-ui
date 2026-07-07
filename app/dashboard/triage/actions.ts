@@ -425,6 +425,7 @@ export async function resolveTriageItem(
   //      active views but remains fully intact in the immutable ledger.
   // ─────────────────────────────────────────────────────────────────────────
   let correctedLogId: string | null = null;
+  let resolvedReqId: string = originalLog.req_id; // default: original, overwritten on approve path
 
   if (resolution === "approved") {
     // a. Re-sign with the corrected payload.
@@ -442,6 +443,33 @@ export async function resolveTriageItem(
       .update(signingSecret + serialisedPayload)
       .digest("hex");
 
+    // ── Validate suggested_req_id against regulatory_rules ─────────────────
+    // evidence_logs.req_id has a FK → regulatory_rules(req_id).
+    // The AI (Bedrock) may suggest a code that does not exactly match any
+    // row in regulatory_rules (e.g. "IEC 62304 5.7.5" vs "IEC-62304-5.7.5").
+    // Inserting an unrecognised value would hit a foreign-key violation.
+    // We validate first and fall back to the original req_id if no match
+    // exists, which is already a valid FK value from the original log.
+    const { data: validatedRule, error: ruleCheckError } = await adminClient
+      .from("regulatory_rules")
+      .select("req_id")
+      .eq("req_id", triageRow.suggested_req_id)
+      .maybeSingle();
+
+    if (ruleCheckError) {
+      console.error("[resolveTriageItem] regulatory_rules lookup error:", ruleCheckError);
+    }
+
+    const resolvedFromDb: string = validatedRule?.req_id ?? originalLog.req_id;
+    resolvedReqId = resolvedFromDb;
+
+    if (!validatedRule?.req_id) {
+      console.warn(
+        `[resolveTriageItem] suggested_req_id "${triageRow.suggested_req_id}" not found in ` +
+        `regulatory_rules — falling back to original req_id "${originalLog.req_id}".`
+      );
+    }
+
     // b. Build the corrected clone row.
     //
     // IMPORTANT — supersedes_log_id is intentionally omitted here.
@@ -458,7 +486,7 @@ export async function resolveTriageItem(
       org_id:                originalLog.org_id,
       user_id:               originalLog.user_id,
       build_id:              originalLog.build_id,
-      req_id:                triageRow.suggested_req_id,  // ← corrected FDA code
+      req_id:                resolvedReqId,               // ← validated against regulatory_rules FK
       previous_log_hash:     originalLog.signature_hash,  // ← cryptographic chain to original
       signature_hash:        newSignatureHash,             // ← fresh signature over this payload
       raw_command:           originalLog.raw_command,
@@ -546,7 +574,8 @@ export async function resolveTriageItem(
           resolution: "approved",
           resolved_by: userId ?? "service_role",
           corrected_log_id: correctedLogId,
-          req_id_updated_to: triageRow.suggested_req_id,
+          req_id_updated_to: resolvedReqId,
+          suggested_req_id: triageRow.suggested_req_id,
           original_log_deprecated: true,
         }
       : {
@@ -596,7 +625,7 @@ export async function resolveTriageItem(
 
   return {
     success: true,
-    suggestedReqId: triageRow.suggested_req_id,
+    suggestedReqId: resolvedReqId,
     originalReqId: originalLog.req_id,
     correctedLogId: correctedLogId ?? undefined,
   };
