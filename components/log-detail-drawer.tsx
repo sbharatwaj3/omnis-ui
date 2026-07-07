@@ -314,6 +314,16 @@ export function LogDetailDrawer({ logId, onClose, viewMode = "grouped" }: LogDet
                   </div>
                 </div>
 
+                {/* QA Override marker — shown only for triage-corrected logs */}
+                {log.event_source === "triage-correction" && (
+                  <div className="flex items-center gap-2 rounded border border-amber-300 bg-amber-50 px-3 py-2">
+                    <span className="text-amber-600" aria-hidden="true">⚠</span>
+                    <p className="text-xs font-medium text-amber-800 leading-relaxed">
+                      <span className="font-semibold">QA Manager Override</span> — This log was inserted via the Triage Inbox. The FDA regulatory code was manually approved and overrides the original developer tag.
+                    </p>
+                  </div>
+                )}
+
                 {/* Four high-level metadata fields — fixed heights for grid consistency */}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <MetaField

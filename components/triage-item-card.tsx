@@ -5,7 +5,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import { TriageStatusBadge } from "@/components/triage-status-badge";
 import type { AiTriageQueueRow } from "@/types/supabase";
 
@@ -71,6 +71,22 @@ export function TriageItemCard({
 
   // Collapsible AI Reasoning — collapsed by default
   const [isReasoningExpanded, setIsReasoningExpanded] = useState(false);
+
+  // Approve confirmation dialog state
+  const [showApproveConfirm, setShowApproveConfirm] = useState(false);
+
+  function handleApprovClick() {
+    setShowApproveConfirm(true);
+  }
+
+  function handleConfirmApprove() {
+    setShowApproveConfirm(false);
+    onApprove(item.id);
+  }
+
+  function handleCancelApprove() {
+    setShowApproveConfirm(false);
+  }
 
   return (
     <motion.div
@@ -204,9 +220,9 @@ export function TriageItemCard({
             </span>
           )}
 
-          {/* Approve button (Requirements 3.8, 11.9, 12.1, 12.3, 12.7) */}
+          {/* Approve button — opens confirmation dialog */}
           <button
-            onClick={() => onApprove(item.id)}
+            onClick={handleApprovClick}
             disabled={isDisabled}
             aria-label={`Approve AI fix: apply ${item.suggested_req_id}`}
             aria-disabled={isDisabled}
@@ -251,6 +267,114 @@ export function TriageItemCard({
           </button>
         </div>
       )}
+
+      {/* ----------------------------------------------------------------- */}
+      {/* Approve confirmation dialog                                         */}
+      {/* ----------------------------------------------------------------- */}
+      <AnimatePresence>
+        {showApproveConfirm && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="confirm-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ type: "tween", duration: 0.12 }}
+              className="fixed inset-0 z-40 bg-zinc-900/50"
+              onClick={handleCancelApprove}
+              aria-hidden="true"
+            />
+
+            {/* Dialog panel */}
+            <motion.div
+              key="confirm-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="confirm-approve-title"
+              aria-describedby="confirm-approve-desc"
+              initial={{ opacity: 0, scale: 0.97, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: 8 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            >
+              <div
+                className="pointer-events-auto w-full max-w-md rounded-sm border border-zinc-200 bg-white shadow-none"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="flex items-center gap-2.5 border-b border-zinc-100 px-5 py-4">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" aria-hidden="true" />
+                  <p id="confirm-approve-title" className="text-sm font-semibold text-zinc-800">
+                    Confirm Approval — 21 CFR Part 11
+                  </p>
+                </div>
+
+                {/* Body */}
+                <div className="px-5 py-4 space-y-3">
+                  <p id="confirm-approve-desc" className="text-sm text-zinc-700 leading-relaxed">
+                    Approving this fix will perform an <span className="font-semibold">append-only correction</span>:
+                  </p>
+                  <ol className="space-y-1.5 text-sm text-zinc-600 leading-relaxed list-none">
+                    <li className="flex items-start gap-2">
+                      <span className="mt-0.5 shrink-0 font-mono text-xs text-zinc-400">1.</span>
+                      A new evidence log will be inserted with the corrected FDA code{" "}
+                      <code className="rounded bg-amber-50 border border-amber-200 px-1.5 py-0.5 font-mono text-xs text-amber-800">
+                        {item.suggested_req_id}
+                      </code>
+                      .
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-0.5 shrink-0 font-mono text-xs text-zinc-400">2.</span>
+                      The original log tagged{" "}
+                      <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-xs text-zinc-600">
+                        {item.original_req_id}
+                      </code>{" "}
+                      will be marked <span className="font-semibold">deprecated</span> and hidden from active views — it is preserved in the audit ledger.
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-0.5 shrink-0 font-mono text-xs text-zinc-400">3.</span>
+                      The new log will appear in the Evidence Log with a{" "}
+                      <span className="inline-flex items-center rounded border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+                        QA Override
+                      </span>{" "}
+                      marker.
+                    </li>
+                  </ol>
+                  <p className="text-xs text-zinc-400 border-t border-zinc-100 pt-3">
+                    This action is immutable and will be recorded in the 21 CFR Part 11 audit trail.
+                  </p>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-end gap-2 border-t border-zinc-100 px-5 py-3">
+                  <button
+                    onClick={handleCancelApprove}
+                    className={[
+                      "rounded-sm border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-600",
+                      "hover:bg-zinc-50 transition-colors",
+                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:outline-none",
+                    ].join(" ")}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmApprove}
+                    className={[
+                      "rounded-sm border border-green-600 bg-white px-4 py-2 text-sm font-medium text-green-700",
+                      "hover:bg-green-50 active:scale-95 transition-colors",
+                      "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:outline-none",
+                    ].join(" ")}
+                  >
+                    Confirm &amp; Insert Corrected Log
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

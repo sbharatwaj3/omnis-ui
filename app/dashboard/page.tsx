@@ -102,6 +102,7 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
       .from("evidence_logs")
       .select("log_id, execution_timestamp, execution_status, raw_command, event_source, req_id")
       .eq("org_id", orgId)
+      .neq("is_deprecated", true)
       .order("execution_timestamp", { ascending: false })
       .range(from, from + batchSize - 1);
 
@@ -163,6 +164,7 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
       aiSummary,
       severity: mapSeverity(aiSummary),
       reqId: log.req_id ?? null,
+      eventSource: log.event_source ?? null,
     };
   });
 }

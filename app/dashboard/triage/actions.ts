@@ -13,10 +13,17 @@
 //
 // CONSTITUTION LAW II:
 //   - No auth bypass. verify session → verify role → then act.
-//   - resolveTriageItem performs a two-write atomic operation: update the
-//     triage row status AND (if approved) patch evidence_logs.req_id.
-//     Both writes use the admin client so RLS cannot silently swallow either
-//     update; the org guard is enforced explicitly via the query predicate.
+//   - resolveTriageItem now implements an APPEND-ONLY correction pattern to
+//     comply with 21 CFR Part 11 immutability requirements:
+//       1. Fetch the original evidence_log in full.
+//       2. Clone it with a new log_id, the corrected req_id, a fresh
+//          signature_hash, event_source = "triage-correction", and
+//          supersedes_log_id pointing at the original.
+//       3. Insert the corrected clone as a new evidence_logs row.
+//       4. Mark the original log is_deprecated = true (hidden from active
+//          views; preserved in the audit ledger).
+//       5. Update ai_triage_queue.status → 'approved'.
+//     The original row is NEVER mutated — only deprecated.
 //
 // 21 CFR PART 11 AUDIT TRAIL:
 //   - resolveTriageItem writes to audit_logs with action_type TRIAGE_RESOLVE
@@ -26,6 +33,7 @@
 
 import "server-only";
 
+import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
@@ -89,6 +97,8 @@ export interface ResolveTriageResult {
   suggestedReqId?: string;
   /** The actual req_id on the evidence_log at the time of resolution (captured at call time). */
   originalReqId?: string;
+  /** The new log_id of the corrected clone that was inserted (approve path only). */
+  correctedLogId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -327,12 +337,13 @@ export async function resolveTriageItem(
     };
   }
 
-  // Step 1: Fetch the triage row to obtain evidence_log_id and suggested_req_id.
-  // We also fetch evidence_logs.req_id to capture the ACTUAL current req_id on
-  // the evidence log at call time — this is what goes into the audit before snapshot
-  // (not the cached original_req_id from when the triage item was created).
-  // We scope to the caller's org by joining evidence_logs to prevent a
+  // ─────────────────────────────────────────────────────────────────────────
+  // Step 1: Fetch the triage row + the FULL original evidence_log row.
+  //
+  // We need the complete evidence_log to clone it (append-only pattern).
+  // We scope to the caller's org via the join predicate to prevent a
   // cross-tenant UUID-guessing attack.
+  // ─────────────────────────────────────────────────────────────────────────
   const { data: triageRow, error: fetchError } = await adminClient
     .from("ai_triage_queue")
     .select(
@@ -341,7 +352,23 @@ export async function resolveTriageItem(
       evidence_log_id,
       suggested_req_id,
       status,
-      evidence_logs!inner ( org_id, req_id )
+      evidence_logs!inner (
+        log_id,
+        org_id,
+        user_id,
+        build_id,
+        req_id,
+        previous_log_hash,
+        signature_hash,
+        raw_command,
+        sanitized_payload,
+        execution_status,
+        execution_timestamp,
+        is_deprecated,
+        event_source,
+        developer_email,
+        ai_tokens_used
+      )
       `
     )
     .eq("id", id)
@@ -356,9 +383,7 @@ export async function resolveTriageItem(
     };
   }
 
-  // Guard: only pending items can be resolved.  Attempting to re-resolve an
-  // already-resolved item is a no-op error — this prevents double-application
-  // of an approved patch.
+  // Guard: only pending items can be resolved.
   if (triageRow.status !== "pending") {
     return {
       success: false,
@@ -366,7 +391,116 @@ export async function resolveTriageItem(
     };
   }
 
-  // Step 2: Update the triage queue status.
+  // Type the joined evidence_log row (from the !inner join result).
+  const originalLog = triageRow.evidence_logs as unknown as {
+    log_id: string;
+    org_id: string;
+    user_id: string;
+    build_id: string;
+    req_id: string;
+    previous_log_hash: string | null;
+    signature_hash: string;
+    raw_command: string;
+    sanitized_payload: unknown;
+    execution_status: string;
+    execution_timestamp: string;
+    is_deprecated: boolean | null;
+    event_source: string;
+    developer_email: string | null;
+    ai_tokens_used: number | null;
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Step 2 (approved path only): APPEND-ONLY correction per 21 CFR Part 11.
+  //
+  // Instead of mutating the cryptographically signed original row, we:
+  //   a. Clone the original payload, substituting req_id with suggested_req_id.
+  //   b. Re-sign the clone: SHA-256(OMNIS_SIGNING_SECRET + serialisedPayload).
+  //   c. Insert the clone as a brand-new evidence_logs row with:
+  //        - new log_id (UUID)
+  //        - event_source = "triage-correction"  ← marks it as QA-corrected
+  //        - supersedes_log_id = original log_id  ← chain link for audits
+  //        - previous_log_hash = original signature_hash  ← cryptographic chain
+  //   d. Mark the original row is_deprecated = true so it is hidden from
+  //      active views but remains fully intact in the immutable ledger.
+  // ─────────────────────────────────────────────────────────────────────────
+  let correctedLogId: string | null = null;
+
+  if (resolution === "approved") {
+    // a. Re-sign with the corrected payload.
+    const signingSecret = process.env.OMNIS_SIGNING_SECRET;
+    if (!signingSecret) {
+      console.error("[resolveTriageItem] FATAL: OMNIS_SIGNING_SECRET is not set.");
+      return {
+        success: false,
+        error: "Server misconfiguration: OMNIS_SIGNING_SECRET is not set. Contact an administrator.",
+      };
+    }
+
+    const serialisedPayload = JSON.stringify(originalLog.sanitized_payload);
+    const newSignatureHash = createHash("sha256")
+      .update(signingSecret + serialisedPayload)
+      .digest("hex");
+
+    // b. Build the corrected clone row.
+    correctedLogId = crypto.randomUUID();
+    const correctedRow = {
+      log_id:                correctedLogId,
+      org_id:                originalLog.org_id,
+      user_id:               originalLog.user_id,
+      build_id:              originalLog.build_id,
+      req_id:                triageRow.suggested_req_id,        // ← corrected code
+      previous_log_hash:     originalLog.signature_hash,       // ← chain to original
+      signature_hash:        newSignatureHash,                  // ← fresh signature
+      raw_command:           originalLog.raw_command,
+      sanitized_payload:     originalLog.sanitized_payload,
+      execution_status:      originalLog.execution_status,
+      execution_timestamp:   originalLog.execution_timestamp,
+      is_deprecated:         false,
+      event_source:          "triage-correction",              // ← QA-corrected marker
+      supersedes_log_id:     originalLog.log_id,              // ← points to original
+      developer_email:       originalLog.developer_email ?? null,
+      ai_tokens_used:        originalLog.ai_tokens_used ?? null,
+    };
+
+    // c. Insert the corrected clone.
+    const { error: insertError } = await adminClient
+      .from("evidence_logs")
+      .insert(correctedRow);
+
+    if (insertError) {
+      console.error("[resolveTriageItem] Corrected log insert error:", insertError.message);
+      return {
+        success: false,
+        error: "Database error: could not insert corrected evidence log. The original log has NOT been deprecated.",
+      };
+    }
+
+    // d. Deprecate the original log.
+    const { error: deprecateError } = await adminClient
+      .from("evidence_logs")
+      .update({ is_deprecated: true })
+      .eq("log_id", originalLog.log_id)
+      .eq("org_id", orgId); // org guard — defence in depth
+
+    if (deprecateError) {
+      console.error("[resolveTriageItem] Deprecation error:", deprecateError.message);
+      // Corrected log was already inserted. We must surface this so an admin
+      // can manually deprecate the original — the ledger is not in a broken
+      // state, just has a duplicate active row until resolved.
+      return {
+        success: false,
+        error:
+          "Corrected log was inserted but the original log could not be deprecated. " +
+          "Contact your administrator to manually set is_deprecated = true on log_id: " +
+          originalLog.log_id,
+      };
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Step 3: Update the triage queue status.
+  // ─────────────────────────────────────────────────────────────────────────
   const { error: statusError } = await adminClient
     .from("ai_triage_queue")
     .update({ status: resolution })
@@ -380,46 +514,18 @@ export async function resolveTriageItem(
     };
   }
 
-  // Step 3 (approved path only): Patch the evidence log's req_id.
-  if (resolution === "approved") {
-    const { error: patchError } = await adminClient
-      .from("evidence_logs")
-      .update({ req_id: triageRow.suggested_req_id })
-      .eq("log_id", triageRow.evidence_log_id)
-      // Explicit org guard — defence-in-depth even though adminClient bypasses
-      // RLS.  Ensures a corrupt triage row cannot reach a foreign org's log.
-      .eq("org_id", orgId);
-
-    if (patchError) {
-      console.error(
-        "[resolveTriageItem] Evidence log req_id patch error:",
-        patchError.message,
-      );
-      // The triage status has already been set to 'approved'. Surface the
-      // patch failure so the caller can investigate and retry if needed.
-      return {
-        success: false,
-        error:
-          "Triage status updated to 'approved' but failed to patch evidence_logs.req_id. " +
-          "Please contact your administrator.",
-      };
-    }
-  }
-
+  // ─────────────────────────────────────────────────────────────────────────
   // Step 4: Write the 21 CFR Part 11 audit record for this triage resolution.
-  // entity_id is the evidence_log_id — the EVIDENCE_LOG that was re-tagged.
   //
-  // before.original_req_id uses evidence_logs.req_id fetched at call time (Step 1),
-  // NOT ai_triage_queue.original_req_id, ensuring the audit captures the actual
-  // state of the evidence log at the moment of resolution.
-  //
-  // The evidenceLog join result is typed as an object (from !inner join).
-  const evidenceLog = triageRow.evidence_logs as unknown as { org_id: string; req_id: string };
-
+  // entity_id is the CORRECTED log id (approved) or the original (rejected).
+  // The before snapshot captures the original log's req_id at call time —
+  // NOT the cached original_req_id from when the triage item was created.
+  // ─────────────────────────────────────────────────────────────────────────
   const auditBefore = {
     triage_id: id,
     status: "pending",
-    original_req_id: evidenceLog.req_id,
+    original_log_id: originalLog.log_id,
+    original_req_id: originalLog.req_id,
   };
 
   const auditAfter =
@@ -427,12 +533,15 @@ export async function resolveTriageItem(
       ? {
           resolution: "approved",
           resolved_by: userId ?? "service_role",
+          corrected_log_id: correctedLogId,
           req_id_updated_to: triageRow.suggested_req_id,
+          original_log_deprecated: true,
         }
       : {
           resolution: "rejected",
           resolved_by: userId ?? "service_role",
           req_id_updated_to: null,
+          original_log_deprecated: false,
         };
 
   const auditResult = await writeAuditLog({
@@ -440,7 +549,7 @@ export async function resolveTriageItem(
     orgId,
     actionType: "TRIAGE_RESOLVE",
     entityType: "EVIDENCE_LOG",
-    entityId: triageRow.evidence_log_id,
+    entityId: correctedLogId ?? triageRow.evidence_log_id,
     before: auditBefore,
     after: auditAfter,
   });
@@ -454,28 +563,30 @@ export async function resolveTriageItem(
         triage_id: id,
         action_type: "TRIAGE_RESOLVE",
         entity_type: "EVIDENCE_LOG",
-        entity_id: triageRow.evidence_log_id,
+        entity_id: correctedLogId ?? triageRow.evidence_log_id,
         error: auditResult.error,
       },
     );
     return {
       success: false,
-      error:
-        "Compliance audit record failed to write. Contact an administrator.",
+      error: "Compliance audit record failed to write. Contact an administrator.",
     };
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
   // Step 5: Revalidate affected pages.
-  // Revalidate both the triage inbox and the dashboard root so the layout
-  // badge count updates on next navigation.
+  // ─────────────────────────────────────────────────────────────────────────
   revalidatePath("/dashboard/triage");
   revalidatePath("/dashboard");
-  revalidatePath(`/logs/${triageRow.evidence_log_id}`);
+  revalidatePath("/readiness");
+  revalidatePath(`/logs/${originalLog.log_id}`);
+  if (correctedLogId) revalidatePath(`/logs/${correctedLogId}`);
 
   return {
     success: true,
     suggestedReqId: triageRow.suggested_req_id,
-    originalReqId: evidenceLog.req_id,
+    originalReqId: originalLog.req_id,
+    correctedLogId: correctedLogId ?? undefined,
   };
 }
 

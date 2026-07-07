@@ -67,6 +67,7 @@ export interface DashboardRow {
   aiSummary: string | null;
   severity: "Critical" | "Clear" | "Pending";
   reqId: string | null;          // regulatory requirement ID
+  eventSource: string | null;    // "triage-correction" marks QA-approved clone logs
 }
 
 // ---------------------------------------------------------------------------
@@ -338,6 +339,23 @@ function SuiteIssuePill({ criticalCount, failedCount }: { criticalCount: number;
   );
 }
 
+/**
+ * TriageCorrectionPill — yellow marker shown on any evidence log that was
+ * inserted via the triage-correction path (i.e. approved by a QA Manager
+ * from the Triage Inbox). Signals that this log carries a manually-validated
+ * regulatory code override.
+ */
+function TriageCorrectionPill() {
+  return (
+    <span
+      title="This log was inserted by a QA Manager via the Triage Inbox. The FDA code was manually approved."
+      className="inline-flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700"
+    >
+      QA Override
+    </span>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Telemetry cards — based on the *currently filtered* slice
 // ---------------------------------------------------------------------------
@@ -527,6 +545,7 @@ function SuiteAccordionItem({
                 <div className="mt-1 flex items-center gap-2 flex-wrap">
                   <StatusBadge status={row.executionStatus} />
                   <SeverityBadge severity={row.severity} />
+                  {row.eventSource === "triage-correction" && <TriageCorrectionPill />}
                 </div>
                 <div className="mt-1 flex items-center justify-between gap-2">
                   {/* Task 3: subordinate text — slate-500, text-xs */}
@@ -582,6 +601,11 @@ function SuiteAccordionItem({
                       >
                         {parseLogTitle(row.rawCommand || row.testSuite)}
                       </span>
+                      {row.eventSource === "triage-correction" && (
+                        <span className="mt-0.5 block">
+                          <TriageCorrectionPill />
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="py-2">
                       <StatusBadge status={row.executionStatus} />
@@ -963,6 +987,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                   <div className="mt-1 flex items-center gap-2 flex-wrap">
                     <StatusBadge status={row.executionStatus} />
                     <SeverityBadge severity={row.severity} />
+                    {row.eventSource === "triage-correction" && <TriageCorrectionPill />}
                   </div>
                   <div className="mt-1 flex items-center justify-between gap-2">
                     <p className="text-xs text-slate-500 truncate">{row.executionTime}</p>
@@ -1012,6 +1037,11 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                         <span className="block text-sm font-medium text-slate-800 truncate" title={parseLogTitle(row.rawCommand || row.testSuite)}>
                           {parseLogTitle(row.rawCommand || row.testSuite)}
                         </span>
+                        {row.eventSource === "triage-correction" && (
+                          <span className="mt-0.5 block">
+                            <TriageCorrectionPill />
+                          </span>
+                        )}
                         <code className="mt-0.5 block font-mono text-[10px] text-slate-400 truncate" title={row.logId}>
                           {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
                         </code>

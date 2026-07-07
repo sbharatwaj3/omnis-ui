@@ -271,6 +271,7 @@ async function fetchReadinessData(): Promise<ReadinessPayload> {
       .from("evidence_logs")
       .select("log_id, req_id, approved_by, org_id")
       .eq("org_id", userOrgId)
+      .neq("is_deprecated", true)
       .range(from, from + batchSize - 1);
 
     if (logsError) {

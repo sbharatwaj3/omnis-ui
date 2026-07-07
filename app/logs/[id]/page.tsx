@@ -385,6 +385,23 @@ async function ForensicContent({ id, backHref }: { id: string; backHref: string 
           </span>
         </nav>
 
+        {/* QA Manager Override banner — shown only for triage-corrected logs */}
+        {log.event_source === "triage-correction" && (
+          <div className="mb-4 flex items-start gap-3 rounded border border-amber-300 bg-amber-50 px-4 py-3">
+            <span className="mt-0.5 shrink-0 text-amber-500" aria-hidden="true">
+              ⚠
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-amber-800">
+                QA Manager Override — Triage Correction
+              </p>
+              <p className="mt-0.5 text-xs text-amber-700 leading-relaxed">
+                This evidence log was inserted via the Triage Inbox after a QA Manager approved a regulatory code correction. The original log has been deprecated and preserved in the audit ledger. The FDA code shown below reflects the manually-validated override.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Title row */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
