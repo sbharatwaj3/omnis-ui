@@ -68,8 +68,9 @@ export function DashboardShell({
         {/* Page content — this is the ONLY scrollable region in the app.
             min-h-0 forces the flex child to respect the parent height
             instead of pushing outward when content expands (e.g. expanded
-            evidence log rows). */}
-        <main className="flex-1 overflow-y-auto min-h-0">
+            evidence log rows). h-full ensures the content column fills
+            the entire viewport height, eliminating dead space below. */}
+        <main className="flex-1 overflow-y-auto min-h-0 h-full">
           {children}
         </main>
       </div>

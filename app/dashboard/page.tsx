@@ -307,17 +307,15 @@ export default async function DashboardPage({
 
   return (
     // No min-h-screen here — the shell (h-screen overflow-hidden) controls
-    // viewport height. This div just stacks header + content vertically and
-    // fills the available column width flush from the left edge.
-    <div className="flex flex-col h-full bg-zinc-50">
+    // viewport height. This div fills the entire scrollable column height.
+    <div className="flex flex-col min-h-full bg-zinc-50">
       {/* Minimal in-page header: breadcrumb + compliance badge */}
       <PageHeader />
 
-      {/* Main content — flush left from sidebar edge.
-          .dashboard-content-width caps at calc(75vw - 16rem) so the right
-          edge of the Failure Rate card lands exactly at the 75vw mark,
-          reserving the remaining 25vw for the right sidebar. */}
-      <div className="dashboard-content-width pl-8 pr-6 py-8">
+      {/* Main content — fills all available width up to 1600px.
+          Padding is applied directly so the grid columns stretch
+          to the full width of the content area on large monitors. */}
+      <div className="w-full px-8 py-8">
         <Suspense fallback={<DashboardSkeleton />}>
           <DashboardContent initialViewMode={initialViewMode} />
         </Suspense>

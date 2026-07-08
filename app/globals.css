@@ -117,14 +117,14 @@
 /* ---------------------------------------------------------------------------
    Dashboard content width constraint
    --------------------------------------------------------------------------
-   The dashboard content column must stop at 75% of the viewport, reserving
-   the remaining 25% for the right sidebar. The left sidebar is 16rem (256px),
-   so the content cap = 75vw - 16rem. This is applied via a plain CSS class
-   to avoid forbidden arbitrary Tailwind values.
+   The dashboard content fills the full available width up to 1600px.
+   The left sidebar is 16rem (256px) and is handled by the flex layout.
+   This class is retained for the page header breadcrumb alignment only;
+   the main content wrapper no longer restricts width.
    --------------------------------------------------------------------------- */
 .dashboard-content-width {
   width: 100%;
-  max-width: calc(75vw - 16rem);
+  max-width: 1600px;
 }
 
 /* ---------------------------------------------------------------------------
