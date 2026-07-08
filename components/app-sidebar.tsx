@@ -328,7 +328,7 @@ function SidebarContent({
 
         {/* Role badge + regulatory line */}
         <div className="mt-3 flex items-center justify-between px-3">
-          <p className="text-[10px] text-zinc-400">IEC 62304 · 21 CFR Part 11</p>
+          <p className="text-[9px] text-zinc-400">IEC 62304 · 21 CFR Part 11</p>
           <RoleBadge />
         </div>
       </div>
