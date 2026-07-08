@@ -76,9 +76,9 @@ vi.mock("@/components/triage-skeleton", () => ({
   TriageSkeleton: () => <div data-testid="triage-skeleton" />,
 }));
 
-vi.mock("@/components/dashboard-header", () => ({
-  DashboardHeader: ({ subtitle }: { subtitle: string }) => (
-    <header data-testid="dashboard-header">{subtitle}</header>
+vi.mock("@/components/subpage-header", () => ({
+  SubpageHeader: ({ title }: { title: string }) => (
+    <header data-testid="dashboard-header">{title}</header>
   ),
 }));
 

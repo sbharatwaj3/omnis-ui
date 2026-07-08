@@ -2,7 +2,9 @@
 // Persistent left-hand navigation sidebar — Command Center architecture.
 //
 // Renders the QAVRO logo at the top, the primary navigation links in the
-// body, and a bottom-anchored footer housing Settings and the role badge.
+// body, and a bottom-anchored footer with static links for Settings, CLI
+// Setup, Team, and Sign Out. The broken SettingsMenu popover has been
+// removed entirely — all items are now flat, permanent sidebar links.
 //
 // Mobile: hidden by default. A toggle state passed from the parent shell
 // reveals it as a full-height spring-animated overlay panel.
@@ -17,7 +19,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldCheck,
@@ -26,10 +28,16 @@ import {
   Brain,
   BarChart2,
   ShieldAlert,
+  SlidersHorizontal,
+  Terminal,
+  Users,
+  LogOut,
   X,
 } from "lucide-react";
-import { SettingsMenu } from "@/components/settings-menu";
 import { RoleBadge } from "@/components/role-badge";
+import { createClient } from "@/utils/supabase/client";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Nav item definition
@@ -78,6 +86,28 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+// Footer links — always visible, always static
+const FOOTER_NAV: NavItem[] = [
+  {
+    label: "Settings",
+    href: "/dashboard/settings",
+    icon: SlidersHorizontal,
+    description: "API keys & preferences",
+  },
+  {
+    label: "CLI Setup",
+    href: "/dashboard/setup",
+    icon: Terminal,
+    description: "Connect the CLI",
+  },
+  {
+    label: "Team",
+    href: "/dashboard/team",
+    icon: Users,
+    description: "Members & access",
+  },
+];
+
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
@@ -89,6 +119,41 @@ interface AppSidebarProps {
   mobileOpen?: boolean;
   /** Callback to close the mobile overlay. */
   onMobileClose?: () => void;
+}
+
+// ---------------------------------------------------------------------------
+// SignOutButton — isolated client component for sign-out action
+// ---------------------------------------------------------------------------
+
+function SignOutButton({ onMobileClose }: { onMobileClose?: () => void }) {
+  const router = useRouter();
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    onMobileClose?.();
+    router.push("/");
+    router.refresh();
+  }
+
+  return (
+    <button
+      onClick={handleSignOut}
+      disabled={signingOut}
+      className="group flex w-full items-center gap-3 rounded px-3 py-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {signingOut ? (
+        <Loader2 className="h-4 w-4 shrink-0 animate-spin text-zinc-400" strokeWidth={1.75} />
+      ) : (
+        <LogOut className="h-4 w-4 shrink-0 text-zinc-400 group-hover:text-red-500 transition-colors" strokeWidth={1.75} />
+      )}
+      <span className="block font-medium leading-none">
+        {signingOut ? "Signing out…" : "Sign Out"}
+      </span>
+    </button>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -111,10 +176,9 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col">
       {/* ── Logo ─────────────────────────────────────────────────────────── */}
-      {/* h-[72px] matches the PageHeader height in page.tsx exactly so both
-          header bars form a single unbroken horizontal baseline.
-          bg-white matches the PageHeader bg-white so the top bar reads as
-          one continuous surface across both sidebar and content columns. */}
+      {/* h-[72px] matches the SubpageHeader height exactly so both header
+          bars form a single unbroken horizontal baseline.
+          bg-white matches SubpageHeader bg-white. */}
       <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-5">
         <Link
           href="/dashboard"
@@ -151,17 +215,15 @@ function SidebarContent({
         </p>
       </div>
 
-      {/* ── Nav links ────────────────────────────────────────────────────── */}
+      {/* ── Primary nav links ─────────────────────────────────────────────── */}
       <nav
         className="flex flex-col gap-0.5 px-3"
         aria-label="Primary navigation"
       >
         {visibleItems.map((item) => {
           const Icon = item.icon;
-          // Active detection: prefix match for all /dashboard/* routes.
           const isActive =
-            pathname === item.href ||
-            pathname.startsWith(item.href + "/");
+            pathname === item.href || pathname.startsWith(item.href + "/");
 
           return (
             <Link
@@ -204,24 +266,71 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* ── Bottom-anchored footer — Settings + Role badge ───────────────── */}
-      {/* mt-auto pushes this section to the bottom regardless of nav item count. */}
-      <div className="mt-auto border-t border-zinc-200 px-4 py-4">
-        {/* Settings menu + role badge row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {/* SettingsMenu renders the gear icon trigger + dropdown */}
-            <SettingsMenu />
-            <span className="text-xs text-zinc-500">Settings</span>
-          </div>
-          {/* RoleBadge fetches role client-side; renders null while loading */}
-          <RoleBadge />
+      {/* ── Bottom-anchored footer ────────────────────────────────────────── */}
+      <div className="mt-auto border-t border-zinc-200 px-3 py-3">
+        {/* Section label */}
+        <div className="px-3 pb-1 pt-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+            Workspace
+          </p>
         </div>
 
-        {/* Regulatory footer line */}
-        <p className="mt-3 text-[10px] text-zinc-400">
-          IEC 62304 · 21 CFR Part 11
-        </p>
+        {/* Static footer nav links */}
+        <nav className="flex flex-col gap-0.5" aria-label="Workspace navigation">
+          {FOOTER_NAV.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              pathname === item.href || pathname.startsWith(item.href + "/");
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onMobileClose}
+                aria-current={isActive ? "page" : undefined}
+                className={[
+                  "group flex items-center gap-3 rounded px-3 py-2 text-sm transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
+                  isActive
+                    ? "bg-zinc-900 text-white"
+                    : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900",
+                ].join(" ")}
+              >
+                <Icon
+                  className={[
+                    "h-4 w-4 shrink-0 transition-colors",
+                    isActive
+                      ? "text-white"
+                      : "text-zinc-400 group-hover:text-zinc-600",
+                  ].join(" ")}
+                  strokeWidth={1.75}
+                />
+                <div className="min-w-0">
+                  <span className="block font-medium leading-none">
+                    {item.label}
+                  </span>
+                  <span
+                    className={[
+                      "mt-0.5 block text-[11px] leading-none truncate",
+                      isActive ? "text-zinc-300" : "text-zinc-400",
+                    ].join(" ")}
+                  >
+                    {item.description}
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
+
+          {/* Sign Out */}
+          <SignOutButton onMobileClose={onMobileClose} />
+        </nav>
+
+        {/* Role badge + regulatory line */}
+        <div className="mt-3 flex items-center justify-between px-3">
+          <p className="text-[10px] text-zinc-400">IEC 62304 · 21 CFR Part 11</p>
+          <RoleBadge />
+        </div>
       </div>
     </div>
   );

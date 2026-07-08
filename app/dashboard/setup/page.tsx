@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/card";
 import { generateApiKey, type ApiKeyRow } from "@/app/dashboard/settings/actions";
 import { getOrgLogCount } from "@/app/dashboard/setup/actions";
-import { DashboardHeader } from "@/components/dashboard-header";
+import { SubpageHeader } from "@/components/subpage-header";
 import { getSetupPageData } from "./actions";
 
 // ---------------------------------------------------------------------------
@@ -335,9 +335,9 @@ test('authenticates user session', () => {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <DashboardHeader subtitle="CLI Integration Setup" showRoleBadge={false} centerSlot={null} mobileBar={null} />
-      <main className="mx-auto max-w-7xl w-full px-6 py-8 md:px-8 md:py-12">
+    <div className="flex flex-col min-h-full bg-zinc-50">
+      <SubpageHeader subtitle="CLI Integration Setup" title="CLI Setup" complianceText="IEC 62304 · 21 CFR Part 11" />
+      <div className="w-full px-8 py-8">
 
         {/* ── Page header ───────────────────────────────────────────────── */}
         <motion.div
@@ -714,7 +714,7 @@ test('authenticates user session', () => {
           </div>
         )}
 
-      </main>
+      </div>
     </div>
   );
 }

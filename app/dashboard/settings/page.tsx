@@ -10,7 +10,7 @@
 export const dynamic = "force-dynamic";
 
 import { Settings, Code2 } from "lucide-react";
-import { DashboardHeader } from "@/components/dashboard-header";
+import { SubpageHeader } from "@/components/subpage-header";
 import { DeveloperApiKeys } from "@/components/developer-api-keys";
 import { Separator } from "@/components/ui/separator";
 import { SettingsAnimatedShell, SettingsAnimatedItem } from "@/components/settings-animated-shell";
@@ -21,12 +21,16 @@ export default async function SettingsPage() {
   const { keys } = await listApiKeys();
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="flex flex-col min-h-full bg-zinc-50">
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <DashboardHeader subtitle="Settings" />
+      <SubpageHeader
+        title="Settings"
+        subtitle="API Keys · Workspace Preferences"
+        complianceText="IEC 62304 · 21 CFR Part 11"
+      />
 
       {/* ── Main ────────────────────────────────────────────────────────── */}
-      <main className="mx-auto max-w-7xl w-full px-6 py-8 md:px-8 md:py-12">
+      <div className="w-full px-8 py-8">
         <SettingsAnimatedShell>
           {/* Page title */}
           <SettingsAnimatedItem>
@@ -71,7 +75,7 @@ export default async function SettingsPage() {
             </section>
           </SettingsAnimatedItem>
         </SettingsAnimatedShell>
-      </main>
+      </div>
     </div>
   );
 }

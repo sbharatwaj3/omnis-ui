@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ApproveLogButton } from "@/components/approve-log-button";
-import { DashboardHeader } from "@/components/dashboard-header";
+import { SubpageHeader } from "@/components/subpage-header";
 import type { UserRole } from "@/hooks/useUserRole";
 import {
   ShieldCheck,
@@ -740,16 +740,20 @@ export default async function LogDetailPage({ params, searchParams }: PageProps)
   const backHref = from === "list" ? "/dashboard?view=list" : "/dashboard";
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="flex flex-col min-h-full bg-zinc-50">
       {/* Header */}
-      <DashboardHeader subtitle="Forensic Evidence Viewer" backHref={backHref} />
+      <SubpageHeader
+        title="Evidence Viewer"
+        subtitle="Forensic Evidence Viewer · 21 CFR Part 11"
+        complianceText="21 CFR Part 11"
+      />
 
       {/* Main */}
-      <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
+      <div className="w-full px-8 py-8">
         <Suspense fallback={<ForensicSkeleton />}>
           <ForensicContent id={id} backHref={backHref} />
         </Suspense>
-      </main>
+      </div>
     </div>
   );
 }

@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 import { Users } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { DashboardHeader } from "@/components/dashboard-header";
+import { SubpageHeader } from "@/components/subpage-header";
 import { SettingsAnimatedShell, SettingsAnimatedItem } from "@/components/settings-animated-shell";
 import { listTeamMembers } from "@/app/actions/team";
 import { createClient } from "@/utils/supabase/server";
@@ -59,12 +59,16 @@ export default async function TeamPage() {
   const isAdmin = callerRole === "admin";
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="flex flex-col min-h-full bg-zinc-50">
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <DashboardHeader subtitle="Team" />
+      <SubpageHeader
+        title="Team Management"
+        subtitle="Members · Access Control"
+        complianceText="IEC 62304 · 21 CFR Part 11"
+      />
 
       {/* ── Main ────────────────────────────────────────────────────────── */}
-      <main className="mx-auto max-w-7xl w-full px-6 py-8 md:px-8 md:py-12">
+      <div className="w-full px-8 py-8">
         <SettingsAnimatedShell>
           {/* Page title */}
           <SettingsAnimatedItem>
@@ -97,7 +101,9 @@ export default async function TeamPage() {
             />
           </SettingsAnimatedItem>
         </SettingsAnimatedShell>
-      </main>
+      </div>
+    </div>
+  );
     </div>
   );
 }
