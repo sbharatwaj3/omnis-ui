@@ -66,9 +66,7 @@ import {
   XCircle,
   FileText,
   Building2,
-  ArrowLeft,
 } from "lucide-react";
-import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
 
@@ -654,16 +652,6 @@ export default function ReadinessPage() {
         subtitle="Traceability Matrix · Gap Analysis"
       />
       <div className="w-full px-8 py-8">
-        {/* Back navigation — escape hatch to Command Center */}
-        <div className="mb-6">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 rounded"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Back to Dashboard</span>
-          </Link>
-        </div>
         <Suspense fallback={<ReadinessSkeleton />}>
           <ReadinessContent />
         </Suspense>

@@ -5,13 +5,9 @@
 //   h-[72px] — matches the sidebar logo header height so both bars form a
 //   single unbroken horizontal baseline across the full viewport.
 //
-//   Left:  page title (h1) + subtitle (p) — flush with sidebar edge via pl-8.
-//   Right: compliance badge — pushed to viewport right edge via ml-auto pr-6.
-//
-// There is no logo, no Back-to-Dashboard pill, no Admin button, no Settings
-// button, and no RoleBadge here — those all live exclusively in the persistent
-// AppSidebar. Adding any of those elements to this component is a design
-// system violation.
+//   Left:   page title (h1) + subtitle (p) — flush with sidebar edge via pl-8.
+//   Center: "Back to Dashboard" navigation link — absolutely centered in the bar.
+//   Right:  compliance badge — pushed to viewport right edge via ml-auto pr-6.
 //
 // Usage:
 //   <SubpageHeader
@@ -20,7 +16,8 @@
 //     complianceText="IEC 62304 · FDA 820.30(c)"   // optional, defaults to standard
 //   />
 
-import { Activity } from "lucide-react";
+import { Activity, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 interface SubpageHeaderProps {
   /** Primary h1 text — the page name (e.g. "Triage Inbox") */
@@ -39,13 +36,29 @@ export function SubpageHeader({
   return (
     // h-[72px] matches the sidebar logo header height exactly so both header
     // bars form a single unbroken horizontal baseline across the viewport.
-    <header className="h-[72px] flex items-center border-b border-zinc-200 bg-white w-full pr-6 shrink-0">
+    // position:relative on the header lets the center link be absolutely
+    // positioned without affecting the left/right flex children.
+    <header className="relative h-[72px] flex items-center border-b border-zinc-200 bg-white w-full pr-6 shrink-0">
+
       {/* Left: page title + subtitle — pl-8 aligns flush with sidebar edge */}
       <div className="pl-8 flex items-center min-w-0 flex-1">
         <div>
           <h1 className="text-sm font-semibold text-zinc-900">{title}</h1>
           <p className="mt-0.5 text-xs text-zinc-400">{subtitle}</p>
         </div>
+      </div>
+
+      {/* Center: Back to Dashboard — absolute so it is always geometrically
+          centered between the left title and the right compliance badge,
+          regardless of how wide either side is. */}
+      <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:border-zinc-300 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          Back to Dashboard
+        </Link>
       </div>
 
       {/* Right: compliance badge — pushed to viewport right edge */}
@@ -57,6 +70,7 @@ export function SubpageHeader({
           </span>
         </span>
       </div>
+
     </header>
   );
 }
