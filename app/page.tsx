@@ -1088,14 +1088,14 @@ function SecurityArchitectureSection() {
                 variants={fadeUp}
                 transition={easeOut}
                 /*
-                 * Fixed min-h so the grid row never reflows when the hover
-                 * body text is revealed — no layout jitter across columns.
-                 * overflow-hidden clips the translating body copy cleanly.
+                 * Normal flow card — no absolute children, no overflow-hidden.
+                 * The grid row height stretches uniformly across all 3 columns
+                 * as the hovered card expands, keeping the 1px gap lines intact.
                  */
-                className="group relative flex min-h-56 flex-col overflow-hidden bg-slate-50 p-10 transition-colors duration-300 hover:bg-white"
+                className="group flex flex-col bg-slate-50 p-10 transition-colors duration-300 hover:bg-white"
               >
                 {/* Icon chip */}
-                <div className="flex h-9 w-9 items-center justify-center border border-slate-200 bg-white transition-colors duration-300 group-hover:border-slate-300">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-slate-200 bg-white transition-colors duration-300 group-hover:border-slate-300">
                   <Icon className="h-4 w-4 text-slate-500 transition-colors duration-300 group-hover:text-slate-800" strokeWidth={1.5} />
                 </div>
 
@@ -1104,22 +1104,21 @@ function SecurityArchitectureSection() {
                   {header}
                 </p>
 
-                {/*
-                 * Sub-header: visible by default, fades out on hover to make
-                 * room for the fuller body copy without shifting the header.
-                 */}
-                <p className="mt-1 text-xs text-slate-400 transition-all duration-300 ease-out group-hover:opacity-0 group-hover:-translate-y-1">
+                {/* Sub-header — always visible, sits directly under header */}
+                <p className="mt-1 text-xs text-slate-400">
                   {subheader}
                 </p>
 
                 {/*
-                 * Body copy: hidden by default (opacity-0 + translate-y-2),
-                 * smoothly revealed on hover. absolute positioning keeps it
-                 * from pushing siblings and causing reflow.
+                 * Body copy wrapper — max-height expansion from 0 → 200px.
+                 * overflow-hidden is scoped to this div only, so the card
+                 * itself is free to grow in the normal flow.
                  */}
-                <p className="absolute inset-x-10 bottom-10 text-sm leading-relaxed text-slate-500 opacity-0 translate-y-2 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:translate-y-0">
-                  {body}
-                </p>
+                <div className="overflow-hidden transition-all duration-300 ease-in-out max-h-0 opacity-0 group-hover:max-h-[200px] group-hover:opacity-100 group-hover:mt-4">
+                  <p className="text-sm leading-relaxed text-slate-500">
+                    {body}
+                  </p>
+                </div>
               </motion.div>
             ))}
           </motion.div>
