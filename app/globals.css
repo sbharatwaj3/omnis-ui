@@ -115,6 +115,19 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Dashboard content width constraint
+   --------------------------------------------------------------------------
+   The dashboard content column must stop at 75% of the viewport, reserving
+   the remaining 25% for the right sidebar. The left sidebar is 16rem (256px),
+   so the content cap = 75vw - 16rem. This is applied via a plain CSS class
+   to avoid forbidden arbitrary Tailwind values.
+   --------------------------------------------------------------------------- */
+.dashboard-content-width {
+  width: 100%;
+  max-width: calc(75vw - 16rem);
+}
+
+/* ---------------------------------------------------------------------------
    Shimmer badge — pure-CSS glint sweep for the hero eyebrow badge.
    A single highlight band translates from -100% to 200% across the element,
    giving a subtle metallic sheen without any JS or third-party dependency.
