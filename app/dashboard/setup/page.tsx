@@ -119,13 +119,13 @@ function StepBadge({ step, current, done }: { step: number; current: number; don
   }
   if (step === current) {
     return (
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded border-2 border-zinc-900 bg-zinc-900 text-white text-xs font-bold">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded border-2 border-zinc-900 bg-zinc-900 text-white text-xs font-semibold">
         {step}
       </div>
     );
   }
   return (
-    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded border-2 border-zinc-200 text-zinc-400 text-xs font-bold">
+    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded border-2 border-zinc-200 text-zinc-400 text-xs font-semibold">
       {step}
     </div>
   );
@@ -346,7 +346,7 @@ test('authenticates user session', () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "tween", ease: "easeOut", duration: 0.35, delay: 0.05 }}
         >
-          <h2 className="text-2xl font-bold tracking-tight text-zinc-900">Connect the CLI</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-zinc-900">Connect the CLI</h2>
           <p className="mt-2 text-sm text-zinc-400">
             Three steps to send your first evidence log to the Omnis platform.
           </p>
@@ -614,7 +614,7 @@ test('authenticates user session', () => {
               ) : (
                 <div className="rounded border border-emerald-300 bg-emerald-50 px-4 py-4 text-center">
                   <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-emerald-500" strokeWidth={1.75} />
-                  <p className="text-sm font-bold text-emerald-800">First evidence log received!</p>
+                  <p className="text-sm font-semibold text-emerald-800">First evidence log received!</p>
                   <p className="mt-1 text-xs text-emerald-700">
                     {logCount} log{logCount !== 1 ? "s" : ""} in your compliance ledger. Your integration is live.
                   </p>

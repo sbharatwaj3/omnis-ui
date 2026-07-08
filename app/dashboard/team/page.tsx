@@ -71,7 +71,7 @@ export default async function TeamPage() {
             <div className="mb-8 flex items-center gap-3">
               <Users className="h-5 w-5 text-zinc-500" strokeWidth={1.75} />
               <div>
-                <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+                <h2 className="text-xl font-semibold tracking-tight text-zinc-900">
                   Team Management
                 </h2>
                 <p className="mt-0.5 text-sm text-zinc-400">

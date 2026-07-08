@@ -94,7 +94,7 @@ function BrandPanel() {
           <ShieldCheck className="h-5 w-5 text-zinc-700" strokeWidth={1.75} />
         </div>
         <div className="leading-none">
-          <span className="block text-sm font-bold text-slate-900">Qavro</span>
+          <span className="block text-sm font-medium text-slate-900">Qavro</span>
           <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-600">
             FDA Assurance Platform
           </span>
@@ -125,7 +125,7 @@ function BrandPanel() {
                   <Icon className="h-3.5 w-3.5 text-slate-600" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-800">{point.title}</p>
+                  <p className="text-xs font-semibold text-slate-800">{point.title}</p>
                   <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{point.body}</p>
                 </div>
               </div>
@@ -185,7 +185,7 @@ function AuthForm() {
           <ShieldCheck className="h-6 w-6 text-zinc-700" strokeWidth={1.75} />
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-gray-900">Qavro</p>
+          <p className="text-sm font-medium text-gray-900">Qavro</p>
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">FDA Assurance Platform</p>
         </div>
       </Link>

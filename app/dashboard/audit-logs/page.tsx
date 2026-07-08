@@ -121,7 +121,7 @@ export default function AuditLogsPage() {
             <ShieldAlert className="h-4.5 w-4.5 text-zinc-600" strokeWidth={1.75} />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+            <h2 className="text-xl font-semibold tracking-tight text-zinc-900">
               Audit Trail
             </h2>
             <p className="mt-0.5 text-sm text-zinc-400">

@@ -102,7 +102,7 @@ function BrandPanel() {
           <ShieldCheck className="h-5 w-5 text-emerald-600" strokeWidth={1.75} />
         </div>
         <div className="leading-none">
-          <span className="block text-sm font-bold text-slate-900">Qavro</span>
+          <span className="block text-sm font-medium text-slate-900">Qavro</span>
           <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-600">
             FDA Assurance Platform
           </span>
@@ -115,7 +115,7 @@ function BrandPanel() {
           <span className="h-1.5 w-1.5 rounded bg-emerald-500 animate-pulse" />
           <span className="text-xs font-semibold text-emerald-700">Compliance Vault — Onboarding</span>
         </div>
-        <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 xl:text-4xl">
+        <h2 className="text-3xl font-semibold leading-tight tracking-tight text-slate-900 xl:text-4xl">
           Automate Your
           <br />
           <span className="text-emerald-600">Regulatory Pipeline.</span>
@@ -133,7 +133,7 @@ function BrandPanel() {
                   <Icon className="h-3.5 w-3.5 text-emerald-600" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-800">{point.title}</p>
+                  <p className="text-xs font-semibold text-slate-800">{point.title}</p>
                   <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{point.body}</p>
                 </div>
               </div>
@@ -230,7 +230,7 @@ function SignUpForm() {
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded bg-emerald-50 ring-1 ring-emerald-200">
             <CheckCircle2 className="h-7 w-7 text-emerald-500" strokeWidth={1.75} />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Check your email</h1>
+          <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Check your email</h1>
           <p className="text-sm text-gray-500 mt-2 leading-relaxed">
             We sent a confirmation link to{" "}
             <span className="font-semibold text-gray-700">{email}</span>.
@@ -256,7 +256,7 @@ function SignUpForm() {
           <ShieldCheck className="h-6 w-6 text-emerald-600" strokeWidth={1.75} />
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-gray-900">Qavro</p>
+          <p className="text-sm font-medium text-gray-900">Qavro</p>
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">FDA Assurance Platform</p>
         </div>
       </Link>
@@ -270,7 +270,7 @@ function SignUpForm() {
       >
         {/* Header */}
         <div className="mb-7">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Create account</h1>
+          <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Create account</h1>
           <p className="text-sm text-gray-500 mt-2">Set up your RegOps compliance workspace.</p>
         </div>
 

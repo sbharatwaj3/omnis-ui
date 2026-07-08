@@ -122,7 +122,7 @@ function Header({ isAuthenticated, userEmail }: { isAuthenticated: boolean; user
             <ShieldCheck className="h-4 w-4 text-slate-800" strokeWidth={1.75} />
           </div>
           <div className="leading-none">
-            <span className="block text-sm font-bold tracking-tight text-slate-900">Qavro</span>
+            <span className="block text-sm font-medium tracking-tight text-slate-900">Qavro</span>
             <span className="block text-[10px] font-medium tracking-widest text-emerald-600 uppercase">FDA Assurance Platform</span>
           </div>
         </Link>
@@ -239,7 +239,7 @@ function HeroSection() {
           <motion.h1
             variants={fadeUp}
             transition={easeOutSlow}
-            className="mx-auto max-w-4xl text-5xl font-extrabold leading-[1.08] tracking-tight text-slate-900 md:text-6xl lg:text-7xl"
+            className="mx-auto max-w-4xl text-5xl font-semibold leading-[1.08] tracking-tight text-slate-900 md:text-6xl lg:text-7xl"
           >
             Automate 21 CFR Part 11 Compliance{" "}
             <span className="text-emerald-600">Without Slowing Down Engineering.</span>
@@ -417,7 +417,7 @@ function TriageMockup() {
           </div>
           {/* Badge */}
           <span
-            className={`shrink-0 rounded border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+            className={`shrink-0 rounded border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${
               row.status === "pass"
                 ? "border-emerald-300 text-emerald-700"
                 : "border-amber-300 text-amber-700"
@@ -478,7 +478,7 @@ function LedgerMockup() {
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-[10px] font-semibold text-slate-600">{block.id}</span>
                 <span
-                  className={`rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+                  className={`rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${
                     block.sealed
                       ? "border-emerald-200 text-emerald-700"
                       : "border-slate-200 text-slate-400"
@@ -549,7 +549,7 @@ function BentoSection() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">
             Core Platform
           </p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-900 md:text-3xl">
+          <h2 className="mt-2 text-2xl font-medium text-slate-900 md:text-3xl">
             Three pillars. Zero compliance debt.
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-500">
@@ -677,7 +677,7 @@ function HowItWorksSection() {
           transition={easeOut}
         >
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">How It Works</p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-900 md:text-3xl">
+          <h2 className="mt-2 text-2xl font-medium text-slate-900 md:text-3xl">
             From commit to compliance, automatically.
           </h2>
         </motion.div>
@@ -705,11 +705,11 @@ function HowItWorksSection() {
               >
                 <div className="relative mb-5 flex h-20 w-20 items-center justify-center rounded border border-slate-200 bg-white transition-shadow group-hover:">
                   <Icon className="h-8 w-8 text-slate-700" strokeWidth={1.5} />
-                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded bg-emerald-500 text-[10px] font-bold text-white">
+                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded bg-emerald-500 text-[10px] font-semibold text-white">
                     {step.step}
                   </span>
                 </div>
-                <h3 className="text-base font-bold text-slate-900">{step.title}</h3>
+                <h3 className="text-base font-medium text-slate-900">{step.title}</h3>
                 <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-500">{step.description}</p>
               </motion.div>
             );
@@ -791,7 +791,7 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
           transition={easeOut}
         >
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Platform Preview</p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-900 md:text-3xl">
+          <h2 className="mt-2 text-2xl font-medium text-slate-900 md:text-3xl">
             The Single Source of Compliance Truth.
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-500">
@@ -892,7 +892,7 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
                         ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
                         : <Circle className="h-3.5 w-3.5 shrink-0 text-amber-400" />
                       }
-                      <span className="font-mono text-[10px] font-bold text-slate-500">
+                      <span className="font-mono text-[10px] font-medium text-slate-500">
                         {row.clause}
                       </span>
                     </div>
@@ -915,7 +915,7 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
                     </span>
                     {/* Status badge */}
                     <span
-                      className={`w-16 rounded border px-1.5 py-0.5 text-center font-mono text-[9px] font-bold uppercase tracking-wide ${
+                      className={`w-16 rounded border px-1.5 py-0.5 text-center font-mono text-[9px] font-semibold uppercase tracking-wide ${
                         row.compliant
                           ? "border-emerald-200 text-emerald-700"
                           : "border-amber-200 text-amber-700"
@@ -939,7 +939,7 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
                   <span className="font-mono text-[10px] text-emerald-600">
                     4/5 clauses verified
                   </span>
-                  <span className="text-sm font-bold tabular-nums text-emerald-700">80.0%</span>
+                  <span className="text-sm font-semibold tabular-nums text-emerald-700">80.0%</span>
                 </div>
               </div>
             </div>
@@ -982,7 +982,7 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
                         <p className="font-mono text-[9px] text-slate-400">{entry.ts}</p>
                       </div>
                       <span
-                        className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase ${
+                        className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase ${
                           entry.status === "success"
                             ? "border-emerald-200 text-emerald-700"
                             : "border-amber-200 text-amber-700"
@@ -1154,7 +1154,7 @@ function BottomCTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
           <motion.h2
             variants={fadeUp}
             transition={easeOutSlow}
-            className="text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl"
+            className="text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl"
           >
             Ready to automate your<br />regulatory pipeline?
           </motion.h2>
@@ -1175,7 +1175,7 @@ function BottomCTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link
                 href={ctaTarget}
-                className="inline-flex items-center gap-2.5 rounded bg-slate-900 px-8 py-4 text-sm font-bold text-white shadow-slate-900/20 transition-all hover:bg-slate-800"
+                className="inline-flex items-center gap-2.5 rounded bg-slate-900 px-8 py-4 text-sm font-medium text-white shadow-slate-900/20 transition-all hover:bg-slate-800"
               >
                 {isAuthenticated ? "Go to Dashboard" : "Get Started"}
                 <ArrowRight className="h-4 w-4" />

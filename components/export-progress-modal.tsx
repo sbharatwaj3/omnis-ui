@@ -334,7 +334,7 @@ export function ExportProgressModal({
         <div>
           <h2
             id="export-modal-title"
-            className="text-lg font-bold tracking-tight text-zinc-900"
+            className="text-lg font-semibold tracking-tight text-zinc-900"
           >
             Generating eSTAR Documentation
           </h2>

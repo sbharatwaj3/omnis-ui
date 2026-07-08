@@ -487,7 +487,7 @@ async function ReadinessContent() {
       {/* HEADER ROW */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+          <h2 className="text-xl font-semibold tracking-tight text-zinc-900">
             Traceability Matrix
           </h2>
           <p className="mt-1 text-sm text-zinc-400">

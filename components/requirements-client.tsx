@@ -397,7 +397,7 @@ function AddRequirementModal({ rules, onClose, onSuccess }: AddRequirementModalP
         >
           <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
             <div>
-              <h2 id="add-req-modal-title" className="text-sm font-bold tracking-tight text-zinc-900">
+              <h2 id="add-req-modal-title" className="text-sm font-semibold tracking-tight text-zinc-900">
                 Add New Requirement
               </h2>
               <p className="mt-0.5 text-xs text-zinc-400">IEC 62304 §5.2.6 — SRS traceability artefact</p>
@@ -732,7 +732,7 @@ function ImportCSVModal({ onClose, onSuccess }: ImportCSVModalProps) {
         >
           <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
             <div>
-              <h2 id="import-csv-modal-title" className="text-sm font-bold tracking-tight text-zinc-900">
+              <h2 id="import-csv-modal-title" className="text-sm font-semibold tracking-tight text-zinc-900">
                 Import Requirements via CSV
               </h2>
               <p className="mt-0.5 text-xs text-zinc-400">Bulk-upload SRS/SDS artefacts · IEC 62304 §5.2.6</p>

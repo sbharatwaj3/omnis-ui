@@ -384,7 +384,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
             <BarChart3 className="h-4 w-4 text-zinc-400" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold tabular-nums text-zinc-800">
+            <p className="text-3xl font-semibold tabular-nums text-zinc-800">
               {total}
             </p>
             <p className="mt-1 text-xs text-zinc-400">Evidence logs in current view</p>
@@ -408,7 +408,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
           </CardHeader>
           <CardContent>
             <p
-              className={`text-3xl font-bold tabular-nums ${
+              className={`text-3xl font-semibold tabular-nums ${
                 criticalCount > 0 ? "text-red-600" : "text-zinc-800"
               }`}
             >
@@ -437,7 +437,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
           </CardHeader>
           <CardContent>
             <p
-              className={`text-3xl font-bold tabular-nums ${
+              className={`text-3xl font-semibold tabular-nums ${
                 parseFloat(failureRate) === 0 ? "text-emerald-600" : "text-orange-600"
               }`}
             >

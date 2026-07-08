@@ -73,7 +73,7 @@ function BrandPanel() {
           <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="leading-none">
-          <span className="block text-sm font-bold text-slate-100">Qavro</span>
+          <span className="block text-sm font-medium text-slate-100">Qavro</span>
           <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-400">FDA Assurance Platform</span>
         </div>
       </Link>
@@ -83,7 +83,7 @@ function BrandPanel() {
           <span className="h-1.5 w-1.5 rounded bg-emerald-400 animate-pulse" />
           <span className="text-xs font-semibold text-emerald-300">Account Recovery</span>
         </div>
-        <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white xl:text-4xl">
+        <h1 className="text-3xl font-semibold leading-tight tracking-tight text-white xl:text-4xl">
           Set Your New<br />
           <span className="text-emerald-400">Password.</span>
         </h1>
@@ -96,7 +96,7 @@ function BrandPanel() {
             <Lock className="h-3.5 w-3.5 text-emerald-400" strokeWidth={1.75} />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-200">Zero-Trust Password Update</p>
+            <p className="text-xs font-semibold text-slate-200">Zero-Trust Password Update</p>
             <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
               Your reset token is single-use and expires after one hour. This
               action is recorded in the immutable audit ledger.
@@ -192,7 +192,7 @@ function UpdatePasswordForm() {
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded bg-emerald-50 ring-1 ring-emerald-200">
             <CheckCircle2 className="h-7 w-7 text-emerald-500" strokeWidth={1.75} />
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900">Password updated</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-slate-900">Password updated</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-500">
             Your password has been changed successfully. Redirecting you to sign in...
           </p>
@@ -228,7 +228,7 @@ function UpdatePasswordForm() {
           <ShieldCheck className="h-6 w-6 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-slate-900">Qavro</p>
+          <p className="text-sm font-medium text-slate-900">Qavro</p>
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">FDA Assurance Platform</p>
         </div>
       </Link>
@@ -241,7 +241,7 @@ function UpdatePasswordForm() {
         animate="visible"
       >
         <div className="mb-7">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Set new password</h2>
+          <h2 className="text-2xl font-medium tracking-tight text-slate-900">Set new password</h2>
           <p className="mt-1.5 text-sm text-slate-500">
             Choose a strong password of at least 8 characters.
           </p>
@@ -304,7 +304,7 @@ function UpdatePasswordForm() {
           <Button
             type="submit"
             disabled={loading}
-            className="h-11 w-full rounded bg-slate-900 text-sm font-bold text-white transition-all hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
+            className="h-11 w-full rounded bg-slate-900 text-sm font-medium text-white transition-all hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? (
               <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Saving...</span>

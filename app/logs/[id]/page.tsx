@@ -405,7 +405,7 @@ async function ForensicContent({ id, backHref }: { id: string; backHref: string 
         {/* Title row */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-zinc-900">
+            <h1 className="text-xl font-semibold tracking-tight text-zinc-900">
               {testSuite}
             </h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-zinc-400">

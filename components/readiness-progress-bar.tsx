@@ -47,7 +47,7 @@ export function ReadinessProgressBar({
           FDA Submission Readiness
         </span>
         <motion.span
-          className={`text-2xl font-bold tabular-nums ${
+          className={`text-2xl font-semibold tabular-nums ${
             completionPercent === 100
               ? "text-emerald-600"
               : completionPercent >= 50

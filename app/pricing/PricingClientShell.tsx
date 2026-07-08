@@ -116,7 +116,7 @@ function PricingHeader({ userEmail }: { userEmail: string | null }) {
             <ShieldCheck className="h-4 w-4 text-slate-800" strokeWidth={1.75} />
           </div>
           <div className="leading-none">
-            <span className="block text-sm font-bold tracking-tight text-slate-900">
+            <span className="block text-sm font-medium tracking-tight text-slate-900">
               Qavro
             </span>
             <span className="block text-[10px] font-medium tracking-widest text-emerald-600 uppercase">
@@ -193,7 +193,7 @@ function PricingHero() {
 
         {/* Headline */}
         <motion.h1
-          className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl lg:text-6xl"
+          className="text-4xl font-semibold leading-tight tracking-tight text-slate-900 md:text-5xl lg:text-6xl"
           variants={fadeUp}
           initial="hidden"
           animate="visible"
@@ -258,7 +258,7 @@ function PricingCard({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28, ease: "easeOut", delay: 0.35 }}
           >
-            <span className="inline-flex items-center gap-1.5 rounded border border-emerald-300 bg-emerald-500 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
+            <span className="inline-flex items-center gap-1.5 rounded border border-emerald-300 bg-emerald-500 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
               <Zap className="h-3 w-3" aria-hidden="true" />
               {tier.badge}
             </span>
@@ -272,7 +272,7 @@ function PricingCard({
           {tier.name}
         </p>
         <div className="mt-2 flex items-end gap-1.5">
-          <span className="text-4xl font-extrabold tracking-tight text-slate-900">
+          <span className="text-4xl font-semibold tracking-tight text-slate-900">
             {tier.priceLabel}
           </span>
           <span className="mb-1.5 text-sm font-medium text-slate-400">
@@ -323,7 +323,7 @@ function PricingCard({
           orgId={orgId}
           label={tier.ctaLabel}
           className={[
-            "inline-flex w-full items-center justify-center gap-2 rounded px-6 py-3.5 text-sm font-bold transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
+            "inline-flex w-full items-center justify-center gap-2 rounded px-6 py-3.5 text-sm font-semibold transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
             tier.highlight
               ? "bg-emerald-500 text-white hover:bg-emerald-600 focus-visible:ring-emerald-500"
               : "bg-slate-900 text-white hover:bg-slate-800 focus-visible:ring-slate-900",
@@ -333,7 +333,7 @@ function PricingCard({
         <Link
           href={`/signup?tier=${tier.id}`}
           className={[
-            "inline-flex w-full items-center justify-center gap-2 rounded px-6 py-3.5 text-sm font-bold transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+            "inline-flex w-full items-center justify-center gap-2 rounded px-6 py-3.5 text-sm font-semibold transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
             tier.highlight
               ? "bg-emerald-500 text-white hover:bg-emerald-600 focus-visible:ring-emerald-500"
               : "bg-slate-900 text-white hover:bg-slate-800 focus-visible:ring-slate-900",
@@ -465,7 +465,7 @@ function TokenComparisonTable() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">
             Compare Plans
           </p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-900">
+          <h2 className="mt-2 text-2xl font-medium text-slate-900">
             Understand what you&apos;re getting
           </h2>
         </motion.div>
@@ -556,12 +556,12 @@ function BottomCTA({ orgId }: { orgId: string | null }) {
             <CheckoutButton
               orgId={orgId}
               label="Start 30-Day Free Trial"
-              className="inline-flex items-center justify-center gap-2 rounded bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white transition-all hover:bg-emerald-600 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded bg-emerald-500 px-8 py-3.5 text-sm font-semibold text-white transition-all hover:bg-emerald-600 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             />
           ) : (
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center gap-2 rounded bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white transition-all hover:bg-emerald-600 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+              className="inline-flex items-center justify-center gap-2 rounded bg-emerald-500 px-8 py-3.5 text-sm font-semibold text-white transition-all hover:bg-emerald-600 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               Start 30-Day Free Trial
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

@@ -121,7 +121,7 @@ export default function RequirementsPage() {
             <ClipboardList className="h-4.5 w-4.5 text-zinc-600" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-zinc-900">
+            <h1 className="text-xl font-semibold tracking-tight text-zinc-900">
               Requirements Management
             </h1>
             <p className="mt-0.5 text-sm text-zinc-400">

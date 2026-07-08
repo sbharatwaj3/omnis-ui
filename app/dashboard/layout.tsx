@@ -23,6 +23,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
+import { getPendingCount } from "@/app/dashboard/triage/actions";
+import { TriageBadge } from "@/components/triage-badge";
 
 // ── Admin bypass ────────────────────────────────────────────────────────────
 // ADMIN_ORG_ID is loaded from process.env (never hardcoded) so that the admin
@@ -69,7 +71,16 @@ export default async function DashboardLayout({
   // ── Step 3: Admin bypass ──────────────────────────────────────────────────
   // Designated admin org bypasses subscription check entirely.
   if (orgId === ADMIN_ORG_ID) {
-    return <>{children}</>;
+    const { count: pendingCount } = await getPendingCount();
+    return (
+      <div className="relative">
+        {/* Pending triage badge — server-side count, visible to admin/qa_manager only */}
+        <div className="absolute top-4 right-4 z-10">
+          <TriageBadge count={pendingCount} role="admin" />
+        </div>
+        {children}
+      </div>
+    );
   }
 
   // ── Step 4: Resolve the user's RBAC role ──────────────────────────────────
@@ -89,7 +100,16 @@ export default async function DashboardLayout({
 
   // Non-admin joined members bypass the pricing gate entirely.
   if (role && role !== "admin") {
-    return <>{children}</>;
+    const { count: pendingCount } = await getPendingCount();
+    return (
+      <div className="relative">
+        {/* Pending triage badge — server-side count, visible to qa_manager only */}
+        <div className="absolute top-4 right-4 z-10">
+          <TriageBadge count={pendingCount} role={role} />
+        </div>
+        {children}
+      </div>
+    );
   }
 
   // ── Step 5: Admin checkout gate ──────────────────────────────────────────
@@ -125,7 +145,16 @@ export default async function DashboardLayout({
     status === "active" ||
     (status === "trialing" && hasCompletedCheckout)
   ) {
-    return <>{children}</>;
+    const { count: pendingCount } = await getPendingCount();
+    return (
+      <div className="relative">
+        {/* Pending triage badge — server-side count, visible to admin/qa_manager only */}
+        <div className="absolute top-4 right-4 z-10">
+          <TriageBadge count={pendingCount} role={role ?? ""} />
+        </div>
+        {children}
+      </div>
+    );
   }
 
   // Deny: pre-checkout 'trialing' (no stripe_customer_id), past_due, canceled,

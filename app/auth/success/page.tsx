@@ -26,7 +26,7 @@ export default function AuthSuccessPage() {
             <ShieldCheck className="h-5 w-5 text-emerald-500" strokeWidth={1.75} />
           </div>
           <div className="text-left leading-none">
-            <span className="block text-sm font-bold text-slate-900">
+            <span className="block text-sm font-medium text-slate-900">
               Qavro
             </span>
             <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-600">
@@ -40,7 +40,7 @@ export default function AuthSuccessPage() {
           <CheckCircle2 className="h-8 w-8 text-emerald-500" strokeWidth={1.75} />
         </div>
 
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
           Your email is now confirmed.
         </h1>
         <p className="mt-3 text-base leading-relaxed text-slate-500">

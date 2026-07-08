@@ -52,7 +52,7 @@ function BrandPanel() {
           <ShieldCheck className="h-5 w-5 text-emerald-400" strokeWidth={1.75} />
         </div>
         <div className="leading-none">
-          <span className="block text-sm font-bold text-slate-100">
+          <span className="block text-sm font-medium text-slate-100">
             Qavro
           </span>
           <span className="block text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
@@ -69,7 +69,7 @@ function BrandPanel() {
           </span>
         </div>
 
-        <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white xl:text-4xl">
+        <h1 className="text-3xl font-semibold leading-tight tracking-tight text-white xl:text-4xl">
           Connect Your
           <br />
           <span className="text-emerald-400">Compliance Workspace.</span>
@@ -122,7 +122,7 @@ function FeaturePoint({
         <Icon className="h-3.5 w-3.5 text-emerald-400" strokeWidth={1.75} />
       </div>
       <div>
-        <p className="text-xs font-bold text-slate-200">{title}</p>
+        <p className="text-xs font-semibold text-slate-200">{title}</p>
         <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{body}</p>
       </div>
     </div>
@@ -165,7 +165,7 @@ function TabButton({
           className={`h-4 w-4 ${active ? "text-emerald-400" : "text-slate-400"}`}
           strokeWidth={1.75}
         />
-        <span className="text-sm font-bold">{label}</span>
+        <span className="text-sm font-medium">{label}</span>
       </div>
       <p
         className={`text-xs leading-relaxed ${
@@ -357,7 +357,7 @@ function CreateOrgForm() {
       <Button
         type="submit"
         disabled={isPending}
-        className="h-11 w-full rounded bg-slate-900 text-sm font-bold text-white transition-all hover:bg-slate-800 disabled:opacity-50"
+        className="h-11 w-full rounded bg-slate-900 text-sm font-medium text-white transition-all hover:bg-slate-800 disabled:opacity-50"
       >
         {isPending ? (
           <span className="flex items-center gap-2">
@@ -431,7 +431,7 @@ function JoinOrgForm() {
       <Button
         type="submit"
         disabled={isPending || !role}
-        className="h-11 w-full rounded bg-slate-900 text-sm font-bold text-white transition-all hover:bg-slate-800 disabled:opacity-50"
+        className="h-11 w-full rounded bg-slate-900 text-sm font-medium text-white transition-all hover:bg-slate-800 disabled:opacity-50"
       >
         {isPending ? (
           <span className="flex items-center gap-2">
@@ -479,7 +479,7 @@ function OnboardingCard() {
           />
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-slate-900">
+          <p className="text-sm font-medium text-slate-900">
             Qavro
           </p>
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
@@ -495,18 +495,18 @@ function OnboardingCard() {
             <CheckCircle2 className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
           </div>
           <div className="h-px flex-1 bg-slate-200" />
-          <div className="flex h-6 w-6 items-center justify-center rounded bg-slate-900 text-white text-xs font-bold">
+          <div className="flex h-6 w-6 items-center justify-center rounded bg-slate-900 text-white text-xs font-semibold">
             2
           </div>
           <div className="h-px flex-1 bg-slate-200" />
-          <div className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 text-slate-400 text-xs font-bold">
+          <div className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 text-slate-400 text-xs font-semibold">
             3
           </div>
         </div>
 
         {/* Header */}
         <div className="mb-7">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h2 className="text-2xl font-medium tracking-tight text-slate-900">
             Set up your workspace
           </h2>
           <p className="mt-1.5 text-sm text-slate-500">
