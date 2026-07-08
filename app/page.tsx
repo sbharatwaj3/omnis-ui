@@ -270,10 +270,10 @@ function HeroSection() {
               </Link>
             </motion.div>
 
-            {/* Secondary */}
+            {/* Secondary — smooth-scrolls to #sample-matrix anchor */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
               <Link
-                href="/login"
+                href="#sample-matrix"
                 className="inline-flex items-center gap-2 rounded border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 View Sample Matrix
@@ -718,8 +718,215 @@ function HowItWorksSection() {
 }
 
 // ---------------------------------------------------------------------------
-// Product Preview
+// Sample Matrix Document Mockup
 // ---------------------------------------------------------------------------
+
+/**
+ * Three realistic traceability rows for the PDF mockup.
+ * Req IDs follow IEC 62304 / 21 CFR Part 11 naming conventions.
+ */
+const sampleMatrixRows = [
+  {
+    reqId:      "IEC-62304-5.1.1",
+    desc:       "Software Development Planning — establish and maintain a plan for performing the software development activities",
+    method:     "Document Review / Static Analysis",
+    sig:        "a3f9c2d8…4e1b",
+    status:     "APPROVED",
+  },
+  {
+    reqId:      "21CFR-11.10(e)",
+    desc:       "Use of secure, computer-generated, time-stamped audit trails to independently record date and time of operator entries",
+    method:     "Automated Evidence Log Ingestion",
+    sig:        "c2d84a91…9b03",
+    status:     "APPROVED",
+  },
+  {
+    reqId:      "IEC-62304-5.7.4",
+    desc:       "Regression testing — perform tests to verify that defect correction has not introduced new defects",
+    method:     "CI/CD Automated Test Suite",
+    sig:        "d91f3e0c…c571",
+    status:     "PENDING",
+  },
+] as const;
+
+function SampleMatrixSection() {
+  return (
+    <section
+      id="sample-matrix"
+      className="border-t border-slate-200 bg-slate-50 py-20"
+    >
+      <div className="mx-auto max-w-7xl px-6">
+
+        {/* Section header */}
+        <motion.div
+          className="mb-12 text-center"
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
+          transition={easeOut}
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">
+            Sample Output
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-slate-900 md:text-3xl">
+            Submission-Ready. Out of the box.
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-500">
+            Stop wrestling with spreadsheets. QAVRO generates FDA eSTAR and IEC 62304
+            compliant traceability matrices instantly.
+          </p>
+        </motion.div>
+
+        {/* PDF document mockup */}
+        <motion.div
+          variants={fadeIn}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ ...easeOut, duration: 0.45 }}
+          className="mx-auto max-w-4xl"
+        >
+          {/*
+            Outer shell mimics a physical A4/letter sheet lifted off the page.
+            — shadow-2xl gives depth without violating the "no drop shadow on
+              UI components" rule — this is a document prop, not a UI surface.
+            — max-w-4xl + aspect ratio content keeps it letter-like.
+            — rounded-sm (2px) is the maximum allowed per design system.
+          */}
+          <div className="overflow-hidden rounded-sm bg-white shadow-2xl ring-1 ring-slate-200/60">
+
+            {/* Document header strip */}
+            <div className="border-b border-slate-200 bg-slate-50 px-8 py-5">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-slate-700" strokeWidth={1.75} />
+                    <span className="text-xs font-bold uppercase tracking-widest text-slate-700">
+                      Qavro — IEC 62304 / 21 CFR Part 11
+                    </span>
+                  </div>
+                  <h3 className="mt-1.5 text-base font-semibold text-slate-900">
+                    Software Requirements Traceability Matrix
+                  </h3>
+                  <p className="mt-0.5 font-mono text-[10px] text-slate-400">
+                    Document ID: QV-TRM-2026-001 · Rev 1.0 · Generated: 2026-07-08T04:12:08Z
+                  </p>
+                </div>
+                <div className="mt-3 flex shrink-0 flex-col items-start gap-1 sm:mt-0 sm:items-end">
+                  <span className="rounded border border-emerald-300 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wide text-emerald-700">
+                    eSTAR Ready
+                  </span>
+                  <span className="rounded border border-slate-200 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wide text-slate-500">
+                    HMAC-SHA256 Signed
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Table — horizontally scrollable on mobile */}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50">
+                    {[
+                      "Req ID",
+                      "Description",
+                      "Verification Method",
+                      "Cryptographic Sig",
+                      "Status",
+                    ].map((col) => (
+                      <th
+                        key={col}
+                        className="px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400"
+                      >
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <motion.tbody
+                  variants={staggerContainer(0.08, 0.1)}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.2 }}
+                >
+                  {sampleMatrixRows.map((row, idx) => (
+                    <motion.tr
+                      key={row.reqId}
+                      variants={fadeUp}
+                      transition={easeOut}
+                      className={`border-b border-slate-100 ${
+                        idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"
+                      }`}
+                    >
+                      {/* Req ID */}
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <span className="font-mono text-[11px] font-semibold text-slate-700">
+                          {row.reqId}
+                        </span>
+                      </td>
+
+                      {/* Description */}
+                      <td className="px-4 py-3">
+                        <p className="max-w-xs text-[11px] leading-relaxed text-slate-600">
+                          {row.desc}
+                        </p>
+                      </td>
+
+                      {/* Verification Method */}
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <span className="text-[11px] text-slate-600">
+                          {row.method}
+                        </span>
+                      </td>
+
+                      {/* Cryptographic Sig */}
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <span className="font-mono text-[11px] text-slate-400">
+                          {row.sig}
+                        </span>
+                      </td>
+
+                      {/* Status badge */}
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <span
+                          className={`inline-block rounded border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wide ${
+                            row.status === "APPROVED"
+                              ? "border-emerald-300 text-emerald-700"
+                              : "border-amber-300 text-amber-700"
+                          }`}
+                        >
+                          {row.status}
+                        </span>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </motion.tbody>
+              </table>
+            </div>
+
+            {/* Document footer strip */}
+            <div className="flex flex-col gap-1 border-t border-slate-100 bg-slate-50 px-8 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="font-mono text-[10px] text-slate-400">
+                3 requirements · 2 approved · 1 pending review
+              </p>
+              <p className="font-mono text-[10px] text-slate-400">
+                Chain integrity: VERIFIED · Ledger hash: 9f2a1c…e83d
+              </p>
+            </div>
+          </div>
+
+          {/* Caption beneath the doc */}
+          <p className="mt-4 text-center text-xs text-slate-400">
+            Sample output — generated automatically from CI/CD evidence logs.
+            No manual input required.
+          </p>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
 
 function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }) {
   const matrixTarget = isAuthenticated ? "/dashboard" : "/login";
@@ -1006,6 +1213,7 @@ export default function LandingPage() {
         <HeroSection />
         <BentoSection />
         <HowItWorksSection />
+        <SampleMatrixSection />
         <ProductPreviewSection isAuthenticated={isAuthenticated} />
         <BottomCTASection isAuthenticated={isAuthenticated} />
       </main>

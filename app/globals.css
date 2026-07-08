@@ -103,6 +103,7 @@
   }
   html {
     color-scheme: light;
+    scroll-behavior: smooth;
     @apply font-sans;
     overflow-x: hidden;
   }
