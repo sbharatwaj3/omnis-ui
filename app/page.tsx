@@ -312,60 +312,60 @@ function HeroSection() {
 
 /**
  * Card 1 visual — minimalist terminal mockup.
- * Dark surface, JetBrains Mono-style code snippet. Pure HTML/CSS, no canvas.
+ * Light surface (bg-slate-50), JetBrains Mono-style code snippet. Pure HTML/CSS, no canvas.
  */
 function TerminalMockup() {
   return (
-    <div className="mt-5 overflow-hidden rounded border border-slate-700 bg-slate-900">
+    <div className="mt-5 overflow-hidden rounded border border-slate-200 bg-slate-50">
       {/* Chrome bar */}
-      <div className="flex items-center gap-1.5 border-b border-slate-700 bg-slate-800 px-3 py-2">
-        <span className="h-2 w-2 rounded-full bg-red-500/70" />
+      <div className="flex items-center gap-1.5 border-b border-slate-200 bg-slate-100 px-3 py-2">
+        <span className="h-2 w-2 rounded-full bg-red-400/70" />
         <span className="h-2 w-2 rounded-full bg-amber-400/70" />
         <span className="h-2 w-2 rounded-full bg-emerald-500/70" />
-        <span className="ml-2 text-[10px] font-medium tracking-wide text-slate-500">
+        <span className="ml-2 text-[10px] font-medium tracking-wide text-slate-400">
           test_dicom_parser.py
         </span>
       </div>
       {/* Code body */}
       <div className="px-4 py-3 font-mono text-[11px] leading-relaxed">
         <p>
-          <span className="text-slate-500">1 </span>
-          <span className="text-violet-400">import</span>
-          <span className="text-slate-300"> pytest</span>
+          <span className="text-slate-400">1 </span>
+          <span className="text-violet-700">import</span>
+          <span className="text-slate-800"> pytest</span>
         </p>
         <p>
-          <span className="text-slate-500">2 </span>
-          <span className="text-violet-400">from</span>
-          <span className="text-slate-300"> omnis_run </span>
-          <span className="text-violet-400">import</span>
-          <span className="text-slate-300"> req</span>
+          <span className="text-slate-400">2 </span>
+          <span className="text-violet-700">from</span>
+          <span className="text-slate-800"> omnis_run </span>
+          <span className="text-violet-700">import</span>
+          <span className="text-slate-800"> req</span>
         </p>
         <p className="mt-1">
-          <span className="text-slate-500">3 </span>
+          <span className="text-slate-400">3 </span>
         </p>
         <p>
-          <span className="text-slate-500">4 </span>
-          <span className="text-emerald-400">@pytest.mark.req</span>
-          <span className="text-slate-300">(</span>
-          <span className="text-amber-300">&quot;IEC-62304-5.1&quot;</span>
-          <span className="text-slate-300">)</span>
+          <span className="text-slate-400">4 </span>
+          <span className="text-emerald-700">@pytest.mark.req</span>
+          <span className="text-slate-800">(</span>
+          <span className="text-amber-700">&quot;IEC-62304-5.1&quot;</span>
+          <span className="text-slate-800">)</span>
         </p>
         <p>
-          <span className="text-slate-500">5 </span>
-          <span className="text-violet-400">def</span>
-          <span className="text-sky-400"> test_dicom_parse</span>
-          <span className="text-slate-300">():</span>
+          <span className="text-slate-400">5 </span>
+          <span className="text-violet-700">def</span>
+          <span className="text-sky-700"> test_dicom_parse</span>
+          <span className="text-slate-800">():</span>
         </p>
         <p>
-          <span className="text-slate-500">6 </span>
-          <span className="text-slate-400 pl-4">assert parse_dicom(fixture) </span>
-          <span className="text-slate-500">…</span>
+          <span className="text-slate-400">6 </span>
+          <span className="text-slate-600 pl-4">assert parse_dicom(fixture) </span>
+          <span className="text-slate-400">…</span>
         </p>
         <p className="mt-2 flex items-center gap-1.5">
-          <span className="text-slate-500">$ </span>
-          <span className="text-emerald-400">omnis-run</span>
-          <span className="text-slate-300"> . ──</span>
-          <span className="text-emerald-400"> SIGNED</span>
+          <span className="text-slate-400">$ </span>
+          <span className="text-emerald-700">omnis-run</span>
+          <span className="text-slate-800"> . ──</span>
+          <span className="text-emerald-700"> SIGNED</span>
           <span className="inline-block h-3 w-0.5 animate-pulse bg-slate-400 align-middle" />
         </p>
       </div>
