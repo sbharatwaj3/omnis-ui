@@ -34,19 +34,21 @@ export function DashboardShell({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-zinc-50">
-      {/* ── Persistent left sidebar ─────────────────────────────────────── */}
+    // h-screen + overflow-hidden = viewport locked. The sidebar is always
+    // visible. Scrolling happens exclusively inside <main>, never the shell.
+    <div className="flex h-screen w-full overflow-hidden bg-zinc-50">
+      {/* ── Persistent left sidebar — never shrinks ──────────────────────── */}
       <AppSidebar
         role={role}
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
       />
 
-      {/* ── Main content column ──────────────────────────────────────────── */}
-      <div className="flex flex-1 flex-col min-w-0">
+      {/* ── Main content column — fills remaining width, never overflows ─── */}
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         {/* ── Mobile-only top bar (hamburger + logo + triage badge) ───────── */}
         {/* On desktop (lg+) this bar is hidden; the sidebar handles identity. */}
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-200 bg-zinc-50 px-4 lg:hidden">
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-4 lg:hidden">
           <button
             onClick={() => setMobileOpen(true)}
             aria-label="Open navigation"
@@ -63,8 +65,11 @@ export function DashboardShell({
           <TriageBadge count={pendingCount} role={role} />
         </div>
 
-        {/* Page content — fills remaining height, scrolls independently */}
-        <main className="flex-1 overflow-y-auto">
+        {/* Page content — this is the ONLY scrollable region in the app.
+            min-h-0 forces the flex child to respect the parent height
+            instead of pushing outward when content expands (e.g. expanded
+            evidence log rows). */}
+        <main className="flex-1 overflow-y-auto min-h-0">
           {children}
         </main>
       </div>

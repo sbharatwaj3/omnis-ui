@@ -293,7 +293,7 @@ async function DashboardContent({
       {/* Bento metric row */}
       <TelemetryCards rows={rows} />
 
-      {/* 2/3 + 1/3 content split — w-full fills the max-w-screen-2xl boundary */}
+      {/* 2/3 + 1/3 content split — fills the max-w-5xl parent boundary */}
       <div className="w-full grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 min-w-0">
           <DashboardClient allRows={rows} initialViewMode={initialViewMode} previewLimit={10} />
@@ -395,12 +395,17 @@ export default async function DashboardPage({
     view === "list" ? "flat" : "grouped";
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    // No min-h-screen here — the shell (h-screen overflow-hidden) controls
+    // viewport height. This div just stacks header + content vertically and
+    // fills the available column width flush from the left edge.
+    <div className="flex flex-col h-full bg-zinc-50">
       {/* Minimal in-page header: breadcrumb + compliance badge */}
       <PageHeader />
 
-      {/* Main content — max-w-screen-2xl for a spacious Command Center layout */}
-      <div className="mx-auto max-w-screen-2xl w-full px-8 py-8">
+      {/* Main content — flush left, px-8 padding only. No mx-auto centering.
+          The grid is intentionally constrained to ~75% of available width
+          to reserve space for the incoming right sidebar panel. */}
+      <div className="w-full px-8 py-8 max-w-5xl">
         <Suspense fallback={<DashboardSkeleton />}>
           <DashboardContent initialViewMode={initialViewMode} />
         </Suspense>
