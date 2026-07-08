@@ -162,6 +162,61 @@ export function SubmissionReadinessColumn() {
           <div className="mt-auto">
             <GenerateReportButton completionPercent={84.6} />
           </div>
+
+          {/* ── Live System Feedback ─────────────────────────────────── */}
+          <div className="mt-6 flex flex-col gap-6">
+
+            {/* CLI Connection Status */}
+            <div className="rounded border border-slate-200 bg-slate-50 px-3 py-3">
+              <div className="flex items-center gap-2">
+                {/* Pulsing green dot */}
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                <p className="text-xs font-medium text-slate-700">
+                  omnis-run CLI: Connected &amp; Listening
+                </p>
+              </div>
+            </div>
+
+            {/* Recent Activity Feed */}
+            <div>
+              {/* Section header */}
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                Recent Activity (21 CFR Part 11)
+              </p>
+
+              {/* Activity items */}
+              <ul className="flex flex-col gap-2">
+                <li className="flex items-start gap-2">
+                  <code className="shrink-0 font-mono text-[10px] text-slate-400 pt-px">
+                    10:42 AM
+                  </code>
+                  <p className="text-xs leading-relaxed text-slate-500">
+                    Sidharth R. approved ECG: S3 Pipeline Test.
+                  </p>
+                </li>
+                <li className="flex items-start gap-2">
+                  <code className="shrink-0 font-mono text-[10px] text-slate-400 pt-px">
+                    09:15 AM
+                  </code>
+                  <p className="text-xs leading-relaxed text-slate-500">
+                    System auto-cleared 4 DICOM false positives.
+                  </p>
+                </li>
+                <li className="flex items-start gap-2">
+                  <code className="shrink-0 font-mono text-[10px] text-slate-400 pt-px">
+                    08:00 AM
+                  </code>
+                  <p className="text-xs leading-relaxed text-slate-500">
+                    New test evidence ingested via Windows CLI.
+                  </p>
+                </li>
+              </ul>
+            </div>
+
+          </div>
         </CardContent>
       </Card>
     </motion.div>
