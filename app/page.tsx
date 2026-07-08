@@ -5,7 +5,7 @@
 // ALL DARK MODE CLASSES REMOVED. This page is hardcoded light-only.
 // The application enforces light mode globally via globals.css and layout.tsx.
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
@@ -20,6 +20,12 @@ import {
   CheckCircle2,
   Circle,
   Zap,
+  Terminal,
+  BrainCircuit,
+  Lock,
+  AlertTriangle,
+  Hash,
+  Link2,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -301,8 +307,358 @@ function HeroSection() {
 }
 
 // ---------------------------------------------------------------------------
-// How It Works
+// Bento Feature Grid
 // ---------------------------------------------------------------------------
+
+/**
+ * Card 1 visual — minimalist terminal mockup.
+ * Dark surface, JetBrains Mono-style code snippet. Pure HTML/CSS, no canvas.
+ */
+function TerminalMockup() {
+  return (
+    <div className="mt-5 overflow-hidden rounded border border-slate-700 bg-slate-900">
+      {/* Chrome bar */}
+      <div className="flex items-center gap-1.5 border-b border-slate-700 bg-slate-800 px-3 py-2">
+        <span className="h-2 w-2 rounded-full bg-red-500/70" />
+        <span className="h-2 w-2 rounded-full bg-amber-400/70" />
+        <span className="h-2 w-2 rounded-full bg-emerald-500/70" />
+        <span className="ml-2 text-[10px] font-medium tracking-wide text-slate-500">
+          test_dicom_parser.py
+        </span>
+      </div>
+      {/* Code body */}
+      <div className="px-4 py-3 font-mono text-[11px] leading-relaxed">
+        <p>
+          <span className="text-slate-500">1 </span>
+          <span className="text-violet-400">import</span>
+          <span className="text-slate-300"> pytest</span>
+        </p>
+        <p>
+          <span className="text-slate-500">2 </span>
+          <span className="text-violet-400">from</span>
+          <span className="text-slate-300"> omnis_run </span>
+          <span className="text-violet-400">import</span>
+          <span className="text-slate-300"> req</span>
+        </p>
+        <p className="mt-1">
+          <span className="text-slate-500">3 </span>
+        </p>
+        <p>
+          <span className="text-slate-500">4 </span>
+          <span className="text-emerald-400">@pytest.mark.req</span>
+          <span className="text-slate-300">(</span>
+          <span className="text-amber-300">&quot;IEC-62304-5.1&quot;</span>
+          <span className="text-slate-300">)</span>
+        </p>
+        <p>
+          <span className="text-slate-500">5 </span>
+          <span className="text-violet-400">def</span>
+          <span className="text-sky-400"> test_dicom_parse</span>
+          <span className="text-slate-300">():</span>
+        </p>
+        <p>
+          <span className="text-slate-500">6 </span>
+          <span className="text-slate-400 pl-4">assert parse_dicom(fixture) </span>
+          <span className="text-slate-500">…</span>
+        </p>
+        <p className="mt-2 flex items-center gap-1.5">
+          <span className="text-slate-500">$ </span>
+          <span className="text-emerald-400">omnis-run</span>
+          <span className="text-slate-300"> . ──</span>
+          <span className="text-emerald-400"> SIGNED</span>
+          <span className="inline-block h-3 w-0.5 animate-pulse bg-slate-400 align-middle" />
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Card 2 visual — AI triage inbox mockup.
+ * Shows three triage rows: two PASS, one FLAGGED.
+ */
+function TriageMockup() {
+  const rows = [
+    { suite: "test_phi_anonymizer.py",  clause: "IEC-62304-5.7", status: "pass"    },
+    { suite: "test_cgm_alerts.py",      clause: "IEC-62304-5.5", status: "flagged" },
+    { suite: "test_s3_ecg_pipeline.py", clause: "IEC-62304-5.3", status: "pass"    },
+  ] as const;
+
+  return (
+    <div className="mt-5 space-y-2">
+      {/* Header row */}
+      <div className="flex items-center justify-between rounded border border-slate-100 bg-slate-50 px-3 py-1.5">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+          AI Triage Inbox
+        </span>
+        <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600">
+          <BrainCircuit className="h-3 w-3" />
+          Bedrock Active
+        </span>
+      </div>
+
+      {rows.map((row) => (
+        <div
+          key={row.suite}
+          className="flex items-center gap-3 rounded border border-slate-100 bg-white px-3 py-2.5"
+        >
+          {/* Status indicator */}
+          <span
+            className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+              row.status === "pass" ? "bg-emerald-500" : "bg-amber-400"
+            }`}
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-mono text-[11px] text-slate-700">{row.suite}</p>
+            <p className="font-mono text-[10px] text-slate-400">{row.clause}</p>
+          </div>
+          {/* Badge */}
+          <span
+            className={`shrink-0 rounded border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+              row.status === "pass"
+                ? "border-emerald-300 text-emerald-700"
+                : "border-amber-300 text-amber-700"
+            }`}
+          >
+            {row.status === "pass" ? (
+              <span className="flex items-center gap-1">
+                <CheckCircle2 className="h-2.5 w-2.5" /> Pass
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <AlertTriangle className="h-2.5 w-2.5" /> Flagged
+              </span>
+            )}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Card 3 visual — cryptographic ledger mockup.
+ * Hash chain visualization: three sealed blocks linked by a vertical hairline.
+ */
+function LedgerMockup() {
+  const blocks = [
+    { id: "LOG-0041", hash: "a3f9c2d8…4e1b", prev: "b7e10d22…f229", sealed: true  },
+    { id: "LOG-0042", hash: "c2d84a91…9b03", prev: "a3f9c2d8…4e1b", sealed: true  },
+    { id: "LOG-0043", hash: "d91f3e0c…c571", prev: "c2d84a91…9b03", sealed: false },
+  ] as const;
+
+  return (
+    <div className="mt-5 relative">
+      {/* Vertical chain line */}
+      <div
+        aria-hidden="true"
+        className="absolute left-[1.1rem] top-6 bottom-6 w-px bg-slate-200"
+      />
+      <div className="space-y-2.5">
+        {blocks.map((block, i) => (
+          <div key={block.id} className="relative flex items-start gap-3">
+            {/* Chain node icon */}
+            <div
+              className={`relative z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded border ${
+                block.sealed
+                  ? "border-emerald-300 bg-emerald-50"
+                  : "border-slate-200 bg-white"
+              }`}
+            >
+              {block.sealed
+                ? <Lock className="h-2.5 w-2.5 text-emerald-600" />
+                : <Hash className="h-2.5 w-2.5 text-slate-400" />
+              }
+            </div>
+            {/* Block data */}
+            <div className="min-w-0 flex-1 rounded border border-slate-100 bg-white px-3 py-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-[10px] font-semibold text-slate-600">{block.id}</span>
+                <span
+                  className={`rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+                    block.sealed
+                      ? "border-emerald-200 text-emerald-700"
+                      : "border-slate-200 text-slate-400"
+                  }`}
+                >
+                  {block.sealed ? "Sealed" : "Pending"}
+                </span>
+              </div>
+              <p className="mt-0.5 font-mono text-[10px] text-slate-400 truncate">
+                sha: {block.hash}
+              </p>
+              <div className="mt-0.5 flex items-center gap-1">
+                <Link2 className="h-2.5 w-2.5 shrink-0 text-slate-300" />
+                <span className="font-mono text-[10px] text-slate-300 truncate">
+                  prev: {block.prev}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BentoSection() {
+  const cards = [
+    {
+      tag:     "Zero-Touch CLI",
+      heading: "Automated Ingestion",
+      body:    "Map FDA requirements directly in your code. The omnis-run CLI binds test execution to regulatory clauses in real-time.",
+      icon:    Terminal,
+      visual:  <TerminalMockup />,
+      /* Spans full width on the bento asymmetric layout on lg+ */
+      wide:    false,
+    },
+    {
+      tag:     "AI Triage Inbox",
+      heading: "AWS Bedrock Triage",
+      body:    "Stop manually reviewing false positives. Our AI agent automatically categorises test failures against your risk management files.",
+      icon:    BrainCircuit,
+      visual:  <TriageMockup />,
+      wide:    false,
+    },
+    {
+      tag:     "Immutable Audit Trails",
+      heading: "Append-Only Ledgers",
+      body:    "Cryptographically-sealed evidence logs. Generate 21 CFR Part 11 compliant traceability matrices instantly.",
+      icon:    Lock,
+      visual:  <LedgerMockup />,
+      wide:    true, // bottom full-width card on desktop
+    },
+  ] as const;
+
+  return (
+    <section className="border-t border-slate-200 bg-white py-20">
+      <div className="mx-auto max-w-7xl px-6">
+
+        {/* Section header */}
+        <motion.div
+          className="mb-12 text-center"
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+          transition={easeOut}
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">
+            Core Platform
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-slate-900 md:text-3xl">
+            Three pillars. Zero compliance debt.
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-500">
+            Every layer of the Qavro pipeline is purpose-built for FDA submission requirements
+            — not retrofitted onto a generic CI tool.
+          </p>
+        </motion.div>
+
+        {/*
+          Bento layout:
+          — mobile:   1 column, all cards stack
+          — md:       2 columns, card 1 & 2 sit side-by-side
+          — lg:       2 columns top row + 1 full-width bottom card
+          Using CSS grid areas for the asymmetric layout.
+        */}
+        <motion.div
+          className="grid grid-cols-1 gap-6 md:grid-cols-2"
+          variants={staggerContainer(0.1, 0)}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.15 }}
+        >
+          {/* Card 1 — Terminal */}
+          <motion.div
+            variants={fadeUp}
+            transition={easeOut}
+            className="group flex flex-col rounded border border-slate-200 bg-white p-6 transition-shadow duration-200 hover:shadow-md"
+          >
+            <BentoCardInner card={cards[0]} />
+          </motion.div>
+
+          {/* Card 2 — Triage */}
+          <motion.div
+            variants={fadeUp}
+            transition={easeOut}
+            className="group flex flex-col rounded border border-slate-200 bg-white p-6 transition-shadow duration-200 hover:shadow-md"
+          >
+            <BentoCardInner card={cards[1]} />
+          </motion.div>
+
+          {/* Card 3 — Ledger (spans both columns on md+) */}
+          <motion.div
+            variants={fadeUp}
+            transition={easeOut}
+            className="group flex flex-col rounded border border-slate-200 bg-white p-6 transition-shadow duration-200 hover:shadow-md md:col-span-2"
+          >
+            {/* On wide layout, split text/body left and visual right */}
+            <div className="flex flex-col gap-6 md:flex-row md:items-start">
+              <div className="flex flex-col md:w-80 md:shrink-0">
+                <BentoCardHeader card={cards[2]} />
+              </div>
+              <div className="flex-1">
+                <LedgerMockup />
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/** Shared inner layout for cards 1 & 2 */
+function BentoCardInner({
+  card,
+}: {
+  card: {
+    tag: string;
+    heading: string;
+    body: string;
+    icon: React.ElementType;
+    visual: React.ReactNode;
+  };
+}) {
+  return (
+    <>
+      <BentoCardHeader card={card} />
+      {card.visual}
+    </>
+  );
+}
+
+/** Header block: icon chip + tag + heading + body copy */
+function BentoCardHeader({
+  card,
+}: {
+  card: {
+    tag: string;
+    heading: string;
+    body: string;
+    icon: React.ElementType;
+  };
+}) {
+  const Icon = card.icon;
+  return (
+    <>
+      {/* Icon + tag chip */}
+      <div className="flex items-center gap-2">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-slate-200 bg-slate-50">
+          <Icon className="h-3.5 w-3.5 text-slate-700" strokeWidth={1.75} />
+        </div>
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+          {card.tag}
+        </span>
+      </div>
+      {/* Heading */}
+      <h3 className="mt-4 text-lg font-semibold text-slate-900">{card.heading}</h3>
+      {/* Body */}
+      <p className="mt-2 text-sm leading-relaxed text-slate-500">{card.body}</p>
+    </>
+  );
+}
 
 function HowItWorksSection() {
   return (
@@ -648,6 +1004,7 @@ export default function LandingPage() {
       <Header isAuthenticated={isAuthenticated} userEmail={userEmail} />
       <main className="flex-1">
         <HeroSection />
+        <BentoSection />
         <HowItWorksSection />
         <ProductPreviewSection isAuthenticated={isAuthenticated} />
         <BottomCTASection isAuthenticated={isAuthenticated} />
