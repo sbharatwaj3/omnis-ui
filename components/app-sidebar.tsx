@@ -1,18 +1,18 @@
 // omnis-ui/components/app-sidebar.tsx
 // Persistent left-hand navigation sidebar — Command Center architecture.
 //
-// Renders the QAVRO logo at the top and the four primary navigation links
-// that previously lived as top-of-page card links on the dashboard hub.
+// Renders the QAVRO logo at the top, the primary navigation links in the
+// body, and a bottom-anchored footer housing Settings and the role badge.
 //
-// Mobile: hidden by default (translate-x-full). A toggle state passed from
-// the parent shell reveals it as a full-height overlay panel.
-// Desktop (lg+): always visible, fixed width w-64.
+// Mobile: hidden by default. A toggle state passed from the parent shell
+// reveals it as a full-height spring-animated overlay panel.
+// Desktop (lg+): always visible, sticky, fixed width w-64.
 //
 // DESIGN SYSTEM:
 //   - Flat elevation only. No box-shadows.
 //   - border-r border-zinc-200 separates sidebar from content.
-//   - bg-zinc-50 (Level 1 surface) matches the card surface.
-//   - Active link: bg-zinc-100 border-l-2 border-zinc-900.
+//   - bg-zinc-50 (Level 1 surface).
+//   - Active link: solid bg-zinc-900 text-white fill.
 //   - No border-radius > 4px anywhere.
 "use client";
 
@@ -25,8 +25,11 @@ import {
   ClipboardList,
   Brain,
   BarChart2,
+  ShieldAlert,
   X,
 } from "lucide-react";
+import { SettingsMenu } from "@/components/settings-menu";
+import { RoleBadge } from "@/components/role-badge";
 
 // ---------------------------------------------------------------------------
 // Nav item definition
@@ -66,6 +69,12 @@ const NAV_ITEMS: NavItem[] = [
     icon: BarChart2,
     description: "AI token consumption",
     adminOnly: true,
+  },
+  {
+    label: "Audit Logs",
+    href: "/dashboard/audit-logs",
+    icon: ShieldAlert,
+    description: "21 CFR Part 11 trail",
   },
 ];
 
@@ -108,10 +117,7 @@ function SidebarContent({
           className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
           onClick={onMobileClose}
         >
-          <ShieldCheck
-            className="h-5 w-5 text-zinc-800"
-            strokeWidth={1.75}
-          />
+          <ShieldCheck className="h-5 w-5 text-zinc-800" strokeWidth={1.75} />
           <div>
             <span className="text-sm font-semibold tracking-tight text-zinc-900">
               QAVRO
@@ -122,7 +128,7 @@ function SidebarContent({
           </div>
         </Link>
 
-        {/* Mobile close button */}
+        {/* Mobile close button — only shown when the sidebar is an overlay */}
         {onMobileClose && (
           <button
             onClick={onMobileClose}
@@ -142,15 +148,19 @@ function SidebarContent({
       </div>
 
       {/* ── Nav links ────────────────────────────────────────────────────── */}
-      <nav className="flex flex-col gap-0.5 px-3" aria-label="Primary navigation">
+      <nav
+        className="flex flex-col gap-0.5 px-3"
+        aria-label="Primary navigation"
+      >
         {visibleItems.map((item) => {
           const Icon = item.icon;
-          // Active: exact match or starts-with for nested routes.
-          // /readiness is top-level, so we use exact match there.
+          // Active detection: exact match for top-level routes (/readiness),
+          // prefix match for nested dashboard routes.
           const isActive =
             item.href === "/readiness"
               ? pathname === item.href
-              : pathname === item.href || pathname.startsWith(item.href + "/");
+              : pathname === item.href ||
+                pathname.startsWith(item.href + "/");
 
           return (
             <Link
@@ -159,11 +169,8 @@ function SidebarContent({
               onClick={onMobileClose}
               aria-current={isActive ? "page" : undefined}
               className={[
-                // Layout
                 "group flex items-center gap-3 rounded px-3 py-2.5 text-sm transition-colors",
-                // Focus ring
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
-                // Active vs idle states
                 isActive
                   ? "bg-zinc-900 text-white"
                   : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900",
@@ -172,7 +179,9 @@ function SidebarContent({
               <Icon
                 className={[
                   "h-4 w-4 shrink-0 transition-colors",
-                  isActive ? "text-white" : "text-zinc-400 group-hover:text-zinc-600",
+                  isActive
+                    ? "text-white"
+                    : "text-zinc-400 group-hover:text-zinc-600",
                 ].join(" ")}
                 strokeWidth={1.75}
               />
@@ -194,9 +203,22 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* ── Spacer + footer ──────────────────────────────────────────────── */}
-      <div className="mt-auto border-t border-zinc-200 px-5 py-4">
-        <p className="text-[10px] text-zinc-400">
+      {/* ── Bottom-anchored footer — Settings + Role badge ───────────────── */}
+      {/* mt-auto pushes this section to the bottom regardless of nav item count. */}
+      <div className="mt-auto border-t border-zinc-200 px-4 py-4">
+        {/* Settings menu + role badge row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {/* SettingsMenu renders the gear icon trigger + dropdown */}
+            <SettingsMenu />
+            <span className="text-xs text-zinc-500">Settings</span>
+          </div>
+          {/* RoleBadge fetches role client-side; renders null while loading */}
+          <RoleBadge />
+        </div>
+
+        {/* Regulatory footer line */}
+        <p className="mt-3 text-[10px] text-zinc-400">
           IEC 62304 · 21 CFR Part 11
         </p>
       </div>
@@ -215,7 +237,7 @@ export function AppSidebar({
 }: AppSidebarProps) {
   return (
     <>
-      {/* ── Desktop sidebar (lg+) — always visible ─────────────────────── */}
+      {/* ── Desktop sidebar (lg+) — always visible, sticky ─────────────── */}
       <aside
         className="hidden lg:flex lg:flex-col lg:w-64 lg:shrink-0 h-screen sticky top-0 border-r border-zinc-200 bg-zinc-50 overflow-y-auto"
         aria-label="Application sidebar"
@@ -227,7 +249,7 @@ export function AppSidebar({
       <AnimatePresence>
         {mobileOpen && (
           <>
-            {/* Backdrop */}
+            {/* Scrim */}
             <motion.div
               key="sidebar-backdrop"
               initial={{ opacity: 0 }}

@@ -486,7 +486,7 @@ function SuiteAccordionItem({
       <button
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-400 md:px-6"
+        className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-400 md:px-6"
       >
         {/* Chevron — flush left anchor */}
         <ChevronDown
@@ -569,19 +569,19 @@ function SuiteAccordionItem({
             <Table className="w-full table-fixed">
               <TableHeader>
                 <TableRow className="bg-slate-100 hover:bg-slate-100 border-b border-slate-200">
-                  <TableHead className="py-2 pl-4 md:pl-6 w-[35%] text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <TableHead className="py-3 pl-4 md:pl-6 w-[35%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Log Name
                   </TableHead>
-                  <TableHead className="py-2 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <TableHead className="py-3 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Status
                   </TableHead>
-                  <TableHead className="py-2 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <TableHead className="py-3 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                     AI Risk
                   </TableHead>
-                  <TableHead className="py-2 w-[26%] text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <TableHead className="py-3 w-[26%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Execution Time
                   </TableHead>
-                  <TableHead className="py-2 pr-4 md:pr-6 w-[15%] text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <TableHead className="py-3 pr-4 md:pr-6 w-[15%] text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Log ID
                   </TableHead>
                 </TableRow>
@@ -598,7 +598,7 @@ function SuiteAccordionItem({
                         : "hover:bg-slate-100",
                     ].join(" ")}
                   >
-                    <TableCell className="py-2 pl-4 md:pl-6">
+                    <TableCell className="py-3 pl-4 md:pl-6">
                       <span
                         className="block text-xs font-medium text-slate-700 truncate"
                         title={parseLogTitle(row.rawCommand || row.testSuite)}
@@ -611,16 +611,16 @@ function SuiteAccordionItem({
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="py-2">
+                    <TableCell className="py-3">
                       <StatusBadge status={row.executionStatus} />
                     </TableCell>
-                    <TableCell className="py-2">
+                    <TableCell className="py-3">
                       <SeverityBadge severity={row.severity} />
                     </TableCell>
-                    <TableCell className="py-2 text-xs font-mono text-slate-500 whitespace-nowrap">
+                    <TableCell className="py-3 text-xs font-mono text-slate-500 whitespace-nowrap">
                       {row.executionTime}
                     </TableCell>
-                    <TableCell className="py-2 pr-4 md:pr-6 text-right font-mono text-xs text-slate-400">
+                    <TableCell className="py-3 pr-4 md:pr-6 text-right font-mono text-xs text-slate-400">
                       {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
                     </TableCell>
                   </TableRow>
@@ -1006,19 +1006,19 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
               <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow className="bg-slate-100 hover:bg-slate-100 border-b border-slate-200">
-                    <TableHead className="py-2 pl-4 md:pl-6 w-[35%] text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="py-3 pl-4 md:pl-6 w-[35%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Test Suite
                     </TableHead>
-                    <TableHead className="py-2 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="py-3 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Status
                     </TableHead>
-                    <TableHead className="py-2 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="py-3 w-[12%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                       AI Risk
                     </TableHead>
-                    <TableHead className="py-2 w-[26%] text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="py-3 w-[26%] text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Execution Time
                     </TableHead>
-                    <TableHead className="py-2 pr-4 md:pr-6 w-[15%] text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <TableHead className="py-3 pr-4 md:pr-6 w-[15%] text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Log ID
                     </TableHead>
                   </TableRow>
@@ -1035,7 +1035,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                           : "hover:bg-slate-100",
                       ].join(" ")}
                     >
-                      <TableCell className="py-2 pl-4 md:pl-6">
+                      <TableCell className="py-3 pl-4 md:pl-6">
                         <span className="block text-sm font-medium text-slate-800 truncate" title={parseLogTitle(row.rawCommand || row.testSuite)}>
                           {parseLogTitle(row.rawCommand || row.testSuite)}
                         </span>
@@ -1048,16 +1048,16 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                           {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
                         </code>
                       </TableCell>
-                      <TableCell className="py-2">
+                      <TableCell className="py-3">
                         <StatusBadge status={row.executionStatus} />
                       </TableCell>
-                      <TableCell className="py-2">
+                      <TableCell className="py-3">
                         <SeverityBadge severity={row.severity} />
                       </TableCell>
-                      <TableCell className="py-2 text-xs text-slate-500 whitespace-nowrap">
+                      <TableCell className="py-3 text-xs text-slate-500 whitespace-nowrap">
                         {row.executionTime}
                       </TableCell>
-                      <TableCell className="py-2 pr-4 md:pr-6 text-right font-mono text-xs text-slate-400">
+                      <TableCell className="py-3 pr-4 md:pr-6 text-right font-mono text-xs text-slate-400">
                         {row.logId.slice(0, 8)}…{row.logId.slice(-4)}
                       </TableCell>
                     </TableRow>

@@ -2,44 +2,42 @@
 // FDA Assurance Dashboard — Command Center Hub
 //
 // React Server Component. Fetches ALL evidence_logs + ai_compliance_insights
-// at request time and passes them to <DashboardClient> for client-side
-// filtering, pagination, and master-detail drawer rendering.
+// at request time and delegates rendering to <DashboardClient>.
 //
-// Layout (post-refactor):
+// Layout:
 //   ┌──────────────────────────────────────────────────────────────┐
-//   │  DashboardHeader (top bar — logo, audit link, role badge)    │
+//   │  Page header: breadcrumb left │ IEC compliance badge right   │
 //   ├──────────────────────────────────────────────────────────────┤
 //   │  Bento row: [Total Executions] [Malfunction Vol.] [Fail %]   │
-//   ├────────────────────────────────────┬─────────────────────────┤
-//   │  Evidence Log - Traffic Light      │  Live System Telemetry  │
-//   │  Matrix (lg:col-span-2)            │  (lg:col-span-1)        │
-//   └────────────────────────────────────┴─────────────────────────┘
+//   ├────────────────────────────────┬─────────────────────────────┤
+//   │  Evidence Log - Traffic Light  │  Live System Telemetry      │
+//   │  Matrix (lg:col-span-2)        │  (lg:col-span-1)            │
+//   └────────────────────────────────┴─────────────────────────────┘
 //
-// The four nav cards (Compliance Matrix, Requirements, Triage Inbox, Token
-// Usage) have been moved to the persistent AppSidebar. They no longer render
-// on this page.
+// The DashboardHeader (logo, audit logs link, settings, role badge) has been
+// removed from this page. Logo + nav live in AppSidebar. Settings + role badge
+// live in the sidebar footer. Audit Logs is a sidebar nav item.
 //
-// force-dynamic: disables Next.js static/ISR caching so every request fetches
-// a fresh snapshot from Supabase.
+// force-dynamic: disables Next.js static/ISR caching.
 export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
-import Link from "next/link";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ShieldAlert, Activity, Cpu, Wifi, WifiOff } from "lucide-react";
+import { Activity, Cpu, Wifi, WifiOff } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
-import { DashboardHeader } from "@/components/dashboard-header";
 import {
   DashboardClient,
   TelemetryCards,
   type DashboardRow,
 } from "@/components/dashboard-client";
+import { TriageBadge } from "@/components/triage-badge";
+import { getPendingCount } from "@/app/dashboard/triage/actions";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -68,18 +66,16 @@ function mapSeverity(aiSummary: string | null): DashboardRow["severity"] {
 }
 
 // ---------------------------------------------------------------------------
-// Data fetching — no row cap; all logs fetched for client-side filtering
+// Data fetching
 // ---------------------------------------------------------------------------
 
 async function fetchAllLogs(): Promise<DashboardRow[]> {
-  // Step 1: Verify the authenticated session with the anon-key session client.
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return [];
 
-  // Step 2: Resolve org_id via the session client.
   const { data: profile } = await supabase
     .from("users")
     .select("org_id")
@@ -89,8 +85,6 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
   if (!profile?.org_id) return [];
   const orgId: string = profile.org_id;
 
-  // Step 3: All DATA queries use adminClient to bypass RBAC-gated RLS.
-  // SECURITY: org_id scoping ensures a user only reads their own org's logs.
   let allLogs: EvidenceLogRow[] = [];
   let from = 0;
   const batchSize = 1000;
@@ -107,13 +101,9 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
       .range(from, from + batchSize - 1);
 
     if (error) {
-      console.error(
-        "[dashboard] Supabase error fetching evidence_logs:",
-        error.message,
-      );
+      console.error("[dashboard] evidence_logs error:", error.message);
       break;
     }
-
     if (!batch || batch.length === 0) break;
     allLogs = allLogs.concat(batch as EvidenceLogRow[]);
     if (batch.length < batchSize) break;
@@ -123,8 +113,8 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
   if (allLogs.length === 0) return [];
 
   const logIds = allLogs.map((l) => l.log_id);
-
   let allInsights: AiInsightRow[] = [];
+
   for (let i = 0; i < logIds.length; i += 500) {
     const chunk = logIds.slice(i, i + 500);
     const { data: insights, error: insightsError } = await adminClient
@@ -133,10 +123,7 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
       .in("log_id", chunk);
 
     if (insightsError) {
-      console.error(
-        "[dashboard] Supabase error fetching ai_compliance_insights:",
-        insightsError.message,
-      );
+      console.error("[dashboard] ai_compliance_insights error:", insightsError.message);
     }
     if (insights) allInsights = allInsights.concat(insights as AiInsightRow[]);
   }
@@ -173,13 +160,12 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
 }
 
 // ---------------------------------------------------------------------------
-// Skeleton — shown while the async data fetch streams in
+// Skeleton
 // ---------------------------------------------------------------------------
 
 function DashboardSkeleton() {
   return (
     <>
-      {/* Bento metric row skeleton */}
       <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
         {[1, 2, 3].map((i) => (
           <Card key={i} className="border-zinc-200">
@@ -192,11 +178,9 @@ function DashboardSkeleton() {
           </Card>
         ))}
       </div>
-
-      {/* 2/3 + 1/3 content split skeleton */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 h-64 animate-pulse rounded bg-zinc-100" />
-        <div className="lg:col-span-1 min-h-[500px] animate-pulse rounded bg-zinc-100" />
+        <div className="lg:col-span-1 min-h-96 animate-pulse rounded bg-zinc-100" />
       </div>
     </>
   );
@@ -225,7 +209,6 @@ function LiveSystemTelemetry() {
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col gap-4 pt-5">
-        {/* Placeholder signal rows */}
         {[
           {
             icon: Cpu,
@@ -280,7 +263,6 @@ function LiveSystemTelemetry() {
           </div>
         ))}
 
-        {/* Filler placeholder area */}
         <div className="mt-2 flex flex-1 flex-col items-center justify-center rounded border border-dashed border-zinc-200 py-10 text-center">
           <Activity className="mb-3 h-8 w-8 text-zinc-300" strokeWidth={1.5} />
           <p className="text-xs font-medium text-zinc-400">
@@ -296,7 +278,7 @@ function LiveSystemTelemetry() {
 }
 
 // ---------------------------------------------------------------------------
-// Dashboard content — async server component, streams into Suspense
+// Dashboard content — async RSC
 // ---------------------------------------------------------------------------
 
 async function DashboardContent({
@@ -308,24 +290,90 @@ async function DashboardContent({
 
   return (
     <>
-      {/* ── Bento metric row ─────────────────────────────────────────────── */}
-      {/* TelemetryCards is now rendered at page level so it sits above the
-          2/3+1/3 split independently of the client component's internal state. */}
+      {/* Bento metric row */}
       <TelemetryCards rows={rows} />
 
-      {/* ── 2/3 + 1/3 asymmetric content split ──────────────────────────── */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Evidence Log · Traffic Light Matrix — spans 2 columns */}
-        <div className="lg:col-span-2">
+      {/* 2/3 + 1/3 content split — w-full fills the max-w-7xl boundary */}
+      <div className="w-full grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 min-w-0">
           <DashboardClient allRows={rows} initialViewMode={initialViewMode} />
         </div>
-
-        {/* Live System Telemetry placeholder — spans 1 column */}
         <div className="lg:col-span-1">
           <LiveSystemTelemetry />
         </div>
       </div>
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Minimal page header — breadcrumb + compliance badge
+//
+// The logo lives in AppSidebar. Settings and role badge live in the sidebar
+// footer. This bar is intentionally lean: page context left, badge right.
+// ---------------------------------------------------------------------------
+
+async function PageHeader() {
+  // Resolve role server-side to surface the triage badge on desktop.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let role: string = "developer";
+  let pendingCount = 0;
+
+  if (user) {
+    const { data: profile } = await adminClient
+      .from("users")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profile?.org_id) {
+      const { data: roleRow } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("org_id", profile.org_id)
+        .single();
+      role = roleRow?.role ?? "developer";
+
+      const { count } = await getPendingCount();
+      pendingCount = count ?? 0;
+    }
+  }
+
+  return (
+    <header className="border-b border-zinc-200 bg-white">
+      <div className="w-full px-8 py-4">
+        <div className="flex items-center justify-between">
+          {/* Left: page breadcrumb */}
+          <div>
+            <h1 className="text-sm font-semibold text-zinc-900">
+              Dashboard
+            </h1>
+            <p className="text-xs text-zinc-400">
+              Evidence Log · Command Center
+            </p>
+          </div>
+
+          {/* Right: compliance badge + triage badge (desktop only) */}
+          <div className="flex items-center gap-3">
+            <span className="hidden md:inline-flex items-center gap-2 rounded border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none">
+              <Activity className="h-3.5 w-3.5 text-emerald-500" />
+              <span className="text-xs font-medium text-zinc-600">
+                IEC 62304 · 21 CFR Part 11
+              </span>
+            </span>
+            {/* Triage badge — visible desktop; mobile version is in DashboardShell */}
+            <div className="hidden lg:block">
+              <TriageBadge count={pendingCount} role={role} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
   );
 }
 
@@ -346,25 +394,15 @@ export default async function DashboardPage({
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <DashboardHeader
-        subtitle="FDA Assurance Dashboard · Live"
-        centerSlot={
-          <Link
-            href="/dashboard/audit-logs"
-            className="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-white px-4 py-1.5 text-sm font-medium text-zinc-800 transition-colors hover:border-zinc-300 hover:bg-zinc-50"
-          >
-            <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-            Audit Logs
-          </Link>
-        }
-        mobileBar={null}
-      />
+      {/* Minimal in-page header: breadcrumb + compliance badge */}
+      <PageHeader />
 
-      <main className="mx-auto max-w-7xl w-full px-8 py-8">
+      {/* Main content — max-w-7xl centered, full padding */}
+      <div className="mx-auto max-w-7xl w-full px-8 py-8">
         <Suspense fallback={<DashboardSkeleton />}>
           <DashboardContent initialViewMode={initialViewMode} />
         </Suspense>
-      </main>
+      </div>
     </div>
   );
 }
