@@ -348,7 +348,7 @@ async function PageHeader() {
     // h-[72px] matches the sidebar logo header height exactly so both
     // header bars form a single unbroken horizontal baseline across the viewport.
     <header className="h-[72px] flex items-center border-b border-zinc-200 bg-white">
-      <div className="w-full px-8">
+      <div className="w-full pl-8 pr-6">
         <div className="flex items-center justify-between">
           {/* Left: page breadcrumb */}
           <div>
@@ -402,10 +402,10 @@ export default async function DashboardPage({
       {/* Minimal in-page header: breadcrumb + compliance badge */}
       <PageHeader />
 
-      {/* Main content — flush left, px-8 padding only. No mx-auto centering.
-          The grid is intentionally constrained to ~75% of available width
-          to reserve space for the incoming right sidebar panel. */}
-      <div className="w-full px-8 py-8 max-w-5xl">
+      {/* Main content — pl-8 left aligns with sidebar internal padding.
+          pr-6 keeps a small breathing gap on the right. No mx-auto — content
+          fills its flex column flush from the left edge. */}
+      <div className="w-full pl-8 pr-6 py-8">
         <Suspense fallback={<DashboardSkeleton />}>
           <DashboardContent initialViewMode={initialViewMode} />
         </Suspense>
