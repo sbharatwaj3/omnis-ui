@@ -1092,11 +1092,11 @@ function SecurityArchitectureSection() {
                  * The grid row height stretches uniformly across all 3 columns
                  * as the hovered card expands, keeping the 1px gap lines intact.
                  */
-                className="group flex flex-col bg-slate-50 p-10 transition-colors duration-300 hover:bg-white"
+                className="group flex flex-col bg-slate-50 p-10 transition-colors duration-500 hover:bg-white"
               >
                 {/* Icon chip */}
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-slate-200 bg-white transition-colors duration-300 group-hover:border-slate-300">
-                  <Icon className="h-4 w-4 text-slate-500 transition-colors duration-300 group-hover:text-slate-800" strokeWidth={1.5} />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-slate-200 bg-white transition-colors duration-500 group-hover:border-slate-300">
+                  <Icon className="h-4 w-4 text-slate-500 transition-colors duration-500 group-hover:text-slate-800" strokeWidth={1.5} />
                 </div>
 
                 {/* Header — always visible */}
@@ -1114,7 +1114,7 @@ function SecurityArchitectureSection() {
                  * overflow-hidden is scoped to this div only, so the card
                  * itself is free to grow in the normal flow.
                  */}
-                <div className="overflow-hidden transition-all duration-300 ease-in-out max-h-0 opacity-0 group-hover:max-h-[200px] group-hover:opacity-100 group-hover:mt-4">
+                <div className="overflow-hidden transition-all duration-500 ease-in-out max-h-0 opacity-0 group-hover:max-h-[200px] group-hover:opacity-100 group-hover:mt-4">
                   <p className="text-sm leading-relaxed text-slate-500">
                     {body}
                   </p>
