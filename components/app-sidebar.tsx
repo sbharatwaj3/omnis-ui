@@ -111,7 +111,9 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col">
       {/* ── Logo ─────────────────────────────────────────────────────────── */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-200 px-5">
+      {/* h-[72px] matches the PageHeader height in page.tsx exactly so both
+          header bars form a single unbroken horizontal baseline. */}
+      <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-zinc-200 px-5">
         <Link
           href="/dashboard"
           className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"

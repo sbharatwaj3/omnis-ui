@@ -42,6 +42,7 @@ import {
 import { LogDetailDrawer } from "@/components/log-detail-drawer";
 import {
   AlertTriangle,
+  ArrowRight,
   BarChart3,
   CalendarDays,
   CheckCircle2,
@@ -644,9 +645,15 @@ interface DashboardClientProps {
   allRows: DashboardRow[];
   /** Initial view mode read from URL search params by the server page. */
   initialViewMode?: ViewMode;
+  /**
+   * When set, the dashboard feed is capped to this many groups (grouped mode)
+   * or rows (flat mode) and a "View All Logs" footer link is shown.
+   * Omit for the full paginated view (e.g. on /dashboard/audit-logs).
+   */
+  previewLimit?: number;
 }
 
-export function DashboardClient({ allRows, initialViewMode = "grouped" }: DashboardClientProps) {
+export function DashboardClient({ allRows, initialViewMode = "grouped", previewLimit }: DashboardClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -717,6 +724,13 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
     safePage * PAGE_SIZE,
   );
 
+  // ── Preview slice (dashboard feed cap) ───────────────────────────────────
+  // When previewLimit is set (e.g. 10 on the main dashboard), cap the visible
+  // groups/rows and show a "View All Logs" footer. Full pagination is unaffected
+  // when previewLimit is not set (e.g. on /dashboard/audit-logs).
+  const previewGroups = previewLimit ? pageGroups.slice(0, previewLimit) : pageGroups;
+  const groupsOverLimit = previewLimit ? suiteGroups.length > previewLimit : false;
+
   // ── Flat-mode pagination (over individual rows) ───────────────────────────
   // Sort flat rows newest-first to match the order inside each accordion group.
   const flatRows = useMemo(
@@ -734,6 +748,8 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
     (safeFlatPage - 1) * FLAT_PAGE_SIZE,
     safeFlatPage * FLAT_PAGE_SIZE,
   );
+  const previewFlatRows = previewLimit ? pageFlatRows.slice(0, previewLimit) : pageFlatRows;
+  const flatRowsOverLimit = previewLimit ? flatRows.length > previewLimit : false;
 
   // Reset to page 1 when filter changes; also collapse all groups
   const setTimeframeAndReset = useCallback((tf: Timeframe) => {
@@ -947,7 +963,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
             transition={{ type: "tween", ease: "easeOut", duration: 0.12 }}
             className="border border-slate-200 rounded overflow-hidden mx-4 my-4 md:mx-6 md:my-5"
           >
-            {pageGroups.map((group, idx) => (
+            {previewGroups.map((group, idx) => (
               <SuiteAccordionItem
                 key={group.suiteKey}
                 group={group}
@@ -955,7 +971,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                 onToggle={() => toggleSuite(group.suiteKey)}
                 onOpenDrawer={openDrawer}
                 activeDrawerLogId={drawerLogId}
-                isLast={idx === pageGroups.length - 1}
+                isLast={idx === previewGroups.length - 1}
               />
             ))}
           </motion.div>
@@ -971,7 +987,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
           >
             {/* Mobile card list */}
             <div className="flex flex-col divide-y divide-slate-100 md:hidden">
-              {pageFlatRows.map((row) => (
+              {previewFlatRows.map((row) => (
                 <button
                   key={row.logId}
                   onClick={() => openDrawer(row.logId)}
@@ -1024,7 +1040,7 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pageFlatRows.map((row) => (
+                  {previewFlatRows.map((row) => (
                     <TableRow
                       key={row.logId}
                       onClick={() => openDrawer(row.logId)}
@@ -1070,8 +1086,29 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
           </AnimatePresence>
         )}
 
-        {/* Pagination footer — grouped mode */}
-        {viewMode === "grouped" && totalPages > 1 && (
+        {/* ── "View All Logs" preview footer ───────────────────────────────── */}
+        {/* Shown only when previewLimit is set and there are more items than shown. */}
+        {((viewMode === "grouped" && groupsOverLimit) ||
+          (viewMode === "flat" && flatRowsOverLimit)) && (
+          <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 md:px-6">
+            <p className="text-xs text-zinc-400">
+              Showing{" "}
+              {viewMode === "grouped"
+                ? `${previewGroups.length} of ${suiteGroups.length} test suites`
+                : `${previewFlatRows.length} of ${flatRows.length} logs`}
+            </p>
+            <a
+              href="/dashboard/audit-logs"
+              className="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
+            >
+              View All Logs
+              <ArrowRight className="h-3 w-3" />
+            </a>
+          </div>
+        )}
+
+        {/* Pagination footer — grouped mode (only shown without previewLimit) */}
+        {!previewLimit && viewMode === "grouped" && totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 md:px-6">
             <p className="text-xs text-zinc-400">
               Showing suites {(safePage - 1) * PAGE_SIZE + 1}–
@@ -1139,8 +1176,8 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
           </div>
         )}
 
-        {/* Pagination footer — flat mode */}
-        {viewMode === "flat" && flatTotalPages > 1 && (
+        {/* Pagination footer — flat mode (only shown without previewLimit) */}
+        {!previewLimit && viewMode === "flat" && flatTotalPages > 1 && (
           <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 md:px-6">
             <p className="text-xs text-zinc-400">
               Showing rows {(safeFlatPage - 1) * FLAT_PAGE_SIZE + 1}–

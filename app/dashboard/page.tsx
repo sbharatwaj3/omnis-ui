@@ -293,10 +293,10 @@ async function DashboardContent({
       {/* Bento metric row */}
       <TelemetryCards rows={rows} />
 
-      {/* 2/3 + 1/3 content split — w-full fills the max-w-7xl boundary */}
+      {/* 2/3 + 1/3 content split — w-full fills the max-w-screen-2xl boundary */}
       <div className="w-full grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 min-w-0">
-          <DashboardClient allRows={rows} initialViewMode={initialViewMode} />
+          <DashboardClient allRows={rows} initialViewMode={initialViewMode} previewLimit={10} />
         </div>
         <div className="lg:col-span-1">
           <LiveSystemTelemetry />
@@ -345,15 +345,17 @@ async function PageHeader() {
   }
 
   return (
-    <header className="border-b border-zinc-200 bg-white">
-      <div className="w-full px-8 py-4">
+    // h-[72px] matches the sidebar logo header height exactly so both
+    // header bars form a single unbroken horizontal baseline across the viewport.
+    <header className="h-[72px] flex items-center border-b border-zinc-200 bg-white">
+      <div className="w-full px-8">
         <div className="flex items-center justify-between">
           {/* Left: page breadcrumb */}
           <div>
             <h1 className="text-sm font-semibold text-zinc-900">
               Dashboard
             </h1>
-            <p className="text-xs text-zinc-400">
+            <p className="mt-0.5 text-xs text-zinc-400">
               Evidence Log · Command Center
             </p>
           </div>
@@ -397,8 +399,8 @@ export default async function DashboardPage({
       {/* Minimal in-page header: breadcrumb + compliance badge */}
       <PageHeader />
 
-      {/* Main content — max-w-7xl centered, full padding */}
-      <div className="mx-auto max-w-7xl w-full px-8 py-8">
+      {/* Main content — max-w-screen-2xl for a spacious Command Center layout */}
+      <div className="mx-auto max-w-screen-2xl w-full px-8 py-8">
         <Suspense fallback={<DashboardSkeleton />}>
           <DashboardContent initialViewMode={initialViewMode} />
         </Suspense>
