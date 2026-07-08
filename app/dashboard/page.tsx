@@ -38,7 +38,7 @@ import {
 } from "@/components/dashboard-client";
 import { TriageBadge } from "@/components/triage-badge";
 import { getPendingCount } from "@/app/dashboard/triage/actions";
-import { LiveSystemTelemetry } from "@/components/live-system-telemetry";
+import { SubmissionReadinessColumn } from "@/components/submission-readiness-column";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -209,7 +209,7 @@ async function DashboardContent({
           <DashboardClient allRows={rows} initialViewMode={initialViewMode} previewLimit={10} />
         </div>
         <div className="lg:col-span-1">
-          <LiveSystemTelemetry />
+          <SubmissionReadinessColumn />
         </div>
       </div>
     </>
