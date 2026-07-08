@@ -128,6 +128,24 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Live signal visualizer — continuous sine wave scroll
+   --------------------------------------------------------------------------
+   Translates the double-wide SVG container from 0 to -50% (one full tile
+   width) so the second tile seamlessly replaces the first, creating an
+   infinite scroll illusion. Uses transform (GPU-composited) to avoid
+   layout thrashing.
+   --------------------------------------------------------------------------- */
+@keyframes live-signal-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.live-signal-scroll {
+  animation: live-signal-scroll 4s linear infinite;
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------------------
    Shimmer badge — pure-CSS glint sweep for the hero eyebrow badge.
    A single highlight band translates from -100% to 200% across the element,
    giving a subtle metallic sheen without any JS or third-party dependency.

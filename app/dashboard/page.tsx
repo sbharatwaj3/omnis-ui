@@ -28,7 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Activity, Cpu, Wifi, WifiOff } from "lucide-react";
+import { Activity } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
 import {
@@ -38,6 +38,7 @@ import {
 } from "@/components/dashboard-client";
 import { TriageBadge } from "@/components/triage-badge";
 import { getPendingCount } from "@/app/dashboard/triage/actions";
+import { LiveSystemTelemetry } from "@/components/live-system-telemetry";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -187,97 +188,6 @@ function DashboardSkeleton() {
 }
 
 // ---------------------------------------------------------------------------
-// Live System Telemetry placeholder card
-// ---------------------------------------------------------------------------
-
-function LiveSystemTelemetry() {
-  return (
-    <Card className="border-zinc-200 bg-white min-h-[500px] flex flex-col">
-      <CardHeader className="border-b border-zinc-100 pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-zinc-800">
-            Live System Telemetry
-          </CardTitle>
-          <span className="inline-flex items-center gap-1.5 rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Live
-          </span>
-        </div>
-        <p className="text-xs text-zinc-400 leading-relaxed">
-          Real-time ingestion pipeline health and system signals
-        </p>
-      </CardHeader>
-
-      <CardContent className="flex flex-1 flex-col gap-4 pt-5">
-        {[
-          {
-            icon: Cpu,
-            label: "Ingestion Pipeline",
-            status: "Operational",
-            color: "text-emerald-600",
-            bg: "bg-emerald-50",
-            border: "border-emerald-200",
-          },
-          {
-            icon: Wifi,
-            label: "Bedrock AI Engine",
-            status: "Connected",
-            color: "text-emerald-600",
-            bg: "bg-emerald-50",
-            border: "border-emerald-200",
-          },
-          {
-            icon: Activity,
-            label: "Evidence Ledger",
-            status: "Writing",
-            color: "text-sky-600",
-            bg: "bg-sky-50",
-            border: "border-sky-200",
-          },
-          {
-            icon: WifiOff,
-            label: "DICOM Connector",
-            status: "Standby",
-            color: "text-zinc-500",
-            bg: "bg-zinc-50",
-            border: "border-zinc-200",
-          },
-        ].map(({ icon: Icon, label, status, color, bg, border }) => (
-          <div
-            key={label}
-            className="flex items-center justify-between rounded border border-zinc-100 bg-zinc-50 px-4 py-3"
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded ${bg} border ${border}`}
-              >
-                <Icon className={`h-4 w-4 ${color}`} strokeWidth={1.75} />
-              </div>
-              <span className="text-sm font-medium text-zinc-700">{label}</span>
-            </div>
-            <span
-              className={`inline-flex items-center rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${bg} ${border} ${color}`}
-            >
-              {status}
-            </span>
-          </div>
-        ))}
-
-        <div className="mt-2 flex flex-1 flex-col items-center justify-center rounded border border-dashed border-zinc-200 py-10 text-center">
-          <Activity className="mb-3 h-8 w-8 text-zinc-300" strokeWidth={1.5} />
-          <p className="text-xs font-medium text-zinc-400">
-            Live signal stream coming soon
-          </p>
-          <p className="mt-1 text-[11px] text-zinc-300">
-            WebSocket pipeline under construction
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Dashboard content — async RSC
 // ---------------------------------------------------------------------------
 
@@ -347,32 +257,33 @@ async function PageHeader() {
   return (
     // h-[72px] matches the sidebar logo header height exactly so both
     // header bars form a single unbroken horizontal baseline across the viewport.
-    <header className="h-[72px] flex items-center border-b border-zinc-200 bg-white">
-      <div className="dashboard-content-width pl-8 pr-6">
-        <div className="flex items-center justify-between">
-          {/* Left: page breadcrumb */}
-          <div>
-            <h1 className="text-sm font-semibold text-zinc-900">
-              Dashboard
-            </h1>
-            <p className="mt-0.5 text-xs text-zinc-400">
-              Evidence Log · Command Center
-            </p>
-          </div>
+    // The header itself is full-width. The breadcrumb is constrained to
+    // .dashboard-content-width (flush left). The IEC badge sits at the true
+    // right edge of the viewport (outside the content width cap).
+    <header className="h-[72px] flex items-center border-b border-zinc-200 bg-white w-full pr-6">
+      {/* Left: breadcrumb — constrained to dashboard content width */}
+      <div className="dashboard-content-width pl-8 flex items-center">
+        <div className="flex-1">
+          <h1 className="text-sm font-semibold text-zinc-900">
+            Dashboard
+          </h1>
+          <p className="mt-0.5 text-xs text-zinc-400">
+            Evidence Log · Command Center
+          </p>
+        </div>
+      </div>
 
-          {/* Right: compliance badge + triage badge (desktop only) */}
-          <div className="flex items-center gap-3">
-            <span className="hidden md:inline-flex items-center gap-2 rounded border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none">
-              <Activity className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-xs font-medium text-zinc-600">
-                IEC 62304 · 21 CFR Part 11
-              </span>
-            </span>
-            {/* Triage badge — visible desktop; mobile version is in DashboardShell */}
-            <div className="hidden lg:block">
-              <TriageBadge count={pendingCount} role={role} />
-            </div>
-          </div>
+      {/* Right: compliance badge + triage badge — pushed to viewport right edge */}
+      <div className="ml-auto flex items-center gap-3 shrink-0">
+        <span className="hidden md:inline-flex items-center gap-2 rounded border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none">
+          <Activity className="h-3.5 w-3.5 text-emerald-500" />
+          <span className="text-xs font-medium text-zinc-600">
+            IEC 62304 · 21 CFR Part 11
+          </span>
+        </span>
+        {/* Triage badge — visible desktop; mobile version is in DashboardShell */}
+        <div className="hidden lg:block">
+          <TriageBadge count={pendingCount} role={role} />
         </div>
       </div>
     </header>
