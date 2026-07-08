@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
+import { PerspectiveGrid } from "@/components/ui/perspective-grid";
 import {
   ShieldCheck,
   GitBranch,
@@ -167,34 +168,61 @@ function Header({ isAuthenticated, userEmail }: { isAuthenticated: boolean; user
 function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-white">
-      {/* Subtle grid */}
+      {/* ----------------------------------------------------------------
+          PerspectiveGrid background layer
+          — gridSize reduced to 28 for a coarser, less visually noisy grid
+          — opacity-[0.18] keeps it ghost-light so it never competes with text
+          — showOverlay=false because we handle our own bottom fade below
+          — pointer-events-none so hover tiles never intercept user clicks
+      ---------------------------------------------------------------- */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-60"
-      />
-      {/* Glow */}
+        className="pointer-events-none absolute inset-0 opacity-[0.18]"
+      >
+        <PerspectiveGrid
+          gridSize={28}
+          showOverlay={false}
+          className="h-full w-full bg-transparent [--fade-stop:transparent]"
+        />
+      </div>
+
+      {/* Bottom fade — blends the grid into the white section below */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-96 w-[800px] rounded bg-emerald-400/10 blur-3xl"
+        className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-b from-transparent to-white"
       />
 
+      {/* Hero content */}
       <div className="relative mx-auto max-w-5xl px-6 py-28 text-center md:py-36">
-        {/* Stagger container for all hero children */}
         <motion.div
           variants={staggerContainer(0.1, 0.05)}
           initial="hidden"
           animate="visible"
           className="flex flex-col items-center"
         >
-          {/* Eyebrow badge */}
+          {/* ----------------------------------------------------------------
+              Shimmer eyebrow badge
+              — pure-CSS glint: a ::before pseudo-band sweeps across via
+                the `shimmer-sweep` keyframe defined in globals.css
+              — overflow-hidden clips the band to the pill boundary
+              — the badge itself is a translucent slate/emerald border pill
+          ---------------------------------------------------------------- */}
           <motion.div
             variants={fadeUp}
             transition={easeOut}
-            className="mb-6 inline-flex items-center gap-2 rounded border border-emerald-200 bg-emerald-50 px-3.5 py-1.5"
+            className="mb-6"
           >
-            <span className="h-1.5 w-1.5 rounded bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-semibold tracking-wide text-emerald-700">
-              FDA eSTAR · IEC 62304 · 21 CFR Part 11
+            <span
+              className="relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold tracking-wide text-slate-600"
+              aria-label="Regulatory frameworks: FDA eSTAR, IEC 62304, 21 CFR Part 11"
+            >
+              {/* Shimmer sweep band */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 -translate-x-full skew-x-[-12deg] bg-gradient-to-r from-transparent via-white/70 to-transparent [animation:shimmer-sweep_2.8s_ease-in-out_infinite]"
+              />
+              <span className="relative h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="relative">FDA eSTAR · IEC 62304 · 21 CFR Part 11</span>
             </span>
           </motion.div>
 
@@ -204,8 +232,8 @@ function HeroSection() {
             transition={easeOutSlow}
             className="mx-auto max-w-4xl text-5xl font-extrabold leading-[1.08] tracking-tight text-slate-900 md:text-6xl lg:text-7xl"
           >
-            Automated eSTAR Compliance{" "}
-            <span className="text-emerald-600">for Modern MedTech.</span>
+            Automate 21 CFR Part 11 Compliance{" "}
+            <span className="text-emerald-600">Without Slowing Down Engineering.</span>
           </motion.h1>
 
           {/* Sub-headline */}
@@ -214,13 +242,42 @@ function HeroSection() {
             transition={easeOutSlow}
             className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-500 md:text-xl"
           >
-            Continuous CI/CD traceability and automated IEC 62304 document
-            generation — so your engineering team ships features, not paperwork.
+            The first zero-touch QA pipeline for MedTech. Map FDA requirements
+            directly in your code, let AI triage discrepancies, and generate
+            audit-ready traceability matrices instantly.
           </motion.p>
 
-          {/* Trust badges — stagger each badge */}
+          {/* CTA buttons */}
           <motion.div
-            variants={staggerContainer(0.06, 0.1)}
+            variants={fadeUp}
+            transition={{ ...easeOut, delay: 0.15 }}
+            className="mt-10 flex flex-wrap items-center justify-center gap-4"
+          >
+            {/* Primary */}
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+              <Link
+                href="/signup"
+                className="inline-flex items-center gap-2 rounded bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+              >
+                Start 30-Day Free Trial
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </motion.div>
+
+            {/* Secondary */}
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 rounded border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
+              >
+                View Sample Matrix
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          {/* Trust badges */}
+          <motion.div
+            variants={staggerContainer(0.06, 0.2)}
             initial="hidden"
             animate="visible"
             className="mt-10 flex flex-wrap items-center justify-center gap-3"
@@ -230,7 +287,7 @@ function HeroSection() {
                 key={badge}
                 variants={fadeUp}
                 transition={easeOut}
-                className="inline-flex items-center gap-1.5 rounded border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600"
+                className="inline-flex items-center gap-1.5 rounded border border-slate-200 bg-white/80 px-3 py-1 text-xs font-medium text-slate-600"
               >
                 <CheckCircle className="h-3 w-3 text-emerald-500" />
                 {badge}

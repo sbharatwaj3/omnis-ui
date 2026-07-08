@@ -114,6 +114,20 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Shimmer badge — pure-CSS glint sweep for the hero eyebrow badge.
+   A single highlight band translates from -100% to 200% across the element,
+   giving a subtle metallic sheen without any JS or third-party dependency.
+   --------------------------------------------------------------------------- */
+@keyframes shimmer-sweep {
+  0%   { transform: translateX(-100%) skewX(-12deg); }
+  100% { transform: translateX(200%)  skewX(-12deg); }
+}
+
+@theme inline {
+  --animate-shimmer: shimmer-sweep 2.8s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------------------
    Auth input autofill defense
    --------------------------------------------------------------------------
    Chrome / Safari paint a yellow-grey background on autofilled inputs which
