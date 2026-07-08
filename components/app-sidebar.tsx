@@ -47,7 +47,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   {
     label: "Compliance Matrix",
-    href: "/readiness",
+    href: "/dashboard/readiness",
     icon: Table2,
     description: "Traceability reports",
   },
@@ -158,13 +158,10 @@ function SidebarContent({
       >
         {visibleItems.map((item) => {
           const Icon = item.icon;
-          // Active detection: exact match for top-level routes (/readiness),
-          // prefix match for nested dashboard routes.
+          // Active detection: prefix match for all /dashboard/* routes.
           const isActive =
-            item.href === "/readiness"
-              ? pathname === item.href
-              : pathname === item.href ||
-                pathname.startsWith(item.href + "/");
+            pathname === item.href ||
+            pathname.startsWith(item.href + "/");
 
           return (
             <Link

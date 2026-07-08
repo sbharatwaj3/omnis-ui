@@ -10,6 +10,8 @@
 //   2. Action Required: 21 CFR Part 11 — minimalist signature-queue inbox
 //      listing the top 3 test suites awaiting human electronic signature.
 //   3. Generate eSTAR e-Copy — CTA anchored to the card footer.
+//      Wired to GenerateReportButton which opens the ExportProgressModal
+//      and calls the Render LaTeX microservice.
 //
 // DESIGN SYSTEM:
 //   - Flat elevation. No box-shadows. Border-radius ≤ 4px.
@@ -19,8 +21,9 @@
 
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { Download, Clock, AlertTriangle } from "lucide-react";
+import { Clock, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GenerateReportButton } from "@/components/generate-report-button";
 
 // ---------------------------------------------------------------------------
 // Recharts donut — dynamic import with ssr: false prevents hydration errors
@@ -152,13 +155,13 @@ export function SubmissionReadinessColumn() {
           </div>
 
           {/* ── Block 3: eSTAR CTA ──────────────────────────────────── */}
-          <button
-            type="button"
-            className="mt-auto w-full rounded bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            <Download className="h-3.5 w-3.5" strokeWidth={2} />
-            Generate eSTAR e-Copy
-          </button>
+          {/* GenerateReportButton opens the ExportProgressModal which fires  */}
+          {/* the real PDF compile pipeline via /api/generate-report?format=pdf. */}
+          {/* completionPercent mirrors the static donut value (84.6%). The    */}
+          {/* draft-warning dialog will surface since the matrix is < 100%.    */}
+          <div className="mt-auto">
+            <GenerateReportButton completionPercent={84.6} />
+          </div>
         </CardContent>
       </Card>
     </motion.div>
