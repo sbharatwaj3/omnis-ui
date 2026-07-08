@@ -26,6 +26,9 @@ import {
   AlertTriangle,
   Hash,
   Link2,
+  Database,
+  Shield,
+  Cpu,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -1017,6 +1020,93 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
 // Bottom CTA
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Security & Architecture Footer
+// ---------------------------------------------------------------------------
+
+const archPillars = [
+  {
+    icon:    Database,
+    header:  "SUPABASE_RLS",
+    body:    "Strict Row-Level Security ensuring absolute tenant data isolation.",
+  },
+  {
+    icon:    Shield,
+    header:  "AES_256_ENCRYPTION",
+    body:    "Cryptographically sealed, append-only audit logs that prevent tampering.",
+  },
+  {
+    icon:    Cpu,
+    header:  "DETERMINISTIC_EXECUTION",
+    body:    "Compiled omnis-run binaries bound by strict IEC 62304 rules with zero silent failures.",
+  },
+] as const;
+
+function SecurityArchitectureSection() {
+  return (
+    <section className="border-t border-slate-200 bg-slate-50 py-20">
+      <div className="mx-auto max-w-5xl px-6">
+        {/* Section header */}
+        <motion.div
+          variants={staggerContainer(0.08, 0)}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          className="flex flex-col items-center"
+        >
+          <motion.p
+            variants={fadeUp}
+            transition={easeOut}
+            className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400"
+          >
+            Under the Hood
+          </motion.p>
+          <motion.h2
+            variants={fadeUp}
+            transition={easeOutSlow}
+            className="text-center text-2xl font-medium tracking-tight text-slate-900 md:text-3xl"
+          >
+            Enterprise-Grade Architecture
+          </motion.h2>
+          <motion.div
+            variants={fadeUp}
+            transition={easeOut}
+            className="mt-2 h-px w-12 bg-slate-300"
+          />
+
+          {/* Pillars grid */}
+          <motion.div
+            variants={staggerContainer(0.12, 0.1)}
+            className="mt-12 grid w-full grid-cols-1 gap-px border border-slate-200 bg-slate-200 md:grid-cols-3"
+          >
+            {archPillars.map(({ icon: Icon, header, body }) => (
+              <motion.div
+                key={header}
+                variants={fadeUp}
+                transition={easeOut}
+                className="flex flex-col gap-4 bg-slate-50 px-6 py-8"
+              >
+                {/* Icon chip */}
+                <div className="flex h-9 w-9 items-center justify-center border border-slate-200 bg-white">
+                  <Icon className="h-4 w-4 text-slate-600" strokeWidth={1.5} />
+                </div>
+
+                {/* Monospace header */}
+                <p className="break-all font-mono text-[11px] font-semibold uppercase tracking-widest text-slate-800">
+                  {header}
+                </p>
+
+                {/* Body copy */}
+                <p className="text-sm leading-relaxed text-slate-500">{body}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 function BottomCTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
   const ctaTarget = isAuthenticated ? "/pricing" : "/signup";
 
@@ -1145,6 +1235,7 @@ export default function LandingPage() {
         <BentoSection />
         <HowItWorksSection />
         <ProductPreviewSection isAuthenticated={isAuthenticated} />
+        <SecurityArchitectureSection />
         <BottomCTASection isAuthenticated={isAuthenticated} />
       </main>
       <Footer />
