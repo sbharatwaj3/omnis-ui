@@ -1026,19 +1026,22 @@ function ProductPreviewSection({ isAuthenticated }: { isAuthenticated: boolean }
 
 const archPillars = [
   {
-    icon:    Database,
-    header:  "SUPABASE_RLS",
-    body:    "Strict Row-Level Security ensuring absolute tenant data isolation.",
+    icon:      Database,
+    header:    "Supabase RLS",
+    subheader: "Absolute data isolation.",
+    body:      "Strict Row-Level Security policies enforced at the Postgres level. Multi-tenant architecture guarantees that cross-contamination of regulatory evidence is cryptographically impossible.",
   },
   {
-    icon:    Shield,
-    header:  "AES_256_ENCRYPTION",
-    body:    "Cryptographically sealed, append-only audit logs that prevent tampering.",
+    icon:      Shield,
+    header:    "AES-256 Encryption",
+    subheader: "Tamper-proof audit logs.",
+    body:      "All Part 11 audit trails are hashed and encrypted at rest. Evidence ledgers are append-only, preventing post-execution mutation by any user or automated process.",
   },
   {
-    icon:    Cpu,
-    header:  "DETERMINISTIC_EXECUTION",
-    body:    "Compiled omnis-run binaries bound by strict IEC 62304 rules with zero silent failures.",
+    icon:      Cpu,
+    header:    "Deterministic CLI",
+    subheader: "Zero silent failures.",
+    body:      "The omnis-run binary is compiled under strict IEC 62304 bounds. Network drops or parsing errors trigger explicit aborts to guarantee pipeline integrity.",
   },
 ] as const;
 
@@ -1074,30 +1077,49 @@ function SecurityArchitectureSection() {
             className="mt-2 h-px w-12 bg-slate-300"
           />
 
-          {/* Pillars grid */}
+          {/* Pillars grid — 1px hairline borders via gap-px on slate-200 wrapper */}
           <motion.div
             variants={staggerContainer(0.12, 0.1)}
             className="mt-12 grid w-full grid-cols-1 gap-px border border-slate-200 bg-slate-200 md:grid-cols-3"
           >
-            {archPillars.map(({ icon: Icon, header, body }) => (
+            {archPillars.map(({ icon: Icon, header, subheader, body }) => (
               <motion.div
                 key={header}
                 variants={fadeUp}
                 transition={easeOut}
-                className="flex flex-col gap-4 bg-slate-50 px-6 py-8"
+                /*
+                 * Fixed min-h so the grid row never reflows when the hover
+                 * body text is revealed — no layout jitter across columns.
+                 * overflow-hidden clips the translating body copy cleanly.
+                 */
+                className="group relative flex min-h-56 flex-col overflow-hidden bg-slate-50 p-10 transition-colors duration-300 hover:bg-white"
               >
                 {/* Icon chip */}
-                <div className="flex h-9 w-9 items-center justify-center border border-slate-200 bg-white">
-                  <Icon className="h-4 w-4 text-slate-600" strokeWidth={1.5} />
+                <div className="flex h-9 w-9 items-center justify-center border border-slate-200 bg-white transition-colors duration-300 group-hover:border-slate-300">
+                  <Icon className="h-4 w-4 text-slate-500 transition-colors duration-300 group-hover:text-slate-800" strokeWidth={1.5} />
                 </div>
 
-                {/* Monospace header */}
-                <p className="break-all font-mono text-[11px] font-semibold uppercase tracking-widest text-slate-800">
+                {/* Header — always visible */}
+                <p className="mt-5 font-mono text-sm font-semibold tracking-tight text-slate-800">
                   {header}
                 </p>
 
-                {/* Body copy */}
-                <p className="text-sm leading-relaxed text-slate-500">{body}</p>
+                {/*
+                 * Sub-header: visible by default, fades out on hover to make
+                 * room for the fuller body copy without shifting the header.
+                 */}
+                <p className="mt-1 text-xs text-slate-400 transition-all duration-300 ease-out group-hover:opacity-0 group-hover:-translate-y-1">
+                  {subheader}
+                </p>
+
+                {/*
+                 * Body copy: hidden by default (opacity-0 + translate-y-2),
+                 * smoothly revealed on hover. absolute positioning keeps it
+                 * from pushing siblings and causing reflow.
+                 */}
+                <p className="absolute inset-x-10 bottom-10 text-sm leading-relaxed text-slate-500 opacity-0 translate-y-2 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:translate-y-0">
+                  {body}
+                </p>
               </motion.div>
             ))}
           </motion.div>
