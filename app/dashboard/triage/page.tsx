@@ -23,7 +23,7 @@ import { adminClient } from "@/utils/supabase/admin";
 import { getPendingTriageItems } from "@/app/dashboard/triage/actions";
 import { TriageQueueClient } from "@/components/triage-queue-client";
 import { TriageSkeleton } from "@/components/triage-skeleton";
-import { DashboardHeader } from "@/components/dashboard-header";
+import { SubpageHeader } from "@/components/subpage-header";
 import { TriageStatsSidebar } from "@/components/triage-stats-sidebar";
 
 // ---------------------------------------------------------------------------
@@ -129,12 +129,14 @@ export default async function TriagePage() {
   // Two-column layout: centered feed (max-w-5xl) + sticky sidebar
   // -------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <DashboardHeader subtitle="FDA Assurance Dashboard · Live" />
+    <div className="flex flex-col min-h-full bg-zinc-50">
+      <SubpageHeader
+        title="Triage Inbox"
+        subtitle="FDA Assurance Dashboard · Live"
+      />
 
-      <main className="mx-auto max-w-screen-xl w-full px-6 py-6 md:px-8 md:py-10">
-        {/* Page header ───────────────────────────────────────────────────── */}
-        {/* Requirement 12.5 — visible <h1> landmark heading */}
+      <div className="w-full px-8 py-8">
+        {/* Page header */}
         <h1 className="text-xl font-semibold text-zinc-900 mb-1">
           AI Triage Inbox
         </h1>
@@ -142,13 +144,11 @@ export default async function TriagePage() {
           Review and resolve requirement tag discrepancies flagged by AWS Bedrock.
         </p>
 
-        {/* Two-column layout: feed + sidebar ─────────────────────────────── */}
-        {/* On <lg screens stacks vertically (sidebar below feed) */}
+        {/* Two-column layout: feed + sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
 
-          {/* ── Left: triage feed, width-constrained ───────────────────── */}
+          {/* ── Left: triage feed ──────────────────────────────────────── */}
           <div className="min-w-0">
-            {/* Triage queue — streamed inside Suspense with skeleton fallback */}
             <Suspense fallback={<TriageSkeleton />}>
               <TriageContent viewerRole={viewerRole} />
             </Suspense>
@@ -167,7 +167,7 @@ export default async function TriagePage() {
             <TriageStatsSidebar />
           </Suspense>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

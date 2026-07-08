@@ -1,0 +1,62 @@
+// omnis-ui/components/subpage-header.tsx
+// Gold-Standard Subpage Header — matches the Dashboard PageHeader exactly.
+//
+// STRUCTURE:
+//   h-[72px] — matches the sidebar logo header height so both bars form a
+//   single unbroken horizontal baseline across the full viewport.
+//
+//   Left:  page title (h1) + subtitle (p) — flush with sidebar edge via pl-8.
+//   Right: compliance badge — pushed to viewport right edge via ml-auto pr-6.
+//
+// There is no logo, no Back-to-Dashboard pill, no Admin button, no Settings
+// button, and no RoleBadge here — those all live exclusively in the persistent
+// AppSidebar. Adding any of those elements to this component is a design
+// system violation.
+//
+// Usage:
+//   <SubpageHeader
+//     title="Requirements Management"
+//     subtitle="SRS/SDS Registry"
+//     complianceText="IEC 62304 · FDA 820.30(c)"   // optional, defaults to standard
+//   />
+
+import { Activity } from "lucide-react";
+
+interface SubpageHeaderProps {
+  /** Primary h1 text — the page name (e.g. "Triage Inbox") */
+  title: string;
+  /** Secondary line beneath the title (e.g. "AI-flagged discrepancies") */
+  subtitle: string;
+  /** Compliance badge text. Defaults to "IEC 62304 · 21 CFR Part 11". */
+  complianceText?: string;
+}
+
+export function SubpageHeader({
+  title,
+  subtitle,
+  complianceText = "IEC 62304 · 21 CFR Part 11",
+}: SubpageHeaderProps) {
+  return (
+    // h-[72px] matches the sidebar logo header height exactly so both header
+    // bars form a single unbroken horizontal baseline across the viewport.
+    <header className="h-[72px] flex items-center border-b border-zinc-200 bg-white w-full pr-6 shrink-0">
+      {/* Left: page title + subtitle — pl-8 aligns flush with sidebar edge */}
+      <div className="pl-8 flex items-center min-w-0 flex-1">
+        <div>
+          <h1 className="text-sm font-semibold text-zinc-900">{title}</h1>
+          <p className="mt-0.5 text-xs text-zinc-400">{subtitle}</p>
+        </div>
+      </div>
+
+      {/* Right: compliance badge — pushed to viewport right edge */}
+      <div className="ml-auto flex items-center gap-3 shrink-0">
+        <span className="hidden md:inline-flex items-center gap-2 rounded border border-zinc-200 bg-zinc-50 px-3 py-1.5 select-none">
+          <Activity className="h-3.5 w-3.5 text-emerald-500" />
+          <span className="text-xs font-medium text-zinc-600">
+            {complianceText}
+          </span>
+        </span>
+      </div>
+    </header>
+  );
+}

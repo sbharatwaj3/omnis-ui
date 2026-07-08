@@ -45,6 +45,7 @@ export const runtime = "nodejs";
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { unstable_noStore as noStore } from "next/cache";
+import { SubpageHeader } from "@/components/subpage-header";
 import {
   Card,
   CardContent,
@@ -645,10 +646,16 @@ export default function ReadinessPage() {
   return (
     // The DashboardShell (sidebar + auth gate) is provided by the parent
     // app/dashboard/layout.tsx. This page only owns its content column.
-    <div className="w-full px-8 py-8 bg-zinc-50 min-h-full">
-      <Suspense fallback={<ReadinessSkeleton />}>
-        <ReadinessContent />
-      </Suspense>
+    <div className="flex flex-col min-h-full bg-zinc-50">
+      <SubpageHeader
+        title="Compliance Matrix"
+        subtitle="Traceability Matrix · Gap Analysis"
+      />
+      <div className="w-full px-8 py-8">
+        <Suspense fallback={<ReadinessSkeleton />}>
+          <ReadinessContent />
+        </Suspense>
+      </div>
     </div>
   );
 }

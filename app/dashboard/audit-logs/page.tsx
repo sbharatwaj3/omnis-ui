@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
 import { ShieldAlert } from "lucide-react";
-import { DashboardHeader } from "@/components/dashboard-header";
+import { SubpageHeader } from "@/components/subpage-header";
 import { AuditLogsClient } from "@/components/audit-logs-client";
 import { getAuditLogs } from "@/app/dashboard/requirements/actions";
 
@@ -102,19 +102,14 @@ async function AuditContent() {
 
 export default function AuditLogsPage() {
   return (
-    <div className="min-h-screen bg-zinc-50">
-      {/* ------------------------------------------------------------------ */}
-      {/* Header                                                              */}
-      {/* ------------------------------------------------------------------ */}
-      <DashboardHeader
+    <div className="flex flex-col min-h-full bg-zinc-50">
+      <SubpageHeader
+        title="Audit Logs"
         subtitle="Audit Trail · 21 CFR Part 11 Ledger"
         complianceText="21 CFR Part 11.10(e)"
       />
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Main                                                                */}
-      {/* ------------------------------------------------------------------ */}
-      <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
+      <div className="w-full px-8 py-8">
         {/* Page heading */}
         <div className="mb-5 flex items-start gap-3">
           <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded border border-zinc-200 bg-white">
@@ -146,7 +141,7 @@ export default function AuditLogsPage() {
         <Suspense fallback={<AuditSkeleton />}>
           <AuditContent />
         </Suspense>
-      </main>
+      </div>
     </div>
   );
 }

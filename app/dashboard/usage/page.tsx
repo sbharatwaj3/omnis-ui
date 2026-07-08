@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { DashboardHeader } from "@/components/dashboard-header";
+import { SubpageHeader } from "@/components/subpage-header";
 import { UsageGaugeCard } from "@/components/usage/usage-gauge-card";
 import { UsageClient } from "@/components/usage/usage-client";
 import { UsagePageSkeleton } from "@/components/usage/usage-skeleton";
@@ -130,18 +130,18 @@ async function UsagePageContent() {
 
 export default async function UsagePage() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* DashboardHeader always rendered regardless of data errors (Req 9.5) */}
-      <DashboardHeader
+    <div className="flex flex-col min-h-full bg-zinc-50">
+      <SubpageHeader
+        title="Token Usage"
         subtitle="Token Usage · AI Bedrock Telemetry"
         complianceText="AWS Bedrock · Token Telemetry"
       />
 
-      <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
+      <div className="w-full px-8 py-8">
         <Suspense fallback={<UsagePageSkeleton />}>
           <UsagePageContent />
         </Suspense>
-      </main>
+      </div>
     </div>
   );
 }

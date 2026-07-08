@@ -17,7 +17,7 @@ import { Suspense } from "react";
 import { ClipboardList } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
-import { DashboardHeader } from "@/components/dashboard-header";
+import { SubpageHeader } from "@/components/subpage-header";
 import { RequirementsClient } from "@/components/requirements-client";
 import {
   listRequirements,
@@ -108,22 +108,23 @@ function RequirementsSkeleton() {
 
 export default function RequirementsPage() {
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <DashboardHeader
-        subtitle="Requirements Management · SRS Registry"
+    <div className="flex flex-col min-h-full bg-zinc-50">
+      <SubpageHeader
+        title="Requirements Management"
+        subtitle="SRS/SDS Registry · Requirements Management"
         complianceText="IEC 62304 · FDA 820.30(c)"
       />
 
-      <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
+      <div className="w-full px-8 py-8">
         {/* Page heading */}
         <div className="mb-6 flex items-start gap-3">
           <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded border border-zinc-200 bg-white">
             <ClipboardList className="h-4.5 w-4.5 text-zinc-600" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-zinc-900">
+            <h2 className="text-xl font-semibold tracking-tight text-zinc-900">
               Requirements Management
-            </h1>
+            </h2>
             <p className="mt-0.5 text-sm text-zinc-400">
               Capture and map SRS/SDS requirements to regulatory clauses for bidirectional
               traceability per IEC 62304 §5.2.6 and FDA 21 CFR 820.30(c).
@@ -134,7 +135,7 @@ export default function RequirementsPage() {
         <Suspense fallback={<RequirementsSkeleton />}>
           <RequirementsContent />
         </Suspense>
-      </main>
+      </div>
     </div>
   );
 }
