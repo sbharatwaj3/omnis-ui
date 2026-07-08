@@ -1,13 +1,26 @@
 ﻿// omnis-ui/app/dashboard/page.tsx
-// FDA Assurance Dashboard — Evidence Log Traffic Light Matrix
+// FDA Assurance Dashboard — Command Center Hub
 //
 // React Server Component. Fetches ALL evidence_logs + ai_compliance_insights
 // at request time and passes them to <DashboardClient> for client-side
 // filtering, pagination, and master-detail drawer rendering.
 //
+// Layout (post-refactor):
+//   ┌──────────────────────────────────────────────────────────────┐
+//   │  DashboardHeader (top bar — logo, audit link, role badge)    │
+//   ├──────────────────────────────────────────────────────────────┤
+//   │  Bento row: [Total Executions] [Malfunction Vol.] [Fail %]   │
+//   ├────────────────────────────────────┬─────────────────────────┤
+//   │  Evidence Log - Traffic Light      │  Live System Telemetry  │
+//   │  Matrix (lg:col-span-2)            │  (lg:col-span-1)        │
+//   └────────────────────────────────────┴─────────────────────────┘
+//
+// The four nav cards (Compliance Matrix, Requirements, Triage Inbox, Token
+// Usage) have been moved to the persistent AppSidebar. They no longer render
+// on this page.
+//
 // force-dynamic: disables Next.js static/ISR caching so every request fetches
-// a fresh snapshot from Supabase. Required after any DB backfill so the page
-// never serves a stale cached empty state.
+// a fresh snapshot from Supabase.
 export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
@@ -18,17 +31,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ClipboardList,
-  Brain,
-  ShieldAlert,
-  Table2,
-  BarChart2,
-} from "lucide-react";
+import { ShieldAlert, Activity, Cpu, Wifi, WifiOff } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
 import { DashboardHeader } from "@/components/dashboard-header";
-import { DashboardClient, type DashboardRow } from "@/components/dashboard-client";
+import {
+  DashboardClient,
+  TelemetryCards,
+  type DashboardRow,
+} from "@/components/dashboard-client";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -62,14 +73,13 @@ function mapSeverity(aiSummary: string | null): DashboardRow["severity"] {
 
 async function fetchAllLogs(): Promise<DashboardRow[]> {
   // Step 1: Verify the authenticated session with the anon-key session client.
-  // This is the ONLY call that needs the session client — it confirms the user
-  // is logged in and resolves their identity server-side.
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return [];
 
-  // Step 2: Resolve org_id via the session client (RLS on users table uses
-  // auth.uid() = user_id directly, so this is unaffected by the RBAC policy).
+  // Step 2: Resolve org_id via the session client.
   const { data: profile } = await supabase
     .from("users")
     .select("org_id")
@@ -79,20 +89,8 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
   if (!profile?.org_id) return [];
   const orgId: string = profile.org_id;
 
-  // Step 3: All DATA queries use adminClient (service role) to bypass the
-  // RBAC-gated RLS policy on evidence_logs and ai_compliance_insights.
-  //
-  // WHY: The RBAC migration (20260616) replaced the simple org-only SELECT
-  // policy with one that requires private.get_auth_role() IS NOT NULL. That
-  // function resolves via user_roles, which requires the authenticated session
-  // to satisfy its own RLS SELECT policy. This chain can fail silently for
-  // accounts created before RBAC, returning an empty result set with no error.
-  //
-  // SECURITY: The org_id scoping below ensures a user can only ever read their
-  // own org's logs. The user identity is verified in Step 1 above via the
-  // session client — we never trust a client-supplied value.
-
-  // Fetch in pages of 1000 to stay within Supabase's default range limit
+  // Step 3: All DATA queries use adminClient to bypass RBAC-gated RLS.
+  // SECURITY: org_id scoping ensures a user only reads their own org's logs.
   let allLogs: EvidenceLogRow[] = [];
   let from = 0;
   const batchSize = 1000;
@@ -100,14 +98,19 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
   while (true) {
     const { data: batch, error } = await adminClient
       .from("evidence_logs")
-      .select("log_id, execution_timestamp, execution_status, raw_command, event_source, req_id")
+      .select(
+        "log_id, execution_timestamp, execution_status, raw_command, event_source, req_id",
+      )
       .eq("org_id", orgId)
       .neq("is_deprecated", true)
       .order("execution_timestamp", { ascending: false })
       .range(from, from + batchSize - 1);
 
     if (error) {
-      console.error("[dashboard] Supabase error fetching evidence_logs:", error.message);
+      console.error(
+        "[dashboard] Supabase error fetching evidence_logs:",
+        error.message,
+      );
       break;
     }
 
@@ -121,7 +124,6 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
 
   const logIds = allLogs.map((l) => l.log_id);
 
-  // Fetch insights in batches (Supabase .in() has a practical limit ~500)
   let allInsights: AiInsightRow[] = [];
   for (let i = 0; i < logIds.length; i += 500) {
     const chunk = logIds.slice(i, i + 500);
@@ -131,7 +133,10 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
       .in("log_id", chunk);
 
     if (insightsError) {
-      console.error("[dashboard] Supabase error fetching ai_compliance_insights:", insightsError.message);
+      console.error(
+        "[dashboard] Supabase error fetching ai_compliance_insights:",
+        insightsError.message,
+      );
     }
     if (insights) allInsights = allInsights.concat(insights as AiInsightRow[]);
   }
@@ -156,9 +161,7 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
         second: "2-digit",
         timeZoneName: "short",
       }),
-      // testSuite: human-readable label from ai_test_suite if available
       testSuite: insight?.ai_test_suite ?? log.raw_command ?? log.event_source,
-      // rawCommand: the original CLI command for the title parser + tooltip
       rawCommand: log.raw_command ?? log.event_source ?? "",
       executionStatus: log.execution_status,
       aiSummary,
@@ -176,7 +179,8 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
 function DashboardSkeleton() {
   return (
     <>
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {/* Bento metric row skeleton */}
+      <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
         {[1, 2, 3].map((i) => (
           <Card key={i} className="border-zinc-200">
             <CardHeader className="pb-2">
@@ -188,8 +192,106 @@ function DashboardSkeleton() {
           </Card>
         ))}
       </div>
-      <div className="h-64 animate-pulse rounded bg-zinc-100" />
+
+      {/* 2/3 + 1/3 content split skeleton */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 h-64 animate-pulse rounded bg-zinc-100" />
+        <div className="lg:col-span-1 min-h-[500px] animate-pulse rounded bg-zinc-100" />
+      </div>
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Live System Telemetry placeholder card
+// ---------------------------------------------------------------------------
+
+function LiveSystemTelemetry() {
+  return (
+    <Card className="border-zinc-200 bg-white min-h-[500px] flex flex-col">
+      <CardHeader className="border-b border-zinc-100 pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-semibold text-zinc-800">
+            Live System Telemetry
+          </CardTitle>
+          <span className="inline-flex items-center gap-1.5 rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Live
+          </span>
+        </div>
+        <p className="text-xs text-zinc-400 leading-relaxed">
+          Real-time ingestion pipeline health and system signals
+        </p>
+      </CardHeader>
+
+      <CardContent className="flex flex-1 flex-col gap-4 pt-5">
+        {/* Placeholder signal rows */}
+        {[
+          {
+            icon: Cpu,
+            label: "Ingestion Pipeline",
+            status: "Operational",
+            color: "text-emerald-600",
+            bg: "bg-emerald-50",
+            border: "border-emerald-200",
+          },
+          {
+            icon: Wifi,
+            label: "Bedrock AI Engine",
+            status: "Connected",
+            color: "text-emerald-600",
+            bg: "bg-emerald-50",
+            border: "border-emerald-200",
+          },
+          {
+            icon: Activity,
+            label: "Evidence Ledger",
+            status: "Writing",
+            color: "text-sky-600",
+            bg: "bg-sky-50",
+            border: "border-sky-200",
+          },
+          {
+            icon: WifiOff,
+            label: "DICOM Connector",
+            status: "Standby",
+            color: "text-zinc-500",
+            bg: "bg-zinc-50",
+            border: "border-zinc-200",
+          },
+        ].map(({ icon: Icon, label, status, color, bg, border }) => (
+          <div
+            key={label}
+            className="flex items-center justify-between rounded border border-zinc-100 bg-zinc-50 px-4 py-3"
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded ${bg} border ${border}`}
+              >
+                <Icon className={`h-4 w-4 ${color}`} strokeWidth={1.75} />
+              </div>
+              <span className="text-sm font-medium text-zinc-700">{label}</span>
+            </div>
+            <span
+              className={`inline-flex items-center rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${bg} ${border} ${color}`}
+            >
+              {status}
+            </span>
+          </div>
+        ))}
+
+        {/* Filler placeholder area */}
+        <div className="mt-2 flex flex-1 flex-col items-center justify-center rounded border border-dashed border-zinc-200 py-10 text-center">
+          <Activity className="mb-3 h-8 w-8 text-zinc-300" strokeWidth={1.5} />
+          <p className="text-xs font-medium text-zinc-400">
+            Live signal stream coming soon
+          </p>
+          <p className="mt-1 text-[11px] text-zinc-300">
+            WebSocket pipeline under construction
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -197,110 +299,32 @@ function DashboardSkeleton() {
 // Dashboard content — async server component, streams into Suspense
 // ---------------------------------------------------------------------------
 
-async function DashboardContent({ initialViewMode }: { initialViewMode: "grouped" | "flat" }) {
+async function DashboardContent({
+  initialViewMode,
+}: {
+  initialViewMode: "grouped" | "flat";
+}) {
   const rows = await fetchAllLogs();
-
-  // Resolve the caller's role to gate the Team Usage card.
-  // Step 1: Verify identity via the session client (JWT verification).
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Step 2 & 3: Resolve org_id then role via adminClient.
-  let userRole: string | null = null;
-  if (user) {
-    const { data: profile } = await adminClient
-      .from("users")
-      .select("org_id")
-      .eq("user_id", user.id)
-      .single();
-
-    if (profile?.org_id) {
-      const { data: roleRow } = await adminClient
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("org_id", profile.org_id)
-        .single();
-
-      userRole = roleRow?.role ?? null;
-    }
-  }
 
   return (
     <>
-      {/* ── Primary Action Cards ──────────────────────────────────────── */}
-      <div className={`mb-6 grid grid-cols-1 gap-4 ${userRole === "admin" ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
-        {/* Card 1: Compliance Matrix */}
-        <Link
-          href="/readiness"
-          className="group flex flex-col gap-2 rounded border border-zinc-200 bg-white px-5 py-5 transition-all hover:border-zinc-300 hover:bg-zinc-50"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-emerald-50 group-hover:bg-emerald-100 transition-colors">
-              <Table2 className="h-4 w-4 text-emerald-600" strokeWidth={1.75} />
-            </div>
-            <span className="text-sm font-medium text-zinc-900">Compliance Matrix</span>
-          </div>
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            Generate and export traceability reports
-          </p>
-        </Link>
+      {/* ── Bento metric row ─────────────────────────────────────────────── */}
+      {/* TelemetryCards is now rendered at page level so it sits above the
+          2/3+1/3 split independently of the client component's internal state. */}
+      <TelemetryCards rows={rows} />
 
-        {/* Card 2: Requirements — Blue/Indigo accent */}
-        <Link
-          href="/dashboard/requirements"
-          className="group flex flex-col gap-2 rounded border border-zinc-200 bg-white px-5 py-5 transition-all hover:border-zinc-300 hover:bg-zinc-50"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-50 group-hover:bg-indigo-100 transition-colors">
-              <ClipboardList className="h-4 w-4 text-indigo-600" strokeWidth={1.75} />
-            </div>
-            <span className="text-sm font-medium text-zinc-900">Requirements</span>
-          </div>
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            Map SRS/SDS to regulatory codes
-          </p>
-        </Link>
+      {/* ── 2/3 + 1/3 asymmetric content split ──────────────────────────── */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Evidence Log · Traffic Light Matrix — spans 2 columns */}
+        <div className="lg:col-span-2">
+          <DashboardClient allRows={rows} initialViewMode={initialViewMode} />
+        </div>
 
-        {/* Card 3: Triage Inbox — Amber accent */}
-        <Link
-          href="/dashboard/triage"
-          className="group flex flex-col gap-2 rounded border border-zinc-200 bg-white px-5 py-5 transition-all hover:border-zinc-300 hover:bg-zinc-50"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-amber-50 group-hover:bg-amber-100 transition-colors">
-              <Brain className="h-4 w-4 text-amber-600" strokeWidth={1.75} />
-            </div>
-            <span className="text-sm font-medium text-zinc-900">Triage Inbox</span>
-          </div>
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            Review AI-flagged compliance discrepancies
-          </p>
-        </Link>
-
-        {/* Card 4: Token Usage — Violet accent (admin only) */}
-        {userRole === "admin" && (
-        <Link
-          href="/dashboard/usage"
-          className="group flex flex-col gap-2 rounded border border-zinc-200 bg-white px-5 py-5 transition-all hover:border-zinc-300 hover:bg-zinc-50"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-violet-50 group-hover:bg-violet-100 transition-colors">
-              <BarChart2 className="h-4 w-4 text-violet-600" strokeWidth={1.75} />
-            </div>
-            <span className="text-sm font-medium text-zinc-900">Token Usage</span>
-          </div>
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            Monitor AI token consumption and CLI activity.
-          </p>
-        </Link>
-        )}
+        {/* Live System Telemetry placeholder — spans 1 column */}
+        <div className="lg:col-span-1">
+          <LiveSystemTelemetry />
+        </div>
       </div>
-
-      {/* ── Metrics cards + evidence log table ───────────────────────── */}
-      <DashboardClient allRows={rows} initialViewMode={initialViewMode} />
     </>
   );
 }
@@ -313,9 +337,12 @@ interface DashboardPageProps {
   searchParams: Promise<{ view?: string }>;
 }
 
-export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+export default async function DashboardPage({
+  searchParams,
+}: DashboardPageProps) {
   const { view } = await searchParams;
-  const initialViewMode: "grouped" | "flat" = view === "list" ? "flat" : "grouped";
+  const initialViewMode: "grouped" | "flat" =
+    view === "list" ? "flat" : "grouped";
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -330,18 +357,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             Audit Logs
           </Link>
         }
-        mobileBar={
-          <Link
-            href="/dashboard/audit-logs"
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-100"
-          >
-            <ShieldAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-            Audit
-          </Link>
-        }
+        mobileBar={null}
       />
 
-      <main className="mx-auto max-w-screen-2xl w-full px-6 py-6 md:px-8 md:py-10">
+      <main className="mx-auto max-w-7xl w-full px-8 py-8">
         <Suspense fallback={<DashboardSkeleton />}>
           <DashboardContent initialViewMode={initialViewMode} />
         </Suspense>

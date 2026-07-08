@@ -358,11 +358,15 @@ function TriageCorrectionPill() {
 
 // ---------------------------------------------------------------------------
 // Telemetry cards — based on the *currently filtered* slice
+//
+// Exported so the dashboard page can render the bento metric row independently
+// above the 2/3 + 1/3 content split, while still reflecting the live filtered
+// state inside DashboardClient.
 // ---------------------------------------------------------------------------
 
 // Animation for staggered card entrance — easeOut, zero bounce
 // Uses inline animate/transition (not variants) to avoid framer-motion v12 Easing type strictness
-function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
+export function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
   const total = rows.length;
   const criticalCount = rows.filter((r) => r.severity === "Critical").length;
   const failureRate = total > 0 ? ((criticalCount / total) * 100).toFixed(1) : "0.0";
@@ -374,7 +378,7 @@ function TelemetryCards({ rows }: { rows: DashboardRow[] }) {
   });
 
   return (
-    <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+    <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
       <motion.div {...cardMotion(0)}>
         <Card className="border-zinc-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -777,8 +781,6 @@ export function DashboardClient({ allRows, initialViewMode = "grouped" }: Dashbo
 
   return (
     <>
-      <TelemetryCards rows={filteredRows} />
-
       <div className="rounded border border-zinc-200 bg-white overflow-hidden">
         {/* Table header with filter controls */}
         <div className="flex flex-col gap-3 border-b border-zinc-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">

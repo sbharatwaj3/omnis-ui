@@ -1,5 +1,5 @@
 // omnis-ui/app/dashboard/layout.tsx
-// Dashboard Subscription Gate — async Server Component Layout
+// Dashboard Subscription Gate + Command Center Shell — async Server Component Layout
 //
 // Wraps ALL routes under /dashboard via Next.js route-segment layout nesting.
 // Every request to /dashboard or any sub-route (settings, integration, setup)
@@ -11,6 +11,10 @@
 //   3. org_id === ADMIN_ORG_ID          → allow (admin bypass, skip sub check)
 //   4. subscription_status active|trialing → allow
 //   5. Anything else (past_due, canceled, null) → redirect /pricing
+//
+// Command Center Shell:
+//   After the gate passes, children are rendered inside the full-height
+//   AppSidebar + main content shell instead of a bare <div>.
 //
 // SECURITY: Session verification uses the anon-key session client (createClient).
 //           Subscription status is read via adminClient (service-role) to bypass
@@ -25,6 +29,7 @@ import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
 import { getPendingCount } from "@/app/dashboard/triage/actions";
 import { TriageBadge } from "@/components/triage-badge";
+import { DashboardShell } from "@/components/dashboard-shell";
 
 // ── Admin bypass ────────────────────────────────────────────────────────────
 // ADMIN_ORG_ID is loaded from process.env (never hardcoded) so that the admin
@@ -41,9 +46,6 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   // ── Step 1: Verify authenticated session ──────────────────────────────────
-  // createClient() rehydrates the session from the request cookie.
-  // auth.getUser() is the only call that verifies the JWT with Supabase's
-  // auth server — use it (not getSession) for security-critical checks.
   const supabase = await createClient();
   const {
     data: { user },
@@ -54,8 +56,6 @@ export default async function DashboardLayout({
   }
 
   // ── Step 2: Resolve org_id ────────────────────────────────────────────────
-  // The users table RLS policy allows auth.uid() = user_id reads with the
-  // session client — no need for adminClient here.
   const { data: profile } = await supabase
     .from("users")
     .select("org_id")
@@ -69,26 +69,16 @@ export default async function DashboardLayout({
   const orgId: string = profile.org_id;
 
   // ── Step 3: Admin bypass ──────────────────────────────────────────────────
-  // Designated admin org bypasses subscription check entirely.
   if (orgId === ADMIN_ORG_ID) {
     const { count: pendingCount } = await getPendingCount();
     return (
-      <div className="relative">
-        {/* Pending triage badge — server-side count, visible to admin/qa_manager only */}
-        <div className="absolute top-4 right-4 z-10">
-          <TriageBadge count={pendingCount} role="admin" />
-        </div>
+      <DashboardShell role="admin" pendingCount={pendingCount ?? 0}>
         {children}
-      </div>
+      </DashboardShell>
     );
   }
 
   // ── Step 4: Resolve the user's RBAC role ──────────────────────────────────
-  // Joined members (developer / qa_manager / viewer) do NOT own billing — the
-  // org's admin pays. They must bypass the pricing gate and go straight to the
-  // dashboard (State 3). Only the admin (org owner) is gated on checkout.
-  // Use adminClient to bypass the RBAC-gated RLS on user_roles; org_id scoping
-  // keeps the read confined to this user's own org.
   const { data: roleRow } = await adminClient
     .from("user_roles")
     .select("role")
@@ -102,62 +92,39 @@ export default async function DashboardLayout({
   if (role && role !== "admin") {
     const { count: pendingCount } = await getPendingCount();
     return (
-      <div className="relative">
-        {/* Pending triage badge — server-side count, visible to qa_manager only */}
-        <div className="absolute top-4 right-4 z-10">
-          <TriageBadge count={pendingCount} role={role} />
-        </div>
+      <DashboardShell role={role} pendingCount={pendingCount ?? 0}>
         {children}
-      </div>
+      </DashboardShell>
     );
   }
 
   // ── Step 5: Admin checkout gate ──────────────────────────────────────────
-  // Use adminClient (service-role) to bypass the RBAC-gated RLS policy on
-  // organizations. The org_id filter ensures we only read this org's record.
-  // FAIL-CLOSED: any error (network, Supabase down, missing row) is treated
-  // the same as a denied subscription — redirect to /pricing immediately.
   const { data: org, error: orgError } = await adminClient
     .from("organizations")
     .select("subscription_status, stripe_customer_id")
     .eq("org_id", orgId)
     .single();
 
-  // If the DB query fails for any reason, deny access rather than grant it.
   if (orgError) {
     console.error("[DashboardLayout] Failed to resolve subscription:", orgError.message);
     redirect("/pricing");
   }
 
   const status = org?.subscription_status;
-  // A non-null stripe_customer_id proves the org owner completed Stripe
-  // checkout at least once (set by the Stripe webhook). A freshly created org
-  // has NULL here — that admin is in State 2 and must complete checkout.
   const hasCompletedCheckout = !!org?.stripe_customer_id;
 
   // ── Step 6: Gate decision (admin only) ────────────────────────────────────
-  // State 4 — fully active/paid admin → /dashboard:
-  //   - status === 'active'                      (subscription live), OR
-  //   - status === 'trialing' AND checkout done  (in the Stripe-granted trial)
-  // State 2 — admin created org but has NOT completed checkout, or the
-  //   subscription is past_due / canceled → /pricing.
   if (
     status === "active" ||
     (status === "trialing" && hasCompletedCheckout)
   ) {
     const { count: pendingCount } = await getPendingCount();
     return (
-      <div className="relative">
-        {/* Pending triage badge — server-side count, visible to admin/qa_manager only */}
-        <div className="absolute top-4 right-4 z-10">
-          <TriageBadge count={pendingCount} role={role ?? ""} />
-        </div>
+      <DashboardShell role={role ?? "admin"} pendingCount={pendingCount ?? 0}>
         {children}
-      </div>
+      </DashboardShell>
     );
   }
 
-  // Deny: pre-checkout 'trialing' (no stripe_customer_id), past_due, canceled,
-  // null/undefined/unknown — send the admin to the pricing page to subscribe.
   redirect("/pricing");
 }
