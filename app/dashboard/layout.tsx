@@ -88,6 +88,18 @@ export default async function DashboardLayout({
 
   const role = roleRow?.role ?? null;
 
+  // DEMO MODE: Stripe subscription gate is disabled.
+  // All authenticated users with a valid org_id pass directly to the dashboard.
+  // The Stripe checkout gate (Steps 5 & 6 below) is commented out.
+  // TODO: Re-enable the subscription check post-demo when billing is reactivated.
+  const { count: pendingCount } = await getPendingCount();
+  return (
+    <DashboardShell role={role ?? "admin"} pendingCount={pendingCount ?? 0}>
+      {children}
+    </DashboardShell>
+  );
+
+  /*
   // Non-admin joined members bypass the pricing gate entirely.
   if (role && role !== "admin") {
     const { count: pendingCount } = await getPendingCount();
@@ -127,4 +139,5 @@ export default async function DashboardLayout({
   }
 
   redirect("/pricing");
+  */
 }

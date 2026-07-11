@@ -174,12 +174,11 @@ export async function createOrganization(
     };
   }
 
-  // Step 6: Redirect the new admin to /pricing to complete Stripe checkout.
-  // A freshly created org has not yet completed checkout (no stripe_customer_id),
-  // so the org owner must select a plan before entering the dashboard.
-  // redirect() throws internally in Next.js, so it must not be called inside a
-  // try/catch block.
-  redirect("/pricing");
+  // Step 6: Redirect to the dashboard directly.
+  // DEMO MODE: Stripe paywall is disabled. Org creators go straight to the
+  // dashboard without completing a Stripe checkout.
+  // TODO: Re-enable redirect("/pricing") post-demo when billing is reactivated.
+  redirect("/dashboard");
 }
 
 // ---------------------------------------------------------------------------
