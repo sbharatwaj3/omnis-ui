@@ -22,23 +22,15 @@
 export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Activity } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { adminClient } from "@/utils/supabase/admin";
 import {
   DashboardClient,
-  TelemetryCards,
   type DashboardRow,
 } from "@/components/dashboard-client";
 import { TriageBadge } from "@/components/triage-badge";
 import { getPendingCount } from "@/app/dashboard/triage/actions";
-import { SubmissionReadinessColumn } from "@/components/submission-readiness-column";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -166,24 +158,10 @@ async function fetchAllLogs(): Promise<DashboardRow[]> {
 
 function DashboardSkeleton() {
   return (
-    <>
-      <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="border-zinc-200">
-            <CardHeader className="pb-2">
-              <div className="h-3 w-24 animate-pulse rounded bg-zinc-200" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-16 animate-pulse rounded bg-zinc-200" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 h-64 animate-pulse rounded bg-zinc-100" />
-        <div className="lg:col-span-1 min-h-96 animate-pulse rounded bg-zinc-100" />
-      </div>
-    </>
+    <div className="w-full">
+      <div className="h-12 w-64 animate-pulse rounded bg-zinc-200 mb-4" />
+      <div className="h-96 w-full animate-pulse rounded bg-zinc-100" />
+    </div>
   );
 }
 
@@ -199,20 +177,9 @@ async function DashboardContent({
   const rows = await fetchAllLogs();
 
   return (
-    <>
-      {/* Bento metric row */}
-      <TelemetryCards rows={rows} />
-
-      {/* 2/3 + 1/3 content split — fills the max-w-5xl parent boundary */}
-      <div className="w-full grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 min-w-0">
-          <DashboardClient allRows={rows} initialViewMode={initialViewMode} previewLimit={10} />
-        </div>
-        <div className="lg:col-span-1">
-          <SubmissionReadinessColumn />
-        </div>
-      </div>
-    </>
+    <div className="w-full">
+      <DashboardClient allRows={rows} initialViewMode={initialViewMode} previewLimit={10} />
+    </div>
   );
 }
 

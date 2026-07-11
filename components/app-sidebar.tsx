@@ -266,27 +266,6 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* ── API Token Quota ──────────────────────────────────────────────── */}
-      <div className="mx-3 mb-3 mt-auto rounded border border-zinc-200 bg-white px-3 py-2.5">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-          API Token Quota
-        </p>
-        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-zinc-200">
-          <div
-            className="h-full bg-emerald-500 transition-all"
-            style={{ width: "82%" }}
-            role="progressbar"
-            aria-valuenow={82}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label="API token quota: 82% used"
-          />
-        </div>
-        <p className="mt-1.5 text-[10px] text-zinc-400">
-          820k&nbsp;/&nbsp;1M Tokens Used
-        </p>
-      </div>
-
       {/* ── Bottom-anchored footer ────────────────────────────────────────── */}
       <div className="border-t border-zinc-200 px-3 py-3">
         {/* Section label */}
